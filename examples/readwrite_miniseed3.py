@@ -48,10 +48,10 @@ with open(ms3filename, "wb") as of:
 print()
 print()
 with open(ms3filename, "rb") as infile:
-    readms3record = simplemseed.readMSeed3Record(infile)
-    print(f"  extract: {readms3record.details()} ")
-    print(f"     from: {ms3filename} ")
-    print(f"      crc: {crcAsHex(readms3record.header.crc)}")
-    assert (
-        readms3record.header.numSamples == ms3record.header.numSamples
-    ), f"Num samples: {readms3record.header.numSamples} != {ms3record.header.numSamples}"
+    for readms3record in simplemseed.readMSeed3Records(infile):
+        print(f"  extract: {readms3record.details()} ")
+        print(f"     from: {ms3filename} ")
+        print(f"      crc: {crcAsHex(readms3record.header.crc)}")
+        assert (
+            readms3record.header.numSamples == ms3record.header.numSamples
+        ), f"Num samples: {readms3record.header.numSamples} != {ms3record.header.numSamples}"

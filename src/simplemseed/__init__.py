@@ -3,7 +3,7 @@ __version__ = "0.1.0"
 from .mseed3 import (
     unpackMSeed3Record,
     unpackMSeed3FixedHeader,
-    readMSeed3Record,
+    readMSeed3Records,
     MSeed3Header,
     MSeed3Record,
     CRC_OFFSET,
@@ -47,7 +47,7 @@ __all__ = [
     readMiniseed2Record,
     unpackMSeed3Record,
     unpackMSeed3FixedHeader,
-    readMSeed3Record,
+    readMSeed3Records,
     MSeed3Header,
     MSeed3Record,
     CRC_OFFSET,

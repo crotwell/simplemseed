@@ -543,35 +543,35 @@ def unpackMSeed3Record(recordBytes, check_crc=True):
     return ms3Rec
 
 
-def readMSeed3Record(fileptr, check_crc=True):
+def readMSeed3Records(fileptr, check_crc=True):
     headBytes = fileptr.read(FIXED_HEADER_SIZE)
-    if len(headBytes) == 0:
-        return None
-    ms3header = unpackMSeed3FixedHeader(headBytes)
-    crc = 0
-    if check_crc:
-        crcHeadBytes = bytearray(headBytes)
-        struct.pack_into("<I", crcHeadBytes, CRC_OFFSET, 0)
-        crc = crc32c.crc32c(crcHeadBytes)
-    identifierBytes = fileptr.read(ms3header.identifierLength)
-    if check_crc:
-        crc = crc32c.crc32c(identifierBytes, crc)
-    identifier = identifierBytes.decode("utf-8")
-    ehBytes = fileptr.read(ms3header.extraHeadersLength)
-    if check_crc:
-        crc = crc32c.crc32c(ehBytes, crc)
-    extraHeadersStr = ehBytes.decode("utf-8")
-    encodedDataBytes = fileptr.read(ms3header.dataLength)
-    if check_crc:
-        crc = crc32c.crc32c(encodedDataBytes, crc)
-        if ms3header.crc != crc:
-            raise MiniseedException(f"crc fail:  Calc: {crc}  Header: {ms3header.crc}")
+    while len(headBytes) >= FIXED_HEADER_SIZE:            
+        ms3header = unpackMSeed3FixedHeader(headBytes)
+        crc = 0
+        if check_crc:
+            crcHeadBytes = bytearray(headBytes)
+            struct.pack_into("<I", crcHeadBytes, CRC_OFFSET, 0)
+            crc = crc32c.crc32c(crcHeadBytes)
+        identifierBytes = fileptr.read(ms3header.identifierLength)
+        if check_crc:
+            crc = crc32c.crc32c(identifierBytes, crc)
+        identifier = identifierBytes.decode("utf-8")
+        ehBytes = fileptr.read(ms3header.extraHeadersLength)
+        if check_crc:
+            crc = crc32c.crc32c(ehBytes, crc)
+        extraHeadersStr = ehBytes.decode("utf-8")
+        encodedDataBytes = fileptr.read(ms3header.dataLength)
+        if check_crc:
+            crc = crc32c.crc32c(encodedDataBytes, crc)
+            if ms3header.crc != crc:
+                raise MiniseedException(f"crc fail:  Calc: {crc}  Header: {ms3header.crc}")
 
-    encodedData = EncodedDataSegment(
-        ms3header.encoding, encodedDataBytes, ms3header.numSamples, True
-    )
-    ms3 = MSeed3Record(ms3header, identifier, encodedData, extraHeaders=extraHeadersStr)
-    return ms3
+        encodedData = EncodedDataSegment(
+            ms3header.encoding, encodedDataBytes, ms3header.numSamples, True
+        )
+        ms3 = MSeed3Record(ms3header, identifier, encodedData, extraHeaders=extraHeadersStr)
+        yield ms3
+        headBytes = fileptr.read(FIXED_HEADER_SIZE)
 
 
 def areCompatible(ms3a: MSeed3Record, ms3b: MSeed3Record, timeTolFactor=0.5) -> bool:
