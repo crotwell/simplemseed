@@ -32,7 +32,7 @@ def mseed2to3(ms2: MiniseedRecord) -> MSeed3Record:
         if ms2.header.sampleRate >= 1
         else (-1.0 / ms2.header.sampleRate)
     )
-    ms3Header.numSamples = ms2H.numsamples
+    ms3Header.numSamples = ms2H.numSamples
     ms3Header.recordCRC = 0
 
     b1000 = None

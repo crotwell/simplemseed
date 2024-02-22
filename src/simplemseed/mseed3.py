@@ -391,7 +391,7 @@ class MSeed3Record:
         return self.summary()
 
     def summary(self):
-        return f"{self.identifier} {isoWZ(self.header.starttime)} {isoWZ(self.header.endtime)} {self.header.numSamples} pts"
+        return f"{self.identifier} {isoWZ(self.header.starttime)} {isoWZ(self.header.endtime)} ({self.header.numSamples} pts)"
 
     def encodingName(self):
         encode_name = f"unknown ({self.header.encoding})"
@@ -545,7 +545,7 @@ def unpackMSeed3Record(recordBytes, check_crc=True):
 
 def readMSeed3Records(fileptr, check_crc=True):
     headBytes = fileptr.read(FIXED_HEADER_SIZE)
-    while len(headBytes) >= FIXED_HEADER_SIZE:            
+    while len(headBytes) >= FIXED_HEADER_SIZE:
         ms3header = unpackMSeed3FixedHeader(headBytes)
         crc = 0
         if check_crc:

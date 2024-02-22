@@ -39,7 +39,7 @@ class MiniseedHeader:
         location,
         channel,
         starttime,
-        numsamples,
+        numSamples,
         sampleRate,
         encoding=ENC_INT,
         byteorder=BIG_ENDIAN,
@@ -65,7 +65,7 @@ class MiniseedHeader:
         self.dataquality = "D"  # Data quality indicator */
         self.setStartTime(starttime)  # Record start time, corrected (first sample) */
         self.sampleRate = sampleRate  # Nominal sample rate (Hz) */
-        self.numsamples = numsamples  # Number of samples in record */
+        self.numSamples = numSamples  # Number of samples in record */
         self.encoding = encoding  # Data encoding format */
         self.byteorder = byteorder  # Original/Final byte order of record */
         if self.byteorder == 1:
@@ -141,7 +141,7 @@ class MiniseedHeader:
             self.endianChar + "Hhh",
             header,
             30,
-            self.numsamples,
+            self.numSamples,
             tempsampRateFactor,
             tempsampRateMult,
         )
@@ -242,7 +242,7 @@ class MiniseedRecord:
             self.__data = decompressEncodedData(
                 self.header.encoding,
                 self.header.byteorder,
-                self.header.numsamples,
+                self.header.numSamples,
                 self.encodedData,
             )
         return self.__data
@@ -254,10 +254,10 @@ class MiniseedRecord:
         return self.header.starttime
 
     def endtime(self):
-        return self.starttime() + self.header.sampPeriod * (self.header.numsamples - 1)
+        return self.starttime() + self.header.sampPeriod * (self.header.numSamples - 1)
 
     def next_starttime(self):
-        return self.starttime() + self.header.sampPeriod * (self.header.numsamples)
+        return self.starttime() + self.header.sampPeriod * (self.header.numSamples)
 
     def clone(self):
         return unpackMiniseedRecord(self.pack())
@@ -397,7 +397,10 @@ class MiniseedRecord:
             )
 
     def __str__(self):
-        return f"{self.codes()} {self.starttime()} {self.endtime()}"
+        return self.summary()
+
+    def summary(self):
+        return f"{self.codes()} {self.starttime()} {self.endtime()} ({self.header.numSamples} pts)"
 
 
 def unpackMiniseedHeader(recordBytes, endianChar=">"):
@@ -419,7 +422,7 @@ def unpackMiniseedHeader(recordBytes, endianChar=">"):
         min,
         sec,
         tenthMilli,
-        numsamples,
+        numSamples,
         sampRateFactor,
         sampRateMult,
         actFlag,
@@ -447,7 +450,7 @@ def unpackMiniseedHeader(recordBytes, endianChar=">"):
         loc,
         chan,
         starttime,
-        numsamples,
+        numSamples,
         sampleRate,
         encoding=encoding,
         byteorder=byteorder,
@@ -570,34 +573,34 @@ def unpackMiniseedRecord(recordBytes):
     encodedData = recordBytes[header.dataOffset :]
     if header.encoding == ENC_SHORT or header.encoding == ENC_INT:
         data = decompressEncodedData(
-            header.encoding, header.byteOrder, header.numsamples, encodedData
+            header.encoding, header.byteOrder, header.numSamples, encodedData
         )
     else:
         data = None
     return MiniseedRecord(header, data, encodedData=encodedData, blockettes=blockettes)
 
 
-def decompressEncodedData(encoding, byteOrder, numsamples, recordBytes):
+def decompressEncodedData(encoding, byteOrder, numSamples, recordBytes):
     needSwap = (byteOrder == BIG_ENDIAN and sys.byteorder == "little") or (
         byteOrder == LITTLE_ENDIAN and sys.byteorder == "big"
     )
     if encoding == ENC_SHORT:
         data = array(
             "h",
-            recordBytes[: 2 * numsamples],
+            recordBytes[: 2 * numSamples],
         )
         if needSwap:
             data.byteswap()
     elif encoding == ENC_INT:
         data = array(
             "i",
-            recordBytes[: 4 * numsamples],
+            recordBytes[: 4 * numSamples],
         )
         if needSwap:
             data.byteswap()
     else:
         # byteswap handled by function
-        data = decompress(encoding, recordBytes, numsamples, byteOrder == LITTLE_ENDIAN)
+        data = decompress(encoding, recordBytes, numSamples, byteOrder == LITTLE_ENDIAN)
     return data
 
 
