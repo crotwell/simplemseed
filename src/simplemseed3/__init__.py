@@ -25,6 +25,7 @@ from .fdsnsourceid import (
     StationSourceId,
     LocationSourceId,
     bandCodeForRate,
+    NslcId,
 )
 from .seedcodec import (
     compress,
