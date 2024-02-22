@@ -20,6 +20,7 @@ from .miniseed import (
     readMiniseed2Record
 )
 from .fdsnsourceid import (
+    FDSN_PREFIX,
     FDSNSourceId,
     NetworkSourceId,
     StationSourceId,
@@ -49,6 +50,7 @@ __all__ = [
     MSeed3Record,
     CRC_OFFSET,
     unpackBlockette,
+    FDSN_PREFIX,
     FDSNSourceId,
     NetworkSourceId,
     StationSourceId,
