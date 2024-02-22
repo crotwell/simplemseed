@@ -5,24 +5,24 @@ import simplemseed
 from datetime import datetime
 from pathlib import Path
 
-TEST_DIR =  Path(__file__).parent
+TEST_DIR = Path(__file__).parent
 
 githubUrl = "git clone https://github.com/FDSN/miniSEED3.git"
 
 # ref data from https://github.com/FDSN/miniSEED3
 ref_data_dir = f"{TEST_DIR}/miniSEED3/reference-data"
 ref_data_list = [
-  f"{ref_data_dir}/reference-detectiononly.mseed3",
-  f"{ref_data_dir}/reference-sinusoid-FDSN-All.mseed3",
-  f"{ref_data_dir}/reference-sinusoid-FDSN-Other.mseed3",
-  f"{ref_data_dir}/reference-sinusoid-TQ-TC-ED.mseed3",
-  f"{ref_data_dir}/reference-sinusoid-float32.mseed3",
-  f"{ref_data_dir}/reference-sinusoid-float64.mseed3",
-  f"{ref_data_dir}/reference-sinusoid-int16.mseed3",
-  f"{ref_data_dir}/reference-sinusoid-int32.mseed3",
-  f"{ref_data_dir}/reference-sinusoid-steim1.mseed3",
-  f"{ref_data_dir}/reference-sinusoid-steim2.mseed3",
-  f"{ref_data_dir}/reference-text.mseed3",
+    f"{ref_data_dir}/reference-detectiononly.mseed3",
+    f"{ref_data_dir}/reference-sinusoid-FDSN-All.mseed3",
+    f"{ref_data_dir}/reference-sinusoid-FDSN-Other.mseed3",
+    f"{ref_data_dir}/reference-sinusoid-TQ-TC-ED.mseed3",
+    f"{ref_data_dir}/reference-sinusoid-float32.mseed3",
+    f"{ref_data_dir}/reference-sinusoid-float64.mseed3",
+    f"{ref_data_dir}/reference-sinusoid-int16.mseed3",
+    f"{ref_data_dir}/reference-sinusoid-int32.mseed3",
+    f"{ref_data_dir}/reference-sinusoid-steim1.mseed3",
+    f"{ref_data_dir}/reference-sinusoid-steim2.mseed3",
+    f"{ref_data_dir}/reference-text.mseed3",
 ]
 
 
@@ -37,7 +37,7 @@ class TestMSeed3:
         for filename in ref_data_list:
             if not os.path.exists(filename):
                 assert False, f"load reference data for {filename} from {githubUrl}"
-            with open(filename, 'rb') as infile:
+            with open(filename, "rb") as infile:
                 rec_bytes = infile.read()
                 rec = simplemseed.mseed3.unpackMSeed3Record(rec_bytes)
                 if rec.header.encoding != 0:
@@ -45,20 +45,30 @@ class TestMSeed3:
                     data = rec.decompress()
                     assert len(data) > 0, filename
                     jsonfilename = filename.replace(".mseed3", ".json")
-                    with open(jsonfilename, 'r') as injson:
+                    with open(jsonfilename, "r") as injson:
                         jsonrec = json.load(injson)[0]
                         assert jsonrec["FormatVersion"] == rec.header.formatVersion
                         assert jsonrec["EncodingFormat"] == rec.header.encoding
-                        assert jsonrec["SampleRate"] == rec.header.sampleRate, f"{jsonrec['SampleRate']} != {rec.header.sampleRate}"
+                        assert (
+                            jsonrec["SampleRate"] == rec.header.sampleRate
+                        ), f"{jsonrec['SampleRate']} != {rec.header.sampleRate}"
                         assert jsonrec["SampleCount"] == rec.header.numSamples
-                        assert jsonrec["CRC"] == rec.header.crcAsHex(), f"{jsonrec['CRC']} {rec.header.crcAsHex()}"
-                        assert jsonrec["PublicationVersion"] == rec.header.publicationVersion
-                        assert jsonrec["SID"] == rec.identifier, f"sid {jsonrec['SID']}  {rec.identifier}"
+                        assert (
+                            jsonrec["CRC"] == rec.header.crcAsHex()
+                        ), f"{jsonrec['CRC']} {rec.header.crcAsHex()}"
+                        assert (
+                            jsonrec["PublicationVersion"]
+                            == rec.header.publicationVersion
+                        )
+                        assert (
+                            jsonrec["SID"] == rec.identifier
+                        ), f"sid {jsonrec['SID']}  {rec.identifier}"
                         jsondata = jsonrec["Data"]
                         assert len(jsondata) == len(data)
                         for i in range(len(jsondata)):
-                            assert jsondata[i] == data[i], f"{i}  {jsondata[i]} != {data[i]}"
-
+                            assert (
+                                jsondata[i] == data[i]
+                            ), f"{i}  {jsondata[i]} != {data[i]}"
 
     def test_roundtrip(self):
         values = [3, 1, -1, 2000]
@@ -74,17 +84,20 @@ class TestMSeed3:
         decomp_data = outRecord.decompress()
         assert len(decomp_data) == len(values)
         for i in range(len(decomp_data)):
-            assert decomp_data[i] == values[i], f"{i} msi:{decomp_data[i]} != {values[i]} "
+            assert (
+                decomp_data[i] == values[i]
+            ), f"{i} msi:{decomp_data[i]} != {values[i]} "
 
     def test_decompressRecord(self):
         filename = f"{ref_data_dir}/reference-sinusoid-steim1.mseed3"
-        with open(filename, 'rb') as infile:
+        with open(filename, "rb") as infile:
             rec_bytes = infile.read()
             rec = simplemseed.mseed3.unpackMSeed3Record(rec_bytes)
             decompRec = rec.decompressedRecord()
             assert decompRec.header.encoding == simplemseed.seedcodec.INTEGER
             assert rec.header.numSamples == decompRec.header.numSamples
-            assert len(decompRec.encodedData.dataBytes) == 4*rec.header.numSamples
+            assert len(decompRec.encodedData.dataBytes) == 4 * rec.header.numSamples
+
 
 if __name__ == "__main__":
     TestMSeed3().test_ref_data()

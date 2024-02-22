@@ -4,7 +4,7 @@ import simplemseed
 from datetime import datetime
 from pathlib import Path
 
-TEST_DIR =  Path(__file__).parent
+TEST_DIR = Path(__file__).parent
 
 
 # mseed2 via

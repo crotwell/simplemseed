@@ -4,7 +4,7 @@ import simplemseed
 from datetime import datetime
 from pathlib import Path
 
-TEST_DIR =  Path(__file__).parent
+TEST_DIR = Path(__file__).parent
 
 
 # mseed2 via
@@ -19,7 +19,9 @@ class TestMseed2:
             assert len(rec_bytes) == 512
             rec = simplemseed.miniseed.unpackMiniseedRecord(rec_bytes)
             assert rec.codes() == "CO.CASEE.00.HHZ"
-            assert rec.starttime() == datetime.fromisoformat("2023-06-17T04:53:54.468648+00:00")
+            assert rec.starttime() == datetime.fromisoformat(
+                "2023-06-17T04:53:54.468648+00:00"
+            )
             data = rec.decompressed()
 
             msi_data = [89, 67, 53, 71, 86, 89,
@@ -41,15 +43,17 @@ class TestMseed2:
                147, 142, 138, 143, 136, 140,
                143, 137]
             # vals from msi -d -n 1 casee.mseed2
-            assert data[0] ==  89
+            assert data[0] == 89
             assert data[1] == 67
             assert data[2] == 53
             assert data[3] == 71
             assert data[4] == 86
             assert data[5] == 89
-            assert len(data) == len(msi_data), f"d:{len(data)} should be orig:{len(msi_data)}"
+            assert len(data) == len(
+                msi_data
+            ), f"d:{len(data)} should be orig:{len(msi_data)}"
             for i in range(len(msi_data)):
-                    assert msi_data[i] == data[i]
+                assert msi_data[i] == data[i]
 
 
 if __name__ == "__main__":

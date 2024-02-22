@@ -31,7 +31,7 @@ class TestSourceId:
         assert nslc.locationCode == loc
         assert nslc.channelCode == f"{band}{s}{subs}"
 
-        sid_nslc = simplemseed.FDSNSourceId.parseNslc(chanNslc, sep='_')
+        sid_nslc = simplemseed.FDSNSourceId.parseNslc(chanNslc, sep="_")
         assert sid_nslc.networkCode == net
         assert sid_nslc.stationCode == sta
         assert sid_nslc.locationCode == loc
@@ -40,8 +40,7 @@ class TestSourceId:
         assert sid_nslc.subsourceCode == subs
         assert sid == sid_nslc
 
-
-        sid_dotnslc = simplemseed.FDSNSourceId.parseNslc(chanDotNslc, sep='.')
+        sid_dotnslc = simplemseed.FDSNSourceId.parseNslc(chanDotNslc, sep=".")
         assert sid_dotnslc.networkCode == net
         assert sid_dotnslc.stationCode == sta
         assert sid_dotnslc.locationCode == loc
@@ -50,7 +49,9 @@ class TestSourceId:
         assert sid_dotnslc.subsourceCode == subs
         assert sid == sid_dotnslc
 
-        sid_nslcparts = simplemseed.FDSNSourceId.fromNslc(net, sta, loc, f"{band}{s}{subs}")
+        sid_nslcparts = simplemseed.FDSNSourceId.fromNslc(
+            net, sta, loc, f"{band}{s}{subs}"
+        )
         assert sid_nslcparts.networkCode == net
         assert sid_nslcparts.stationCode == sta
         assert sid_nslcparts.locationCode == loc
@@ -67,7 +68,6 @@ class TestSourceId:
         assert staSid == staSid2
         assert str(staSid) == str(staSid2)
 
-
         netSid = sid.networkSourceId()
         netSidStr = "FDSN:CO"
         netSid2 = simplemseed.FDSNSourceId.parse(netSidStr)
@@ -82,9 +82,11 @@ class TestSourceId:
         assert unknown_100sps.bandCode == "E"
         assert unknown_100sps.sourceCode == "H"
         assert unknown_100sps.subsourceCode == "Z"
-        unknown_100sps = simplemseed.FDSNSourceId.createUnknown(100, response_lb=1/120)
+        unknown_100sps = simplemseed.FDSNSourceId.createUnknown(
+            100, response_lb=1 / 120
+        )
         assert unknown_100sps.bandCode == "H"
         unknown_1sps = simplemseed.FDSNSourceId.createUnknown(1)
         assert unknown_1sps.bandCode == "L"
-        unknown_100sec = simplemseed.FDSNSourceId.createUnknown(.01)
+        unknown_100sec = simplemseed.FDSNSourceId.createUnknown(0.01)
         assert unknown_100sec.bandCode == "U"
