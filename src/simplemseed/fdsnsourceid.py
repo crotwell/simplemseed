@@ -6,11 +6,30 @@ http://www.seis.sc.edu
 
 from typing import Union, Optional
 import argparse
+import json
+from importlib import resources as importlib_resources
 
 FDSN_PREFIX = "FDSN:"
 
 SEP = "_"
 
+BAND_CODE_JSON = {}
+bandcodes_file = (importlib_resources.files(__package__) / "bandcode.json")
+with bandcodes_file.open("rb") as f:
+    # load as json array
+    bcList = json.load(f)
+    # convert to dict by code
+    for bc in bcList:
+        BAND_CODE_JSON[bc["code"]] = bc
+
+SOURCE_CODE_JSON = {}
+sourcecodes_file = (importlib_resources.files(__package__) / "sourcecode.json")
+with sourcecodes_file.open("rb") as f:
+    # load as json array
+    bcList = json.load(f)
+    # convert to dict by code
+    for bc in bcList:
+        SOURCE_CODE_JSON[bc["code"]] = bc
 
 class FDSNSourceId:
     networkCode: str
@@ -231,6 +250,52 @@ def bandCodeForRate(
             f"Unable to calc band code for: {sampRate} {response_lb}"
         )
 
+def bandCodeInfo(bandCode: str):
+    """
+    Type, rate and response lower bound describing the band code.
+
+    {'type': 'Very Long Period', 'rate': '>= 0.1 to < 1', 'response_lb': ''}
+
+    See http://docs.fdsn.org/projects/source-identifiers/en/v1.0/channel-codes.html#band-code
+    """
+    return BAND_CODE_JSON[bandCode]
+
+def bandCodeDescribe(
+    bandCode: str,
+) -> str:
+    """
+    Describe the band code.
+
+    See http://docs.fdsn.org/projects/source-identifiers/en/v1.0/channel-codes.html#band-code
+    """
+    bc = bandCodeInfo(bandCode)
+    bandD = f"{bc['type']}, {bc['rate']} Hz"
+    if len(bc["response_lb"]) > 0:
+        bandD += f", response period {bc['response_lb']}"
+    return bandD
+
+def sourceCodeInfo(sourceCode: str):
+    """
+    Type, describing the source code.
+
+    { "code": "H", "type": "High Gain Seismometer" }
+
+    See http://docs.fdsn.org/projects/source-identifiers/en/v1.0/channel-codes.html
+    """
+    return SOURCE_CODE_JSON[sourceCode]
+
+def sourceCodeDescribe(
+    sourceCode: str,
+) -> str:
+    """
+    Describe the source code.
+
+    See http://docs.fdsn.org/projects/source-identifiers/en/v1.0/channel-codes.html
+    """
+    bc = sourceCodeInfo(sourceCode)
+    bandD = f"{bc['type']}"
+    return bandD
+
 
 class NslcId:
     networkCode: str
@@ -262,7 +327,16 @@ def do_parseargs():
     parser.add_argument(
         "-v", "--verbose", help="increase output verbosity", action="store_true"
     )
-    parser.add_argument("sid", nargs="+", help="source id to print")
+    parser.add_argument(
+        "-b", "--band", nargs='+', required=False, help="describe band code"
+    )
+    parser.add_argument(
+        "-s", "--source", nargs='+', required=False, help="describe source code"
+    )
+    parser.add_argument(
+        "--sps", required=False, type=float, help="band code for sample rate"
+    )
+    parser.add_argument("sid", nargs="*", help="source id to print")
     return parser.parse_args()
 
 
@@ -270,14 +344,32 @@ def main():
     import sys
 
     args = do_parseargs()
+    if args.sps:
+        bbc = bandCodeForRate(args.sps, 0.01)
+        spc = bandCodeForRate(args.sps, 10)
+        print(f"      Rate: {args.sps} - {bbc} - {bandCodeDescribe(bbc)}")
+        if bbc != spc:
+            print(f"      Rate: {args.sps} - {spc} - {bandCodeDescribe(spc)}")
+
+    if args.band is not None:
+        for bands in args.band:
+            # in case no space between arg chars
+            for bandCode in bands:
+                print(f"      Band: {bandCode} - {bandCodeDescribe(bandCode)}")
+
+    if args.source is not None:
+        for sourceCode in args.source:
+            print(f"    Source: {sourceCode} - {sourceCodeDescribe(sourceCode)}")
+            print(f"       {SOURCE_CODE_JSON[sourceCode]['desc']}")
+
     for a in args.sid:
         sid = FDSNSourceId.parse(a)
         print(f"      {sid}")
         print(f"       Net: {sid.networkCode}")
         print(f"       Sta: {sid.stationCode}")
         print(f"       Loc: {sid.locationCode}")
-        print(f"      Band: {sid.bandCode}")
-        print(f"    Source: {sid.sourceCode}")
+        print(f"      Band: {sid.bandCode} - {bandCodeDescribe(sid.bandCode)}")
+        print(f"    Source: {sid.sourceCode} - {sourceCodeDescribe(sid.sourceCode)}")
         print(f" Subsource: {sid.subsourceCode}")
 
 

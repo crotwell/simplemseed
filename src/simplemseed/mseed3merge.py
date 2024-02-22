@@ -33,7 +33,7 @@ def main():
         with open(args.ms3file, "rb") as inms3file:
             prevms3 = None
             for ms3 in readMSeed3Records(inms3file):
-                if decomp:
+                if args.decomp:
                     ms3 = ms3.decompressedRecord()
                 if prevms3 is not None:
                     merged = mseed3merge(prevms3, ms3)

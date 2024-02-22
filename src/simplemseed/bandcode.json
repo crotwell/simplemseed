@@ -1,0 +1,23 @@
+[
+{ "code": "J", "type": "", "rate": "> 5000", "response_lb": "" },
+{ "code": "F", "type": "", "rate": ">= 1000 to < 5000", "response_lb": ">= 10 sec" },
+{ "code": "G", "type": "", "rate": ">= 1000 to < 5000", "response_lb": "< 10 sec " },
+{ "code": "D", "type": "", "rate": ">= 250 to < 1000", "response_lb": "< 10 sec " },
+{ "code": "C", "type": "", "rate": ">= 250 to < 1000", "response_lb": ">= 10 sec" },
+{ "code": "E", "type": "Extremely Short Period", "rate": ">= 80 to < 250", "response_lb": "< 10 sec " },
+{ "code": "S", "type": "Short Period", "rate": ">= 10 to < 80", "response_lb": "< 10 sec " },
+{ "code": "H", "type": "High Broadband", "rate": ">= 80 to < 250", "response_lb": ">= 10 sec" },
+{ "code": "B", "type": "Broadband", "rate": ">= 10 to < 80", "response_lb": ">= 10 sec" },
+{ "code": "M", "type": "Mid Period", "rate": "> 1 to < 10", "response_lb": "" },
+{ "code": "L", "type": "Long Period", "rate": "~ 1", "response_lb": "" },
+{ "code": "V", "type": "Very Long Period", "rate": ">= 0.1 to < 1", "response_lb": "" },
+{ "code": "U", "type": "Ultra Long Period", "rate": ">= 0.01 to < 0.1", "response_lb": "" },
+{ "code": "W", "type": "Ultra-ultra Long Period", "rate": ">= 0.001 to < 0.01", "response_lb": "" },
+{ "code": "R", "type": "Extremely Long Period", "rate": ">= 0.0001 to < 0.001", "response_lb": "" },
+{ "code": "P", "type": "On order of 0.1 to 1 day", "rate": ">= 0.00001 to < 0.0001", "response_lb": "" },
+{ "code": "T", "type": "On order of 1 to 10 days", "rate": ">= 0.000001 to < 0.00001", "response_lb": "" },
+{ "code": "Q", "type": "Greater than 10 days", "rate": "< 0.000001", "response_lb": "" },
+{ "code": "I", "type": "Irregularly sampled", "rate": "irregular", "response_lb": "" },
+{ "code": "A", "type": "Administrative", "rate": "variable, DEPRECATED", "response_lb": "" },
+{ "code": "O", "type": "Opaque", "rate": "variable, DEPRECATED", "response_lb": "" }
+]
