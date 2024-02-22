@@ -23,5 +23,6 @@ print(sid.networkSourceId() == simplemseed.FDSNSourceId.parse("FDSN:CO"))
 
 print(simplemseed.FDSNSourceId.createUnknown())
 print(simplemseed.FDSNSourceId.createUnknown(100))
+print(simplemseed.FDSNSourceId.createUnknown(100, response_lb=.01))
 print(simplemseed.FDSNSourceId.createUnknown(1))
 print(simplemseed.FDSNSourceId.createUnknown(0.01))
