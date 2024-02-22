@@ -29,6 +29,8 @@ from .fdsnsourceid import (
     LocationSourceId,
     bandCodeForRate,
     NslcId,
+    bandCodeDescribe,
+    sourceCodeDescribe
 )
 from .seedcodec import (
     compress,
@@ -58,6 +60,8 @@ __all__ = [
     StationSourceId,
     LocationSourceId,
     bandCodeForRate,
+    bandCodeDescribe,
+    sourceCodeDescribe,
     compress,
     decompress,
     CodecException,

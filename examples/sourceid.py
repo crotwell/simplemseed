@@ -26,3 +26,7 @@ print(simplemseed.FDSNSourceId.createUnknown(100))
 print(simplemseed.FDSNSourceId.createUnknown(100, response_lb=.01))
 print(simplemseed.FDSNSourceId.createUnknown(1))
 print(simplemseed.FDSNSourceId.createUnknown(0.01))
+
+print(simplemseed.bandCodeForRate(100, response_lb=.01))
+print(simplemseed.bandCodeDescribe("H"))
+print(simplemseed.sourceCodeDescribe("H"))
