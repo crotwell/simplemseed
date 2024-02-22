@@ -51,7 +51,7 @@ def do_details():
                     else:
                         print(ms3.details(showExtraHeaders=args.eh, showData=args.data))
                 ms3 = readMSeed3Record(inms3file)
-    print(f"total samples: {totSamples} in {numRecords} records")
+    print(f"Total {totSamples} samples in {numRecords} records")
 
 def main():
     try:

@@ -250,7 +250,7 @@ class MSeed3Record:
             data = decompress(self.header.encoding, self.encodedData.dataBytes, self.header.numSamples, byteOrder == LITTLE_ENDIAN)
         return data
 
-    def decompessedRecord(self):
+    def decompressedRecord(self):
         """
         Create a new record with decompressed data and the header encoding
         set to one of the primitive types: short, int, float or double
