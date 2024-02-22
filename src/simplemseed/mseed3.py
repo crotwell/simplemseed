@@ -20,6 +20,7 @@ from .seedcodec import (
     mseed3EncodingFromArrayTypecode,
     mseed3EncodingFromNumpyDT,
 )
+from .fdsnsourceid import FDSNSourceId
 
 
 MINISEED_THREE_MIME = "application/vnd.fdsn.mseed3"
@@ -159,8 +160,9 @@ class MSeed3Header:
             microsecond=int(self.nanosecond / 1000),
             tzinfo=timezone.utc,
         )
-        doy = timedelta(days=self.dayOfYear)
-        return st + doy
+        # start Jan 1, so shift by dayOfYear minus 1
+        doyMinusOne = timedelta(days=self.dayOfYear-1)
+        return st + doyMinusOne
 
     @starttime.setter
     def starttime(self, stime):
@@ -222,7 +224,7 @@ class MSeed3Record:
     def __init__(
         self,
         header: MSeed3Header,
-        identifier: str,
+        identifier: Union[FDSNSourceId, str],
         data,
         extraHeaders: Union[str, dict, None] = None,
     ):
@@ -344,6 +346,8 @@ class MSeed3Record:
         """
         self.header.crc = 0
         # string to bytes
+        if isinstance(self.identifier, FDSNSourceId):
+            self.identifier = str(self.identifier)
         identifierBytes = self.identifier.encode("UTF-8")
         self.header.identifierLength = len(identifierBytes)
         if self._eh is None:
@@ -441,13 +445,13 @@ class MSeed3Record:
         if showExtraHeaders and self.hasExtraHeaders():
             ehLines = json.dumps(self.eh, indent=2).split("\n")
         indentLines = "\n          ".join(ehLines)
-        out = f"""
+        out = f"""\
           {self.identifier}, version {self.header.publicationVersion}, {self.getSize()} bytes (format: {self.header.formatVersion})
                        start time: {isoWZ(self.starttime)} ({self.header.dayOfYear:03})
                 number of samples: {self.header.numSamples}
                  sample rate (Hz): {self.header.sampleRate}
                             flags: [{self.header.flags:>08b}] 8 bits${bitFlagStr}
-                              CRC: {crcAsHex(self.header.crc)}
+                              CRC: {self.header.crcAsHex()}
               extra header length: {self.header.extraHeadersLength} bytes
               data payload length: {self.header.dataLength} bytes
                  payload encoding: {encode_name} (val: {self.header.encoding})

@@ -7,6 +7,8 @@ from .mseed3 import (
     MSeed3Header,
     MSeed3Record,
     CRC_OFFSET,
+    crcAsHex,
+    isoWZ,
 )
 
 from .miniseed import (
@@ -62,4 +64,6 @@ __all__ = [
     decodeSteim1,
     decodeSteim2,
     mseed2to3,
+    crcAsHex,
+    isoWZ,
 ]

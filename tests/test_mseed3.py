@@ -74,6 +74,7 @@ class TestMSeed3:
         values = [3, 1, -1, 2000]
         header = simplemseed.MSeed3Header()
         header.encoding = simplemseed.seedcodec.INTEGER
+        header.starttime = "2024-01-02T15:13:55.123456Z"
         header.sampleRatePeriod = -1
         header.numSamples = len(values)
         identifier = "FDSN:XX_FAKE__H_H_Z"
@@ -82,6 +83,7 @@ class TestMSeed3:
         outRecord = simplemseed.unpackMSeed3Record(recordBytes)
         assert identifier == outRecord.identifier
         decomp_data = outRecord.decompress()
+        assert record.details() == outRecord.details()
         assert len(decomp_data) == len(values)
         for i in range(len(decomp_data)):
             assert (
@@ -98,6 +100,17 @@ class TestMSeed3:
             assert rec.header.numSamples == decompRec.header.numSamples
             assert len(decompRec.encodedData.dataBytes) == 4 * rec.header.numSamples
 
+    def test_starttime(self):
+        header = simplemseed.MSeed3Header()
+        start = "2024-01-02T15:13:55.123456Z"
+        header.starttime = start
+        assert header.year == 2024
+        assert header.dayOfYear == 2
+        assert header.hour == 15
+        assert header.minute == 13
+        assert header.second == 55
+        assert header.nanosecond == 123456000
+        assert simplemseed.isoWZ(header.starttime) == start
 
 if __name__ == "__main__":
     TestMSeed3().test_ref_data()
