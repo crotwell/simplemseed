@@ -5,40 +5,33 @@ import json
 from simplemseed import MSeed3Header, MSeed3Record
 import simplemseed
 import struct
-output_file = 'output.mseed'
+
+output_file = "output.mseed"
 
 
 def crcAsHex(crc):
     return "0x{:08X}".format(crc)
 
+
 eh = {
-        "bag": {
-            "y": {
-                "proc": "raw",
-                "si": "count"
+    "bag": {
+        "y": {"proc": "raw", "si": "count"},
+        "st": {"la": 34.65, "lo": -80.46},
+        "ev": {
+            "origin": {
+                "time": "2024-02-06T11:30:03Z",
+                "la": 34.17,
+                "lo": -80.70,
+                "dp": 1.68,
             },
-            "st": {
-                "la": 34.65,
-                "lo": -80.46
-           },
-           "ev": {
-               "origin": {
-                   "time": "2024-02-06T11:30:03Z",
-                   "la": 34.17,
-                   "lo": -80.70,
-                   "dp": 1.68,
-               },
-               "mag": {
-                   "val": 1.74,
-                   "type": "md"
-               }
-            }
-        }
+            "mag": {"val": 1.74, "type": "md"},
+        },
     }
+}
 
 
-data = array.array('f',( (i%99-49) for i in range(0,1000) ))
-#data = [(i%99-49) for i in range(0,1000)]
+data = array.array("f", ((i % 99 - 49) for i in range(0, 1000)))
+# data = [(i%99-49) for i in range(0,1000)]
 header = simplemseed.MSeed3Header()
 header.starttime = "2024-01-01T15:13:55.123456Z"
 identifier = "FDSN:XX_FAKE__B_H_Z"
@@ -59,4 +52,6 @@ with open(ms3filename, "rb") as infile:
     print(f"  extract: {readms3record.details()} ")
     print(f"     from: {ms3filename} ")
     print(f"      crc: {crcAsHex(readms3record.header.crc)}")
-    assert readms3record.header.numSamples == ms3record.header.numSamples, f"Num samples: {readms3record.header.numSamples} != {ms3record.header.numSamples}"
+    assert (
+        readms3record.header.numSamples == ms3record.header.numSamples
+    ), f"Num samples: {readms3record.header.numSamples} != {ms3record.header.numSamples}"
