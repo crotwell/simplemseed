@@ -388,6 +388,9 @@ class MSeed3Record:
         return recordBytes
 
     def __str__(self):
+        return self.summary()
+
+    def summary(self):
         return f"{self.identifier} {isoWZ(self.header.starttime)} {isoWZ(self.header.endtime)} {self.header.numSamples} pts"
 
     def encodingName(self):
@@ -590,7 +593,7 @@ def areCompatible(ms3a: MSeed3Record, ms3b: MSeed3Record, timeTolFactor=0.5) -> 
     return out
 
 
-def merge(ms3a: MSeed3Record, ms3b: MSeed3Record) -> list[MSeed3Record]:
+def mseed3merge(ms3a: MSeed3Record, ms3b: MSeed3Record) -> list[MSeed3Record]:
     """
     Merges two MSeed3Records if possible. Returned list will have either
     both original records if merge is not possible, or a single new
@@ -600,7 +603,14 @@ def merge(ms3a: MSeed3Record, ms3b: MSeed3Record) -> list[MSeed3Record]:
     to be done automatically, without understanding the meaning of the items.
     """
     out = [ms3a, ms3b]
-    if ms3a.header.encoding == 0 or ms3a.header.encoding > 5:
+    if ms3a is None and ms3b is not None:
+        out = [ms3b]
+    elif ms3a is not None and ms3b is None:
+        out = [ms3a]
+    elif ms3a is None and ms3b is None:
+        # maybe should raise instead???
+        out = [None]
+    elif ms3a.header.encoding == 0 or ms3a.header.encoding > 5:
         # only primitve encoding currently are mergable
         pass
     elif areCompatible(ms3a, ms3b):

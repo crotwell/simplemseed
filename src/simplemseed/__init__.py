@@ -7,6 +7,7 @@ from .mseed3 import (
     MSeed3Header,
     MSeed3Record,
     CRC_OFFSET,
+    mseed3merge,
     crcAsHex,
     isoWZ,
 )
@@ -66,4 +67,5 @@ __all__ = [
     mseed2to3,
     crcAsHex,
     isoWZ,
+    mseed3merge,
 ]
