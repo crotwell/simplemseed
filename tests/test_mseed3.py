@@ -103,6 +103,15 @@ class TestMSeed3:
         for i in range(len(decomp_data)):
             assert decomp_data[i] == values[i], f"{i} msi:{decomp_data[i]} != {values[i]} "
 
+    def test_decompressRecord(self):
+        filename = f"{ref_data_dir}/reference-sinusoid-steim1.mseed3"
+        with open(filename, 'rb') as infile:
+            rec_bytes = infile.read()
+            rec = simplemseed3.mseed3.unpackMSeed3Record(rec_bytes)
+            decompRec = rec.decompessedRecord()
+            assert decompRec.header.encoding == simplemseed3.seedcodec.INTEGER
+            assert rec.header.numSamples == decompRec.header.numSamples
+            assert len(decompRec.encodedData.dataBytes) == 4*rec.header.numSamples
 
 if __name__ == "__main__":
     TestMSeed3().test_ref_data()

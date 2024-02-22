@@ -191,7 +191,7 @@ class MSeed3Record:
     encodedData: EncodedDataSegment
     def __init__(self,
                  header: MSeed3Header,
-                 identifier: str, 
+                 identifier: str,
                  data,
                  extraHeaders: Union[str,dict,None]=None):
         self.header = header
@@ -249,6 +249,16 @@ class MSeed3Record:
                 byteOrder = BIG_ENDIAN
             data = decompress(self.header.encoding, self.encodedData.dataBytes, self.header.numSamples, byteOrder == LITTLE_ENDIAN)
         return data
+
+    def decompessedRecord(self):
+        """
+        Create a new record with decompressed data and the header encoding
+        set to one of the primitive types: short, int, float or double
+        """
+        data = self.decompress()
+        header = self.header.clone()
+        header.encoding = mseed3EncodingFromNumpyDT(data.dtype)
+        return MSeed3Record(header, self.identifier, data, self._eh)
 
     @property
     def starttime(self):
