@@ -132,3 +132,7 @@ fdsnsourceid --source H N
     Source: N - Accelerometer
        Measures displacement/velocity/acceleration along a line defined by the the dip and azimuth.
 ```
+
+# Example
+
+There are more examples in the examples directory.
