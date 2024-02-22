@@ -36,8 +36,10 @@ class FDSNSourceId:
 
 
   @staticmethod
-  def createUnknown(sampRate: Optional[Union[float , int ]] = None) -> 'FDSNSourceId':
-    return FDSNSourceId("XX", "ABC", "", bandCodeForRate(sampRate), "Y", "X")
+  def createUnknown(sampRate: Optional[Union[float , int ]] = None,
+                    sourceCode: Optional[str] = "H",
+                    response_lb: Optional[Union[float , int ]] = None) -> 'FDSNSourceId':
+    return FDSNSourceId("XX", "ABC", "", bandCodeForRate(sampRate, response_lb), sourceCode, "Z")
 
   @staticmethod
   def parse(id: str) -> Union['FDSNSourceId','NetworkSourceId','StationSourceId']:
@@ -87,7 +89,7 @@ class FDSNSourceId:
   def networkSourceId(self) -> 'NetworkSourceId':
     return  NetworkSourceId(self.networkCode)
 
-  def asNslc(self):
+  def asNslc(self) -> 'NslcId':
     if (len(self.bandCode) == 1 and len(self.sourceCode) == 1 and len(self.subsourceCode) == 1):
       chanCode = f"{self.bandCode}{self.sourceCode}{self.subsourceCode}"
     else:
@@ -159,26 +161,34 @@ class LocationSourceId:
 
 
 def bandCodeForRate(sampRate: Optional[Union[float , int ]] = None,
-                    resp_lb: Optional[Union[float , int ]] = None) -> str:
+                    response_lb: Optional[Union[float , int ]] = None) -> str:
+  """
+  Calculates the band code for the given sample rate. Optionally taking into
+  account the lower bound of the response, response_lb, to distinguish
+  broadband from short period in the higher sample rates, where
+  0.1 hertz is the boundary.
+
+  See http://docs.fdsn.org/projects/source-identifiers/en/v1.0/channel-codes.html#band-code
+  """
   if (sampRate is None):
     return 'I'
 
   if (sampRate >= 5000):
     return 'J'
   elif (sampRate >= 1000 and sampRate < 5000):
-    if (resp_lb is not None and resp_lb < 0.1):
+    if (response_lb is not None and response_lb < 0.1):
       return 'F'
     return 'G'
   elif (sampRate >= 250 and sampRate < 1000):
-    if (resp_lb is not None and resp_lb < 0.1):
+    if (response_lb is not None and response_lb < 0.1):
       return 'C'
     return 'D'
   elif (sampRate >= 80 and sampRate < 250):
-    if (resp_lb is not None and resp_lb < 0.1):
+    if (response_lb is not None and response_lb < 0.1):
       return 'H'
     return 'E'
   elif (sampRate >= 10 and sampRate < 80):
-    if (resp_lb is not None and resp_lb < 0.1):
+    if (response_lb is not None and response_lb < 0.1):
       return 'B'
     return 'S'
   elif (sampRate > 1 and sampRate < 10):
@@ -201,7 +211,7 @@ def bandCodeForRate(sampRate: Optional[Union[float , int ]] = None,
   elif (sampRate < 0.000001):
     return 'Q'
   else:
-    raise FDSNSourceIdException (f"Unable to calc band code for: {sampRate} {resp_lb}")
+    raise FDSNSourceIdException (f"Unable to calc band code for: {sampRate} {response_lb}")
 
 
 
@@ -215,6 +225,15 @@ class NslcId:
     self.stationCode = sta
     self.locationCode = loc
     self.channelCode = chan
+
+  def __str__(self) -> str:
+    return f"{self.networkCode}_{self.stationCode}_{self.locationCode}_{self.channelCode}"
+
+  def __eq__(self, other: 'NslcId') -> bool:
+    if not isinstance(other, self.__class__):
+        return False
+    return str(self) == str(other)
+
 
 class FDSNSourceIdException(Exception):
     pass

@@ -108,7 +108,7 @@ class TestMSeed3:
         with open(filename, 'rb') as infile:
             rec_bytes = infile.read()
             rec = simplemseed.mseed3.unpackMSeed3Record(rec_bytes)
-            decompRec = rec.decompessedRecord()
+            decompRec = rec.decompressedRecord()
             assert decompRec.header.encoding == simplemseed.seedcodec.INTEGER
             assert rec.header.numSamples == decompRec.header.numSamples
             assert len(decompRec.encodedData.dataBytes) == 4*rec.header.numSamples
