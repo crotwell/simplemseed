@@ -2,7 +2,7 @@ import argparse
 import os
 import sys
 import re
-from .mseed3 import MSeed3Record, readMSeed3Record
+from .mseed3 import MSeed3Record, readMSeed3Records
 
 
 def do_parseargs():
@@ -36,8 +36,7 @@ def do_details():
         matchPat = re.compile(args.match)
     for ms3file in args.ms3files:
         with open(ms3file, "rb") as inms3file:
-            ms3 = readMSeed3Record(inms3file)
-            while ms3 is not None:
+            for ms3 in readMSeed3Records(inms3file):
                 if matchPat is None or matchPat.search(ms3.identifier) is not None:
                     numRecords += 1
                     totSamples += ms3.header.numSamples
@@ -45,7 +44,6 @@ def do_details():
                         print(ms3)
                     else:
                         print(ms3.details(showExtraHeaders=args.eh, showData=args.data))
-                ms3 = readMSeed3Record(inms3file)
     print(f"Total {totSamples} samples in {numRecords} records")
 
 

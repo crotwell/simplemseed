@@ -1,6 +1,6 @@
 from .seedcodec import EncodedDataSegment
 from .mseed3 import MSeed3Record, MSeed3Header, UNKNOWN_DATA_VERSION
-from .miniseed import MiniseedRecord, MiniseedException, readMiniseed2Record
+from .miniseed import MiniseedRecord, MiniseedException, readMiniseed2Records
 from .fdsnsourceid import FDSNSourceId
 
 import argparse
@@ -137,14 +137,12 @@ def main():
     bytesWritten = 0
     with args.ms2 as inms2:
         with args.ms3 as outms3:
-            ms2rec = readMiniseed2Record(inms2)
-            while ms2rec is not None:
+            for ms2rec in readMiniseed2Records(inms2):
                 ms3rec = mseed2to3(ms2rec)
                 outBytes = ms3rec.pack()
                 bytesWritten += len(outBytes)
                 outms3.write(outBytes)
                 if args.verbose:
                     print(f"   {ms3rec}")
-                ms2rec = readMiniseed2Record(inms2)
     if args.verbose:
         print(f"wrote {bytesWritten} bytes")

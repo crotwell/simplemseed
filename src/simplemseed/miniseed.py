@@ -605,53 +605,53 @@ class MiniseedException(Exception):
     pass
 
 
-def readMiniseed2Record(fileptr):
+def readMiniseed2Records(fileptr):
     headBytes = fileptr.read(HEADER_SIZE)
-    if len(headBytes) == 0:
-        return None
-    header = unpackFixedHeaderGuessByteOrder(headBytes)
-    endianChar = "<" if header.byteOrder == LITTLE_ENDIAN else ">"
+    while len(headBytes) >= HEADER_SIZE:
+        header = unpackFixedHeaderGuessByteOrder(headBytes)
+        endianChar = "<" if header.byteOrder == LITTLE_ENDIAN else ">"
 
-    # assume all blocketts between fixed header and start of data
-    blocketteBytes = fileptr.read(header.dataOffset - HEADER_SIZE)
-    blockettes = []
-    if header.numBlockettes > 0:
-        nextBOffset = header.blocketteOffset
-        while nextBOffset > 0:
-            try:
-                b = unpackBlockette(
-                    blocketteBytes,
-                    nextBOffset - HEADER_SIZE,
-                    endianChar,
-                    header.dataOffset,
-                )
-                blockettes.append(b)
-                if type(b).__name__ == "Blockette1000":
-                    header.encoding = b.encoding
-                    header.byteOrder = b.byteorder
-                elif type(b).__name__ == "Blockette100":
-                    header.setSampleRate(b.sampleRate)
-                elif type(b).__name__ == "Blockette1001":
-                    header.setStartTime(
-                        header.starttime + timedelta(microseconds=b.microseconds)
+        # assume all blocketts between fixed header and start of data
+        blocketteBytes = fileptr.read(header.dataOffset - HEADER_SIZE)
+        blockettes = []
+        if header.numBlockettes > 0:
+            nextBOffset = header.blocketteOffset
+            while nextBOffset > 0:
+                try:
+                    b = unpackBlockette(
+                        blocketteBytes,
+                        nextBOffset - HEADER_SIZE,
+                        endianChar,
+                        header.dataOffset,
                     )
-                nextBOffset = b.nextOffset
-            except struct.error as e:
-                print(
-                    "Unable to unpack blockette, fail codes: {} start: {} {}".format(
-                        header.codes(), header.starttime, e
+                    blockettes.append(b)
+                    if type(b).__name__ == "Blockette1000":
+                        header.encoding = b.encoding
+                        header.byteOrder = b.byteorder
+                    elif type(b).__name__ == "Blockette100":
+                        header.setSampleRate(b.sampleRate)
+                    elif type(b).__name__ == "Blockette1001":
+                        header.setStartTime(
+                            header.starttime + timedelta(microseconds=b.microseconds)
+                        )
+                    nextBOffset = b.nextOffset
+                except struct.error as e:
+                    print(
+                        "Unable to unpack blockette, fail codes: {} start: {} {}".format(
+                            header.codes(), header.starttime, e
+                        )
                     )
-                )
-                raise
-    recordBytesSize = 512
-    for b in blockettes:
-        if b.blocketteNum == 1000:
-            if b.recLength < 8 or b.recLength > 12:
-                raise MiniseedException(
-                    f"record length {b.recLength} from B1000 is not valid, 8-12 for 512 to 4096"
-                )
-            recordBytesSize = 2**b.recLength
-    encodedDataBytes = fileptr.read(recordBytesSize - header.dataOffset)
-    return MiniseedRecord(
-        header, data=None, encodedData=encodedDataBytes, blockettes=blockettes
-    )
+                    raise
+        recordBytesSize = 512
+        for b in blockettes:
+            if b.blocketteNum == 1000:
+                if b.recLength < 8 or b.recLength > 12:
+                    raise MiniseedException(
+                        f"record length {b.recLength} from B1000 is not valid, 8-12 for 512 to 4096"
+                    )
+                recordBytesSize = 2**b.recLength
+        encodedDataBytes = fileptr.read(recordBytesSize - header.dataOffset)
+        yield MiniseedRecord(
+            header, data=None, encodedData=encodedDataBytes, blockettes=blockettes
+        )
+        headBytes = fileptr.read(HEADER_SIZE)

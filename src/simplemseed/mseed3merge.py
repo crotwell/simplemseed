@@ -1,5 +1,5 @@
 import argparse
-from .mseed3 import MSeed3Record, readMSeed3Record, mseed3merge
+from .mseed3 import readMSeed3Records, mseed3merge
 
 
 def do_parseargs():
@@ -25,13 +25,6 @@ def do_parseargs():
     return parser.parse_args()
 
 
-def nextRecord(inms3file, decomp=False):
-    ms3 = readMSeed3Record(inms3file)
-    if ms3 is not None and decomp:
-        ms3 = ms3.decompressedRecord()
-    return ms3
-
-
 def main():
     import sys
 
@@ -39,8 +32,9 @@ def main():
     with open(args.outfile, "wb") as outms3file:
         with open(args.ms3file, "rb") as inms3file:
             prevms3 = None
-            ms3 = nextRecord(inms3file, args.decomp)
-            while ms3 is not None:
+            for ms3 in readMSeed3Records(inms3file):
+                if decomp:
+                    ms3 = ms3.decompressedRecord()
                 if prevms3 is not None:
                     merged = mseed3merge(prevms3, ms3)
                     if len(merged) == 2:
@@ -50,7 +44,6 @@ def main():
                         prevms3 = merged[0]
                 else:
                     prevms3 = ms3
-                ms3 = nextRecord(inms3file, args.decomp)
             if prevms3 is not None:
                 outms3file.write(prevms3.pack())
 

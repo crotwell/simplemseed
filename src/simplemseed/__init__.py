@@ -19,7 +19,7 @@ from .miniseed import (
     unpackMiniseedRecord,
     unpackBlockette,
     MiniseedException,
-    readMiniseed2Record,
+    readMiniseed2Records,
 )
 from .fdsnsourceid import (
     FDSN_PREFIX,
@@ -44,7 +44,7 @@ __all__ = [
     MiniseedHeader,
     MiniseedRecord,
     MiniseedException,
-    readMiniseed2Record,
+    readMiniseed2Records,
     unpackMSeed3Record,
     unpackMSeed3FixedHeader,
     readMSeed3Records,
