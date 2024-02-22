@@ -1,0 +1,46 @@
+[build-system]
+requires = ["hatchling>=1.21.0"]
+build-backend = "hatchling.build"
+
+
+[project]
+name = "simplemseed3"
+dynamic = ["version"]
+authors = [
+  {name="Philip Crotwell", email = "crotwell@seis.sc.edu"}
+]
+description = "miniseed3 in pure python"
+readme = "README.md"
+long_description_content_type = "text/markdown"
+keywords = ["miniseed", "miniseed3", "seed", "steim1", "steim2", "fdsn", "sourceid"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: GNU Lesser General Public License v2 or later (LGPLv2+)",
+    "Operating System :: OS Independent"
+]
+python_requires = ">=3.9"
+dependencies = [
+    "crc32c",
+    "numpy",
+    'importlib-metadata; python_version<"3.10"'
+]
+
+[project.urls]
+Homepage = "https://github.com/crotwell/simple-mseed3"
+Documentation = "https://readthedocs.org"
+Repository = "https://github.com/crotwell/simple-mseed3"
+Issues = "https://github.com/crotwell/simple-mseed3/issues"
+
+[project.scripts]
+  fdsnsourceid = "simplemseed3.fdsnsourceid:main"
+  mseed3details = "simplemseed3.mseed3details:main"
+  mseed3merge = "simplemseed3.mseed3merge:main"
+  mseed2to3 = "simplemseed3.mseed2to3:main"
+
+[tool.pytest.ini_options]
+addopts = [
+    "--import-mode=importlib",
+]
+
+[tool.hatch.version]
+path = "src/simplemseed3/__init__.py"
