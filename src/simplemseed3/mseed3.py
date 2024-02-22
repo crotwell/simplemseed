@@ -189,7 +189,11 @@ class MSeed3Record:
     identifier: str
     _eh: Union[str,dict,None]
     encodedData: EncodedDataSegment
-    def __init__(self, header: MSeed3Header, identifier: str, data, extraHeaders: Union[str,dict,None]=None):
+    def __init__(self,
+                 header: MSeed3Header,
+                 identifier: str, 
+                 data,
+                 extraHeaders: Union[str,dict,None]=None):
         self.header = header
         self._eh = extraHeaders
         self.identifier = identifier
