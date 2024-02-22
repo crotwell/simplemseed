@@ -2,8 +2,8 @@
 #
 import array
 import json
-from simplemseed3 import MSeed3Header, MSeed3Record
-import simplemseed3
+from simplemseed import MSeed3Header, MSeed3Record
+import simplemseed
 import struct
 output_file = 'output.mseed'
 
@@ -39,11 +39,11 @@ eh = {
 
 data = array.array('f',( (i%99-49) for i in range(0,1000) ))
 #data = [(i%99-49) for i in range(0,1000)]
-header = simplemseed3.MSeed3Header()
+header = simplemseed.MSeed3Header()
 header.starttime = "2024-01-01T15:13:55.123456Z"
 identifier = "FDSN:XX_FAKE__B_H_Z"
 header.sampleRatePeriod = 20
-ms3record = simplemseed3.MSeed3Record(header, identifier, data, extraHeaders=eh)
+ms3record = simplemseed.MSeed3Record(header, identifier, data, extraHeaders=eh)
 
 ms3filename = "test.ms3"
 with open(ms3filename, "wb") as of:
@@ -55,7 +55,7 @@ with open(ms3filename, "wb") as of:
 print()
 print()
 with open(ms3filename, "rb") as infile:
-    readms3record = simplemseed3.readMSeed3Record(infile)
+    readms3record = simplemseed.readMSeed3Record(infile)
     print(f"  extract: {readms3record.details()} ")
     print(f"     from: {ms3filename} ")
     print(f"      crc: {crcAsHex(readms3record.header.crc)}")

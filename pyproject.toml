@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 
 [project]
-name = "simplemseed3"
+name = "simplemseed"
 dynamic = ["version"]
 authors = [
   {name="Philip Crotwell", email = "crotwell@seis.sc.edu"}
@@ -26,16 +26,16 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/crotwell/simple-mseed3"
+Homepage = "https://github.com/crotwell/simplemseed"
 Documentation = "https://readthedocs.org"
-Repository = "https://github.com/crotwell/simple-mseed3"
-Issues = "https://github.com/crotwell/simple-mseed3/issues"
+Repository = "https://github.com/crotwell/simplemseed"
+Issues = "https://github.com/crotwell/simplemseed/issues"
 
 [project.scripts]
-  fdsnsourceid = "simplemseed3.fdsnsourceid:main"
-  mseed3details = "simplemseed3.mseed3details:main"
-  mseed3merge = "simplemseed3.mseed3merge:main"
-  mseed2to3 = "simplemseed3.mseed2to3:main"
+  fdsnsourceid = "simplemseed.fdsnsourceid:main"
+  mseed3details = "simplemseed.mseed3details:main"
+  mseed3merge = "simplemseed.mseed3merge:main"
+  mseed2to3 = "simplemseed.mseed2to3:main"
 
 [tool.pytest.ini_options]
 addopts = [
@@ -43,4 +43,4 @@ addopts = [
 ]
 
 [tool.hatch.version]
-path = "src/simplemseed3/__init__.py"
+path = "src/simplemseed/__init__.py"

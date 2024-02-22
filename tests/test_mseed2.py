@@ -1,6 +1,6 @@
 import os
 import pytest
-import simplemseed3
+import simplemseed
 from datetime import datetime
 from pathlib import Path
 
@@ -17,7 +17,7 @@ class TestMseed2:
         with open(TEST_DIR / "casee.mseed2", "rb") as f:
             rec_bytes = f.read()
             assert len(rec_bytes) == 512
-            rec = simplemseed3.miniseed.unpackMiniseedRecord(rec_bytes)
+            rec = simplemseed.miniseed.unpackMiniseedRecord(rec_bytes)
             assert rec.codes() == "CO.CASEE.00.HHZ"
             assert rec.starttime() == datetime.fromisoformat("2023-06-17T04:53:54.468648+00:00")
             data = rec.decompressed()

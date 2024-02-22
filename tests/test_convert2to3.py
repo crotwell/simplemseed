@@ -1,6 +1,6 @@
 import os
 import pytest
-import simplemseed3
+import simplemseed
 from datetime import datetime
 from pathlib import Path
 
@@ -17,7 +17,7 @@ class TestMseed2to3:
         with open(TEST_DIR / "casee.mseed2", "rb") as f:
             rec_bytes = f.read()
             assert len(rec_bytes) == 512
-            ms2 = simplemseed3.miniseed.unpackMiniseedRecord(rec_bytes)
-            ms3 = simplemseed3.mseed2to3(ms2)
+            ms2 = simplemseed.miniseed.unpackMiniseedRecord(rec_bytes)
+            ms3 = simplemseed.mseed2to3(ms2)
             print(ms3.details())
             assert len(ms2.decompressed()) == len(ms3.decompress())

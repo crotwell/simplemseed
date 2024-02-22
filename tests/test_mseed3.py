@@ -1,7 +1,7 @@
 import pytest
 import json
 import os
-import simplemseed3
+import simplemseed
 from datetime import datetime
 from pathlib import Path
 
@@ -54,7 +54,7 @@ class TestMSeed3:
         with open(TEST_DIR /"casee.mseed3", "rb") as f:
           rec_bytes = f.read()
           assert len(rec_bytes) == 285
-          rec = simplemseed3.mseed3.unpackMSeed3Record(rec_bytes)
+          rec = simplemseed.mseed3.unpackMSeed3Record(rec_bytes)
           data = rec.decompress()
           assert len(msi_data) == len(data)
           for i in range(len(msi_data)):
@@ -66,7 +66,7 @@ class TestMSeed3:
                 assert False, f"load reference data for {filename} from {githubUrl}"
             with open(filename, 'rb') as infile:
                 rec_bytes = infile.read()
-                rec = simplemseed3.mseed3.unpackMSeed3Record(rec_bytes)
+                rec = simplemseed.mseed3.unpackMSeed3Record(rec_bytes)
                 if rec.header.encoding != 0:
                     # encoding == 0 is Text, with no structure, so cannot decompress
                     data = rec.decompress()
@@ -89,14 +89,14 @@ class TestMSeed3:
 
     def test_roundtrip(self):
         values = [3, 1, -1, 2000]
-        header = simplemseed3.MSeed3Header()
-        header.encoding = simplemseed3.seedcodec.INTEGER
+        header = simplemseed.MSeed3Header()
+        header.encoding = simplemseed.seedcodec.INTEGER
         header.sampleRatePeriod = -1
         header.numSamples = len(values)
         identifier = "FDSN:XX_FAKE__H_H_Z"
-        record = simplemseed3.MSeed3Record(header, identifier, values)
+        record = simplemseed.MSeed3Record(header, identifier, values)
         recordBytes = record.pack()
-        outRecord = simplemseed3.unpackMSeed3Record(recordBytes)
+        outRecord = simplemseed.unpackMSeed3Record(recordBytes)
         assert identifier == outRecord.identifier
         decomp_data = outRecord.decompress()
         assert len(decomp_data) == len(values)
@@ -107,9 +107,9 @@ class TestMSeed3:
         filename = f"{ref_data_dir}/reference-sinusoid-steim1.mseed3"
         with open(filename, 'rb') as infile:
             rec_bytes = infile.read()
-            rec = simplemseed3.mseed3.unpackMSeed3Record(rec_bytes)
+            rec = simplemseed.mseed3.unpackMSeed3Record(rec_bytes)
             decompRec = rec.decompessedRecord()
-            assert decompRec.header.encoding == simplemseed3.seedcodec.INTEGER
+            assert decompRec.header.encoding == simplemseed.seedcodec.INTEGER
             assert rec.header.numSamples == decompRec.header.numSamples
             assert len(decompRec.encodedData.dataBytes) == 4*rec.header.numSamples
 
