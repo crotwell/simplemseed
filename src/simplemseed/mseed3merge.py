@@ -1,6 +1,6 @@
-
 import argparse
 from .mseed3 import MSeed3Record, readMSeed3Record, merge
+
 
 def do_parseargs():
     parser = argparse.ArgumentParser(
@@ -16,17 +16,14 @@ def do_parseargs():
     parser.add_argument(
         "--decomp",
         help="apply decompression before merge, required for steim1 & 2",
-        action="store_true"
+        action="store_true",
     )
     parser.add_argument(
-        '-o',
-        '--outfile',
-        required=True,
-        help='mseed3 file to output merged records')
-    parser.add_argument(
-        'ms3file',
-        help='mseed3 file to merge records')
+        "-o", "--outfile", required=True, help="mseed3 file to output merged records"
+    )
+    parser.add_argument("ms3file", help="mseed3 file to merge records")
     return parser.parse_args()
+
 
 def nextRecord(inms3file, decomp=False):
     ms3 = readMSeed3Record(inms3file)
@@ -34,8 +31,10 @@ def nextRecord(inms3file, decomp=False):
         ms3 = ms3.decompressedRecord()
     return ms3
 
+
 def main():
     import sys
+
     args = do_parseargs()
     with open(args.outfile, "wb") as outms3file:
         with open(args.ms3file, "rb") as inms3file:
@@ -54,6 +53,7 @@ def main():
                 ms3 = nextRecord(inms3file, args.decomp)
             if prevms3 is not None:
                 outms3file.write(prevms3.pack())
+
 
 if __name__ == "__main__":
     main()

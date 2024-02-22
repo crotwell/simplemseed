@@ -13,11 +13,13 @@ from .miniseed import MiniseedException
 from .seedcodec import (
     decompress,
     compress,
-    STEIM1, STEIM2, STEIM3,
+    STEIM1,
+    STEIM2,
+    STEIM3,
     EncodedDataSegment,
     mseed3EncodingFromArrayTypecode,
-    mseed3EncodingFromNumpyDT
-    )
+    mseed3EncodingFromNumpyDT,
+)
 
 
 MINISEED_THREE_MIME = "application/vnd.fdsn.mseed3"
@@ -35,11 +37,11 @@ FIXED_HEADER_SIZE = 40
 FDSN_PREFIX = "FDSN"
 
 # const for little endian, true */
-#LITTLE_ENDIAN = True
+# LITTLE_ENDIAN = True
 ENDIAN = "<"
 
 # const for big endian, false */
-#BIG_ENDIAN = False;
+# BIG_ENDIAN = False;
 
 
 BIG_ENDIAN = 1
@@ -47,24 +49,26 @@ LITTLE_ENDIAN = 0
 
 HEADER_PACK_FORMAT = "<ccBBIHHBBBBdIIBBHI"
 
+
 class MSeed3Header:
-    recordIndicator: str;
-    formatVersion: int;
-    flags: int;
-    nanosecond: int;
-    year: int;
-    dayOfYear: int;
-    hour: int;
-    minute: int;
-    second: int;
-    encoding: int;
-    sampleRatePeriod: float;
-    numSamples: int;
-    crc: int;
-    publicationVersion: int;
-    identifierLength: int;
-    extraHeadersLength: int;
-    dataLength: int;
+    recordIndicator: str
+    formatVersion: int
+    flags: int
+    nanosecond: int
+    year: int
+    dayOfYear: int
+    hour: int
+    minute: int
+    second: int
+    encoding: int
+    sampleRatePeriod: float
+    numSamples: int
+    crc: int
+    publicationVersion: int
+    identifierLength: int
+    extraHeadersLength: int
+    dataLength: int
+
     def __init__(self):
         # empty construction
         self.recordIndicator = "MS"
@@ -76,13 +80,13 @@ class MSeed3Header:
         self.hour = 0
         self.minute = 0
         self.second = 0
-        self.encoding = 3 # 32 bit ints
+        self.encoding = 3  # 32 bit ints
 
         self.sampleRatePeriod = 1
         self.numSamples = 0
         self.crc = 0
         self.publicationVersion = UNKNOWN_DATA_VERSION
-        self.identifierLength = 0;
+        self.identifierLength = 0
         self.extraHeadersLength = 0
         self.identifier = ""
         self.extraHeadersStr = ""
@@ -90,21 +94,33 @@ class MSeed3Header:
 
     def crcAsHex(self):
         return "0x{:08X}".format(self.crc)
+
     @property
     def sampleRate(self):
-        return self.sampleRatePeriod if self.sampleRatePeriod > 0 else -1.0/self.sampleRatePeriod
+        return (
+            self.sampleRatePeriod
+            if self.sampleRatePeriod > 0
+            else -1.0 / self.sampleRatePeriod
+        )
+
     @property
     def samplePeriod(self):
-        return -1*self.sampleRatePeriod if self.sampleRatePeriod < 0 else 1.0/self.sampleRatePeriod
+        return (
+            -1 * self.sampleRatePeriod
+            if self.sampleRatePeriod < 0
+            else 1.0 / self.sampleRatePeriod
+        )
 
     def pack(self):
         header = bytearray(FIXED_HEADER_SIZE)
-        OFFSET=0
+        OFFSET = 0
         struct.pack_into(
             HEADER_PACK_FORMAT,
             header,
             OFFSET,
-            b'M', b'S', 3,
+            b"M",
+            b"S",
+            3,
             self.flags,
             self.nanosecond,
             self.year,
@@ -119,22 +135,32 @@ class MSeed3Header:
             self.publicationVersion,
             self.identifierLength,
             self.extraHeadersLength,
-            self.dataLength
+            self.dataLength,
         )
         return header
 
     def recordSize(self):
-        return FIXED_HEADER_SIZE+self.identifierLength+self.extraHeadersLength+self.dataLength
+        return (
+            FIXED_HEADER_SIZE
+            + self.identifierLength
+            + self.extraHeadersLength
+            + self.dataLength
+        )
 
     @property
     def starttime(self):
-        st = datetime(self.year, 1, 1,
-                       hour=self.hour, minute=self.minute,second=self.second,
-                       microsecond=int(self.nanosecond/1000),
-                       tzinfo=timezone.utc)
+        st = datetime(
+            self.year,
+            1,
+            1,
+            hour=self.hour,
+            minute=self.minute,
+            second=self.second,
+            microsecond=int(self.nanosecond / 1000),
+            tzinfo=timezone.utc,
+        )
         doy = timedelta(days=self.dayOfYear)
-        return st+doy
-
+        return st + doy
 
     @starttime.setter
     def starttime(self, stime):
@@ -163,7 +189,9 @@ class MSeed3Header:
 
     @property
     def endtime(self):
-        return self.starttime + timedelta(seconds=self.samplePeriod * (self.numSamples - 1))
+        return self.starttime + timedelta(
+            seconds=self.samplePeriod * (self.numSamples - 1)
+        )
 
     def clone(self):
         ms3header = MSeed3Header()
@@ -184,33 +212,36 @@ class MSeed3Header:
         ms3header.dataLength = self.dataLength
         return ms3header
 
+
 class MSeed3Record:
     header: MSeed3Header
     identifier: str
-    _eh: Union[str,dict,None]
+    _eh: Union[str, dict, None]
     encodedData: EncodedDataSegment
-    def __init__(self,
-                 header: MSeed3Header,
-                 identifier: str,
-                 data,
-                 extraHeaders: Union[str,dict,None]=None):
+
+    def __init__(
+        self,
+        header: MSeed3Header,
+        identifier: str,
+        data,
+        extraHeaders: Union[str, dict, None] = None,
+    ):
         self.header = header
         self._eh = extraHeaders
         self.identifier = identifier
         if isinstance(data, EncodedDataSegment):
-            self.encodedData=data
+            self.encodedData = data
         elif isinstance(data, bytes) or isinstance(data, bytearray):
-            self.encodedData = EncodedDataSegment(header.encoding,
-                                           data,
-                                           header.numSamples,
-                                           True),
+            self.encodedData = (
+                EncodedDataSegment(header.encoding, data, header.numSamples, True),
+            )
         elif isinstance(data, array):
             self.header.encoding = mseed3EncodingFromArrayTypecode(data.typecode)
             self.encodedData = compress(self.header.encoding, data)
         elif isinstance(data, numpy.ndarray):
             self.header.encoding = mseed3EncodingFromNumpyDT(data.dtype)
-            if data.dtype.byteorder == '>':
-                data = data.newbyteorder('<')
+            if data.dtype.byteorder == ">":
+                data = data.newbyteorder("<")
             self.encodedData = compress(self.header.encoding, data)
         else:
             # try to compress with given type?
@@ -238,16 +269,22 @@ class MSeed3Record:
         del self._eh
         self.header.extraHeadersLength = 0
 
-
     def decompress(self):
         data = None
         if self.encodedData is not None:
             byteOrder = LITTLE_ENDIAN
-            if (self.header.encoding == STEIM1 or
-                self.header.encoding == STEIM2 or
-                self.header.encoding == STEIM3):
+            if (
+                self.header.encoding == STEIM1
+                or self.header.encoding == STEIM2
+                or self.header.encoding == STEIM3
+            ):
                 byteOrder = BIG_ENDIAN
-            data = decompress(self.header.encoding, self.encodedData.dataBytes, self.header.numSamples, byteOrder == LITTLE_ENDIAN)
+            data = decompress(
+                self.header.encoding,
+                self.encodedData.dataBytes,
+                self.header.numSamples,
+                byteOrder == LITTLE_ENDIAN,
+            )
         return data
 
     def decompressedRecord(self):
@@ -276,6 +313,7 @@ class MSeed3Record:
         elif isinstance(self._eh, str) and len(self._eh) > 2:
             return True
         return False
+
     def clone(self):
         return unpackMiniseedRecord(self.pack())
 
@@ -284,10 +322,17 @@ class MSeed3Record:
         Calculates the size of the record. Returns None if any of the
         identifier, extra headers or data lengths are not yet calculated.
         """
-        if self.header.identifierLength is not None and \
-                self.header.extraHeadersLength is not None and \
-                self.header.dataLength:
-            return FIXED_HEADER_SIZE+self.header.identifierLength+self.header.extraHeadersLength+self.header.dataLength
+        if (
+            self.header.identifierLength is not None
+            and self.header.extraHeadersLength is not None
+            and self.header.dataLength
+        ):
+            return (
+                FIXED_HEADER_SIZE
+                + self.header.identifierLength
+                + self.header.extraHeadersLength
+                + self.header.dataLength
+            )
         else:
             return None
 
@@ -312,20 +357,29 @@ class MSeed3Record:
         extraHeadersBytes = extraHeadersStr.encode("UTF-8")
         self.header.extraHeadersLength = len(extraHeadersBytes)
         self.header.dataLength = len(self.encodedData.dataBytes)
-        rec_size = FIXED_HEADER_SIZE+self.header.identifierLength+self.header.extraHeadersLength+self.header.dataLength
+        rec_size = (
+            FIXED_HEADER_SIZE
+            + self.header.identifierLength
+            + self.header.extraHeadersLength
+            + self.header.dataLength
+        )
 
         recordBytes = bytearray(rec_size)
         recordBytes[0:FIXED_HEADER_SIZE] = self.header.pack()
         offset = FIXED_HEADER_SIZE
-        recordBytes[offset:offset+self.header.identifierLength] = identifierBytes
+        recordBytes[offset : offset + self.header.identifierLength] = identifierBytes
         offset += self.header.identifierLength
-        recordBytes[offset:offset+self.header.extraHeadersLength] = extraHeadersBytes
+        recordBytes[offset : offset + self.header.extraHeadersLength] = (
+            extraHeadersBytes
+        )
         offset += self.header.extraHeadersLength
-        recordBytes[offset:offset+self.header.dataLength] = self.encodedData.dataBytes
+        recordBytes[offset : offset + self.header.dataLength] = (
+            self.encodedData.dataBytes
+        )
 
-        struct.pack_into("<I", recordBytes, CRC_OFFSET, 0);
+        struct.pack_into("<I", recordBytes, CRC_OFFSET, 0)
         crc = crc32c.crc32c(recordBytes)
-        struct.pack_into("<I", recordBytes, CRC_OFFSET, crc);
+        struct.pack_into("<I", recordBytes, CRC_OFFSET, crc)
         self.header.crc = crc
         return recordBytes
 
@@ -335,7 +389,7 @@ class MSeed3Record:
     def encodingName(self):
         encode_name = f"unknown ({self.header.encoding})"
         if self.header.encoding == 0:
-          encode_name = "Text"
+            encode_name = "Text"
         elif self.header.encoding == 1:
             encode_name = "16-bit integer"
         elif self.header.encoding == 3:
@@ -359,34 +413,34 @@ class MSeed3Record:
         encode_name = self.encodingName()
 
         bitFlagStr = ""
-        if (self.header.flags & 0x01):
-          bitFlagStr = f"""{bitFlagStr}
+        if self.header.flags & 0x01:
+            bitFlagStr = f"""{bitFlagStr}
                              [Bit 0] Calibration signals present"""
-        if (self.header.flags & 0x02):
-          bitFlagStr = f"""{bitFlagStr}
+        if self.header.flags & 0x02:
+            bitFlagStr = f"""{bitFlagStr}
                              [Bit 1] Time tag is questionable"""
-        if (self.header.flags & 0x04):
-          bitFlagStr = f"""{bitFlagStr}
+        if self.header.flags & 0x04:
+            bitFlagStr = f"""{bitFlagStr}
                              [Bit 2] Clock locked"""
-        if (self.header.flags & 0x08):
-          bitFlagStr = f"""{bitFlagStr}
+        if self.header.flags & 0x08:
+            bitFlagStr = f"""{bitFlagStr}
                              [Bit 3] Undefined bit set"""
-        if (self.header.flags & 0x10):
-          bitFlagStr = f"""{bitFlagStr}
+        if self.header.flags & 0x10:
+            bitFlagStr = f"""{bitFlagStr}
                              [Bit 4] Undefined bit set"""
-        if (self.header.flags & 0x20):
-          bitFlagStr = f"""{bitFlagStr}
+        if self.header.flags & 0x20:
+            bitFlagStr = f"""{bitFlagStr}
                              [Bit 5] Undefined bit set"""
-        if (self.header.flags & 0x40):
-          bitFlagStr = f"""{bitFlagStr}
+        if self.header.flags & 0x40:
+            bitFlagStr = f"""{bitFlagStr}
                              [Bit 6] Undefined bit set"""
-        if (self.header.flags & 0x80):
-          bitFlagStr = f"""{bitFlagStr}
+        if self.header.flags & 0x80:
+            bitFlagStr = f"""{bitFlagStr}
                              [Bit 7] Undefined bit set"""
         ehLines = ""
         if showExtraHeaders and self.hasExtraHeaders():
             ehLines = json.dumps(self.eh, indent=2).split("\n")
-        indentLines = "\n          ".join(ehLines);
+        indentLines = "\n          ".join(ehLines)
         out = f"""
           {self.identifier}, version {self.header.publicationVersion}, {self.getSize()} bytes (format: {self.header.formatVersion})
                        start time: {isoWZ(self.starttime)} ({self.header.dayOfYear:03})
@@ -413,13 +467,17 @@ class MSeed3Record:
                 out += line
         return out
 
+
 def unpackMSeed3FixedHeader(recordBytes):
     if len(recordBytes) < FIXED_HEADER_SIZE:
-        raise MiniseedException("Not enough bytes for header: {:d}".format(len(recordBytes)))
+        raise MiniseedException(
+            "Not enough bytes for header: {:d}".format(len(recordBytes))
+        )
     ms3header = MSeed3Header()
 
     (
-        recordIndicatorM,recordIndicatorS,
+        recordIndicatorM,
+        recordIndicatorS,
         formatVersion,
         ms3header.flags,
         ms3header.nanosecond,
@@ -435,46 +493,48 @@ def unpackMSeed3FixedHeader(recordBytes):
         ms3header.publicationVersion,
         ms3header.identifierLength,
         ms3header.extraHeadersLength,
-        ms3header.dataLength
+        ms3header.dataLength,
     ) = struct.unpack(HEADER_PACK_FORMAT, recordBytes[0:FIXED_HEADER_SIZE])
-    if recordIndicatorM != b'M' or recordIndicatorS != b'S':
-        raise MiniseedException(f"expected record start to be MS but was {recordIndicatorM}{recordIndicatorS}")
+    if recordIndicatorM != b"M" or recordIndicatorS != b"S":
+        raise MiniseedException(
+            f"expected record start to be MS but was {recordIndicatorM}{recordIndicatorS}"
+        )
     return ms3header
+
 
 def unpackMSeed3Record(recordBytes, check_crc=True):
     crc = 0
     ms3header = unpackMSeed3FixedHeader(recordBytes)
     if check_crc:
         tempBytes = bytearray(recordBytes[:FIXED_HEADER_SIZE])
-        struct.pack_into("<I", tempBytes, CRC_OFFSET, 0);
+        struct.pack_into("<I", tempBytes, CRC_OFFSET, 0)
         crc = crc32c.crc32c(tempBytes)
     offset = FIXED_HEADER_SIZE
-    idBytes = recordBytes[offset:offset+ms3header.identifierLength]
+    idBytes = recordBytes[offset : offset + ms3header.identifierLength]
     if check_crc:
         crc = crc32c.crc32c(idBytes, crc)
     identifier = idBytes.decode("utf-8")
     offset += ms3header.identifierLength
-    ehBytes = recordBytes[offset:offset+ms3header.extraHeadersLength]
+    ehBytes = recordBytes[offset : offset + ms3header.extraHeadersLength]
     if check_crc:
         crc = crc32c.crc32c(ehBytes, crc)
     extraHeadersStr = ehBytes.decode("utf-8")
     offset += ms3header.extraHeadersLength
 
-    encodedDataBytes = recordBytes[offset:offset+ms3header.dataLength]
+    encodedDataBytes = recordBytes[offset : offset + ms3header.dataLength]
     if check_crc:
         crc = crc32c.crc32c(encodedDataBytes, crc)
     offset += ms3header.dataLength
     if check_crc and ms3header.crc != crc:
         raise MiniseedException(f"crc fail:  Calc: {crc}  Header: {ms3header.crc}")
-    encodedData=EncodedDataSegment(ms3header.encoding,
-                                   encodedDataBytes,
-                                   ms3header.numSamples,
-                                   True)
-    ms3Rec = MSeed3Record(ms3header,
-                          identifier,
-                          encodedData,
-                          extraHeaders=extraHeadersStr )
+    encodedData = EncodedDataSegment(
+        ms3header.encoding, encodedDataBytes, ms3header.numSamples, True
+    )
+    ms3Rec = MSeed3Record(
+        ms3header, identifier, encodedData, extraHeaders=extraHeadersStr
+    )
     return ms3Rec
+
 
 def readMSeed3Record(fileptr, check_crc=True):
     headBytes = fileptr.read(FIXED_HEADER_SIZE)
@@ -484,7 +544,7 @@ def readMSeed3Record(fileptr, check_crc=True):
     crc = 0
     if check_crc:
         crcHeadBytes = bytearray(headBytes)
-        struct.pack_into("<I", crcHeadBytes, CRC_OFFSET, 0);
+        struct.pack_into("<I", crcHeadBytes, CRC_OFFSET, 0)
         crc = crc32c.crc32c(crcHeadBytes)
     identifierBytes = fileptr.read(ms3header.identifierLength)
     if check_crc:
@@ -500,14 +560,14 @@ def readMSeed3Record(fileptr, check_crc=True):
         if ms3header.crc != crc:
             raise MiniseedException(f"crc fail:  Calc: {crc}  Header: {ms3header.crc}")
 
-    encodedData=EncodedDataSegment(ms3header.encoding,
-                                   encodedDataBytes,
-                                   ms3header.numSamples,
-                                   True)
-    ms3 = MSeed3Record(ms3header, identifier, encodedData, extraHeaders=extraHeadersStr )
+    encodedData = EncodedDataSegment(
+        ms3header.encoding, encodedDataBytes, ms3header.numSamples, True
+    )
+    ms3 = MSeed3Record(ms3header, identifier, encodedData, extraHeaders=extraHeadersStr)
     return ms3
 
-def areCompatible(ms3a: MSeed3Record, ms3b: MSeed3Record, timeTolFactor = 0.5) -> bool:
+
+def areCompatible(ms3a: MSeed3Record, ms3b: MSeed3Record, timeTolFactor=0.5) -> bool:
     out = True
     out = out and ms3a.identifier == ms3b.identifier
     out = out and ms3b.header.sampleRatePeriod == ms3b.header.sampleRatePeriod
@@ -515,9 +575,16 @@ def areCompatible(ms3a: MSeed3Record, ms3b: MSeed3Record, timeTolFactor = 0.5) -
     out = out and ms3a.header.publicationVersion == ms3b.header.publicationVersion
     out = out and ms3a.endtime < ms3b.starttime
     if out:
-        predNextStart = ms3a.starttime + timedelta(seconds=ms3a.header.samplePeriod * ms3a.header.numSamples )
-        out = out and (ms3b.starttime - predNextStart).total_seconds() < ms3a.header.samplePeriod*timeTolFactor
+        predNextStart = ms3a.starttime + timedelta(
+            seconds=ms3a.header.samplePeriod * ms3a.header.numSamples
+        )
+        out = (
+            out
+            and (ms3b.starttime - predNextStart).total_seconds()
+            < ms3a.header.samplePeriod * timeTolFactor
+        )
     return out
+
 
 def merge(ms3a: MSeed3Record, ms3b: MSeed3Record) -> list[MSeed3Record]:
     """
@@ -538,20 +605,24 @@ def merge(ms3a: MSeed3Record, ms3b: MSeed3Record) -> list[MSeed3Record]:
         dataBytes = bytearray()
         dataBytes.extend(ms3a.encodedData.dataBytes)
         dataBytes.extend(ms3b.encodedData.dataBytes)
-        encodedData = EncodedDataSegment(ms3a.encodedData.compressionType,
-                                         dataBytes,
-                                         header.numSamples,
-                                         ms3a.encodedData.littleEndian)
+        encodedData = EncodedDataSegment(
+            ms3a.encodedData.compressionType,
+            dataBytes,
+            header.numSamples,
+            ms3a.encodedData.littleEndian,
+        )
         if ms3a.hasExtraHeaders():
-            eh =  json.loads(json.dumps(ms3a.eh))
+            eh = json.loads(json.dumps(ms3a.eh))
         else:
             eh = None
         merged = MSeed3Record(header, ms3a.identifier, encodedData, eh)
-        out = [ merged ]
+        out = [merged]
     return out
+
 
 def crcAsHex(crc):
     return "0x{:08X}".format(crc)
+
 
 def isoWZ(time) -> str:
     return time.isoformat().replace("+00:00", "Z")

@@ -24,9 +24,7 @@ BTime = namedtuple("BTime", "year yday hour minute second tenthMilli")
 Blockette1000 = namedtuple(
     "Blockette1000", "blocketteNum, nextOffset, encoding, byteorder, recLength"
 )
-Blockette100 = namedtuple(
-    "Blockette100", "blocketteNum, nextOffset, sampleRate"
-)
+Blockette100 = namedtuple("Blockette100", "blocketteNum, nextOffset, sampleRate")
 Blockette1001 = namedtuple(
     "Blockette1001", "blocketteNum, nextOffset, timeQuality, microseconds, frameCount"
 )
@@ -189,11 +187,13 @@ class MiniseedHeader:
             tt.tm_sec,
             int(time.microsecond / 100),
         )
+
     def setSampleRate(self, sampleRate):
         self.sampleRate = sampleRate
         self.sampPeriod = timedelta(
             microseconds=MICRO / self.sampleRate
         )  # Nominal sample period (Sec) */
+
     def setStartTime(self, starttime):
         if type(starttime).__name__ == "datetime":
             # make sure timezone aware
@@ -223,7 +223,9 @@ class MiniseedHeader:
                 tzinfo=timezone.utc,
             ) + timedelta(days=self.btime.yday - 1)
         else:
-            raise MiniseedException("unknown type of starttime {}".format(type(starttime)))
+            raise MiniseedException(
+                "unknown type of starttime {}".format(type(starttime))
+            )
 
 
 class MiniseedRecord:
@@ -231,13 +233,18 @@ class MiniseedRecord:
         self.header = header
         self.blockettes = blockettes
         self.__data = data
-        self.encodedData=encodedData
+        self.encodedData = encodedData
 
     def decompressed(self):
         if self.__data is not None:
             return self.__data
         elif self.encodedData is not None:
-            self.__data = decompressEncodedData(self.header.encoding, self.header.byteorder, self.header.numsamples, self.encodedData)
+            self.__data = decompressEncodedData(
+                self.header.encoding,
+                self.header.byteorder,
+                self.header.numsamples,
+                self.encodedData,
+            )
         return self.__data
 
     def codes(self, sep="."):
@@ -357,9 +364,9 @@ class MiniseedRecord:
         return Blockette1001(
             1000,
             0,
-            0, # time quality
-            microseconds, # microseconds
-            0, # frame count?
+            0,  # time quality
+            microseconds,  # microseconds
+            0,  # frame count?
         )
 
     def packData(self, recordBytes, offset, data):
@@ -395,7 +402,9 @@ class MiniseedRecord:
 
 def unpackMiniseedHeader(recordBytes, endianChar=">"):
     if len(recordBytes) < 48:
-        raise MiniseedException("Not enough bytes for header: {:d}".format(len(recordBytes)))
+        raise MiniseedException(
+            "Not enough bytes for header: {:d}".format(len(recordBytes))
+        )
     (
         seq,
         qualityChar,
@@ -471,9 +480,7 @@ def unpackBlockette(recordBytes, offset, endianChar, dataOffset):
     elif bnum == 1001:
         return unpackBlockette1001(recordBytes, offset, endianChar)
     else:
-        return BlocketteUnknown(
-            blocketteNum, nextOffset, recordBytes[offset:endOffset]
-        )
+        return BlocketteUnknown(blocketteNum, nextOffset, recordBytes[offset:endOffset])
 
 
 def unpackBlockette100(recordBytes, offset, endianChar):
@@ -491,12 +498,14 @@ def unpackBlockette1000(recordBytes, offset, endianChar):
     )
     return Blockette1000(blocketteNum, nextOffset, encoding, byteorder, recLength)
 
+
 def unpackBlockette1001(recordBytes, offset, endianChar):
     """named Tuple of blocketteNum, nextOffset, time quality, microseconds, frame count"""
     blocketteNum, nextOffset, timeQual, microseconds, frameCount = struct.unpack(
         endianChar + "HHBBxB", recordBytes[offset : offset + 8]
     )
     return Blockette1001(blocketteNum, nextOffset, timeQual, microseconds, frameCount)
+
 
 def unpackFixedHeaderGuessByteOrder(recordBytes):
     byteOrder = BIG_ENDIAN
@@ -523,8 +532,9 @@ def unpackFixedHeaderGuessByteOrder(recordBytes):
             )
         )
     header = unpackMiniseedHeader(recordBytes, endianChar)
-    header.byteOrder = byteOrder # in case no b1000
+    header.byteOrder = byteOrder  # in case no b1000
     return header
+
 
 def unpackMiniseedRecord(recordBytes):
     header = unpackFixedHeaderGuessByteOrder(recordBytes)
@@ -536,7 +546,9 @@ def unpackMiniseedRecord(recordBytes):
         # print("Next Byte Offset",nextBOffset)
         while nextBOffset > 0:
             try:
-                b = unpackBlockette(recordBytes, nextBOffset, endianChar, header.dataOffset)
+                b = unpackBlockette(
+                    recordBytes, nextBOffset, endianChar, header.dataOffset
+                )
                 blockettes.append(b)
                 if type(b).__name__ == "Blockette1000":
                     header.encoding = b.encoding
@@ -544,7 +556,9 @@ def unpackMiniseedRecord(recordBytes):
                 elif type(b).__name__ == "Blockette100":
                     header.setSampleRate(b.sampleRate)
                 elif type(b).__name__ == "Blockette1001":
-                    header.setStartTime(header.starttime + timedelta(microseconds=b.microseconds))
+                    header.setStartTime(
+                        header.starttime + timedelta(microseconds=b.microseconds)
+                    )
                 nextBOffset = b.nextOffset
             except struct.error as e:
                 print(
@@ -553,31 +567,43 @@ def unpackMiniseedRecord(recordBytes):
                     )
                 )
                 raise
-    encodedData = recordBytes[header.dataOffset : ]
+    encodedData = recordBytes[header.dataOffset :]
     if header.encoding == ENC_SHORT or header.encoding == ENC_INT:
-        data = decompressEncodedData(header.encoding, header.byteOrder, header.numsamples, encodedData)
+        data = decompressEncodedData(
+            header.encoding, header.byteOrder, header.numsamples, encodedData
+        )
     else:
         data = None
     return MiniseedRecord(header, data, encodedData=encodedData, blockettes=blockettes)
 
+
 def decompressEncodedData(encoding, byteOrder, numsamples, recordBytes):
-        needSwap = (byteOrder == BIG_ENDIAN and sys.byteorder == "little") or (
-                    byteOrder == LITTLE_ENDIAN and sys.byteorder == "big")
-        if encoding == ENC_SHORT:
-            data = array("h", recordBytes[ : 2 * numsamples],)
-            if needSwap:
-                data.byteswap()
-        elif encoding == ENC_INT:
-            data = array("i", recordBytes[ : 4 * numsamples],)
-            if needSwap:
-                data.byteswap()
-        else:
-            # byteswap handled by function
-            data = decompress(encoding, recordBytes, numsamples, byteOrder == LITTLE_ENDIAN)
-        return data
+    needSwap = (byteOrder == BIG_ENDIAN and sys.byteorder == "little") or (
+        byteOrder == LITTLE_ENDIAN and sys.byteorder == "big"
+    )
+    if encoding == ENC_SHORT:
+        data = array(
+            "h",
+            recordBytes[: 2 * numsamples],
+        )
+        if needSwap:
+            data.byteswap()
+    elif encoding == ENC_INT:
+        data = array(
+            "i",
+            recordBytes[: 4 * numsamples],
+        )
+        if needSwap:
+            data.byteswap()
+    else:
+        # byteswap handled by function
+        data = decompress(encoding, recordBytes, numsamples, byteOrder == LITTLE_ENDIAN)
+    return data
+
 
 class MiniseedException(Exception):
     pass
+
 
 def readMiniseed2Record(fileptr):
     headBytes = fileptr.read(HEADER_SIZE)
@@ -586,15 +612,19 @@ def readMiniseed2Record(fileptr):
     header = unpackFixedHeaderGuessByteOrder(headBytes)
     endianChar = "<" if header.byteOrder == LITTLE_ENDIAN else ">"
 
-
     # assume all blocketts between fixed header and start of data
-    blocketteBytes = fileptr.read(header.dataOffset-HEADER_SIZE)
+    blocketteBytes = fileptr.read(header.dataOffset - HEADER_SIZE)
     blockettes = []
     if header.numBlockettes > 0:
         nextBOffset = header.blocketteOffset
         while nextBOffset > 0:
             try:
-                b = unpackBlockette(blocketteBytes, nextBOffset - HEADER_SIZE, endianChar, header.dataOffset)
+                b = unpackBlockette(
+                    blocketteBytes,
+                    nextBOffset - HEADER_SIZE,
+                    endianChar,
+                    header.dataOffset,
+                )
                 blockettes.append(b)
                 if type(b).__name__ == "Blockette1000":
                     header.encoding = b.encoding
@@ -602,7 +632,9 @@ def readMiniseed2Record(fileptr):
                 elif type(b).__name__ == "Blockette100":
                     header.setSampleRate(b.sampleRate)
                 elif type(b).__name__ == "Blockette1001":
-                    header.setStartTime(header.starttime + timedelta(microseconds=b.microseconds))
+                    header.setStartTime(
+                        header.starttime + timedelta(microseconds=b.microseconds)
+                    )
                 nextBOffset = b.nextOffset
             except struct.error as e:
                 print(
@@ -615,7 +647,11 @@ def readMiniseed2Record(fileptr):
     for b in blockettes:
         if b.blocketteNum == 1000:
             if b.recLength < 8 or b.recLength > 12:
-                raise MiniseedException(f"record length {b.recLength} from B1000 is not valid, 8-12 for 512 to 4096")
+                raise MiniseedException(
+                    f"record length {b.recLength} from B1000 is not valid, 8-12 for 512 to 4096"
+                )
             recordBytesSize = 2**b.recLength
-    encodedDataBytes = fileptr.read(recordBytesSize-header.dataOffset)
-    return MiniseedRecord(header, data=None, encodedData=encodedDataBytes, blockettes=blockettes)
+    encodedDataBytes = fileptr.read(recordBytesSize - header.dataOffset)
+    return MiniseedRecord(
+        header, data=None, encodedData=encodedDataBytes, blockettes=blockettes
+    )

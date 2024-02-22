@@ -1,5 +1,4 @@
-
-__version__="0.1.0"
+__version__ = "0.1.0"
 
 from .mseed3 import (
     unpackMSeed3Record,
@@ -7,7 +6,7 @@ from .mseed3 import (
     readMSeed3Record,
     MSeed3Header,
     MSeed3Record,
-    CRC_OFFSET
+    CRC_OFFSET,
 )
 
 from .miniseed import (
@@ -17,7 +16,7 @@ from .miniseed import (
     unpackMiniseedRecord,
     unpackBlockette,
     MiniseedException,
-    readMiniseed2Record
+    readMiniseed2Record,
 )
 from .fdsnsourceid import (
     FDSN_PREFIX,
@@ -34,7 +33,7 @@ from .seedcodec import (
     CodecException,
     UnsupportedCompressionType,
     decodeSteim1,
-    decodeSteim2
+    decodeSteim2,
 )
 from .mseed2to3 import mseed2to3
 

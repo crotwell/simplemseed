@@ -1,9 +1,9 @@
-
 import argparse
 import os
 import sys
 import re
 from .mseed3 import MSeed3Record, readMSeed3Record
+
 
 def do_parseargs():
     parser = argparse.ArgumentParser(
@@ -12,25 +12,20 @@ def do_parseargs():
     parser.add_argument(
         "-v", "--verbose", help="increase output verbosity", action="store_true"
     )
-    parser.add_argument(
-        "--eh", help="display extra headers", action="store_true"
-    )
+    parser.add_argument("--eh", help="display extra headers", action="store_true")
     parser.add_argument(
         "--summary", help="one line summary per record", action="store_true"
     )
-    parser.add_argument(
-        "--data", help="print timeseries data", action="store_true"
-    )
+    parser.add_argument("--data", help="print timeseries data", action="store_true")
     parser.add_argument(
         "--match",
         help="regular expression to match the identifier",
     )
     parser.add_argument(
-        'ms3files',
-        metavar='ms3file',
-        nargs='+',
-        help='mseed3 files to print')
+        "ms3files", metavar="ms3file", nargs="+", help="mseed3 files to print"
+    )
     return parser.parse_args()
+
 
 def do_details():
     args = do_parseargs()
@@ -53,6 +48,7 @@ def do_details():
                 ms3 = readMSeed3Record(inms3file)
     print(f"Total {totSamples} samples in {numRecords} records")
 
+
 def main():
     try:
         do_details()
@@ -63,6 +59,7 @@ def main():
         devnull = os.open(os.devnull, os.O_WRONLY)
         os.dup2(devnull, sys.stdout.fileno())
         sys.exit(1)  # Python exits with error code 1 on EPIPE
+
 
 if __name__ == "__main__":
     main()
