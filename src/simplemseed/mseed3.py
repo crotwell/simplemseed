@@ -553,11 +553,11 @@ def unpackMSeed3Record(recordBytes, check_crc=True):
     return ms3Rec
 
 
-def readMSeed3Records(fileptr, check_crc=True, match=None, merge=False):
+def readMSeed3Records(fileptr, check_crc=True, matchsid=None, merge=False):
     matchPat = None
     prev = None
-    if match is not None:
-        matchPat = re.compile(match)
+    if matchsid is not None:
+        matchPat = re.compile(matchsid)
     while True:
         headBytes = fileptr.read(FIXED_HEADER_SIZE)
         if len(headBytes) == 0:
@@ -591,7 +591,7 @@ def readMSeed3Records(fileptr, check_crc=True, match=None, merge=False):
             ms3 = MSeed3Record(ms3header, identifier, encodedData, extraHeaders=extraHeadersStr)
             if merge:
                 ms3 = ms3.decompressedRecord()
-                mlist = merge(prev, ms3)
+                mlist = mseed3merge(prev, ms3)
                 if len(mlist) == 2:
                     prev = mlist[1]
                     yield mlist[0]
