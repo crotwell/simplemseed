@@ -136,7 +136,7 @@ class TestMSeed3:
         with open(filename, "rb") as infile:
             p = None
             recList = []
-            for rec in simplemseed.readMSeed3Records(infile, match="BIRD_.*_H_H_Z"):
+            for rec in simplemseed.readMSeed3Records(infile, matchsid="BIRD_.*_H_H_Z"):
                 recList.append(rec)
         assert len(recList) == 13
 
