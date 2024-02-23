@@ -83,38 +83,37 @@ Total 104 samples in 1 records
 # getting and setting extra header values
 
 ```
-% mseed3details --get "/FDSN/Time/Quality" casee_two.ms3
-FDSN:CO_CASEE_00_H_H_Z 2023-06-17T04:53:50.008392Z 2023-06-17T04:53:50.178392Z (18 pts)
-  0
-% mseed3details --getall "/FDSN/Time/Quality" casee_two.ms3
+% mseed3details --get "/FDSN/Time" casee_two.ms3
+  {"Quality": 0}
+% mseed3details --getall "/FDSN/Time/Quality" casee_two.ms3 --verbose
+file: casee_two.ms3
 FDSN:CO_CASEE_00_H_H_Z 2023-06-17T04:53:50.008392Z 2023-06-17T04:53:50.178392Z (18 pts)
   0
 FDSN:CO_CASEE_00_H_H_Z 2023-06-17T04:53:50.188392Z 2023-06-17T04:53:55.498392Z (532 pts)
   0
 % mseed3details --set "/data" '{ "key": "val", "keyb": 3 }' casee_two.ms3
-FDSN:CO_CASEE_00_H_H_Z 2023-06-17T04:53:50.008392Z 2023-06-17T04:53:50.178392Z (18 pts)
-  {"FDSN": {"Time": {"Quality": 0}}, "data": {"key": "val", "keyb": 3}}
-% mseed3details --getall "/data" casee_two.ms3
+% mseed3details --getall "/data" casee_two.ms3 --verbose
+file: casee_two.ms3
 FDSN:CO_CASEE_00_H_H_Z 2023-06-17T04:53:50.008392Z 2023-06-17T04:53:50.178392Z (18 pts)
   {"key": "val", "keyb": 3}
 FDSN:CO_CASEE_00_H_H_Z 2023-06-17T04:53:50.188392Z 2023-06-17T04:53:55.498392Z (532 pts)
   pointer not found in extra headers
-% mseed3details --setall "/data" '{ "key": "val", "keyb": 3 }' casee_two.ms3
+% mseed3details --setall "/data" '{ "key": "else", "keyb": 4 }' casee_two.ms3
+% mseed3details --set "/data/keyb" 42 casee_two.ms3
+% mseed3details --getall "/data" casee_two.ms3 --verbose                     
+file: casee_two.ms3
 FDSN:CO_CASEE_00_H_H_Z 2023-06-17T04:53:50.008392Z 2023-06-17T04:53:50.178392Z (18 pts)
-  {"FDSN": {"Time": {"Quality": 0}}, "data": {"key": "val", "keyb": 3}}
+  {"key": "else", "keyb": 42}
 FDSN:CO_CASEE_00_H_H_Z 2023-06-17T04:53:50.188392Z 2023-06-17T04:53:55.498392Z (532 pts)
-  {"FDSN": {"Time": {"Quality": 0}}, "data": {"key": "val", "keyb": 3}}
-% mseed3details --setall "/data/keyb" 42 casee_two.ms3
-FDSN:CO_CASEE_00_H_H_Z 2023-06-17T04:53:50.008392Z 2023-06-17T04:53:50.178392Z (18 pts)
-  {"FDSN": {"Time": {"Quality": 0}}, "data": {"key": "val", "keyb": 42}}
-FDSN:CO_CASEE_00_H_H_Z 2023-06-17T04:53:50.188392Z 2023-06-17T04:53:55.498392Z (532 pts)
-  {"FDSN": {"Time": {"Quality": 0}}, "data": {"key": "val", "keyb": 42}}
+  {"key": "else", "keyb": 4}
 ```
 
 #  mseed3merge
-- merge contiguous, in order, mseed3 records into larger records
+- merge contiguous, in order, mseed3 records into larger records. Decompression
+is needed as steim1 and 2 cannot be merged without decompression, primitive
+types are already decompressed.
 ```
-mseed3merge -o co_merged.ms3 --decomp  co_feb6.ms3
+mseed3merge -o merged.ms3 --decomp  bird_jsc.ms3
 ```
 
 #  mseed2to3

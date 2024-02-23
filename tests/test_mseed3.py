@@ -27,9 +27,10 @@ ref_data_list = [
 
 
 # mseed3 via
+# casee_two.ms3
 # https://service.iris.edu/fdsnws/dataselect/1/query?net=CO&sta=CASEE&loc=00&cha=HHZ&starttime=2023-06-17T04:53:54.468&endtime=2023-06-17T04:55:00&format=miniseed3&nodata=404
-#
-
+# bird_jsc.ms3
+# curl -o 'bird_jsc.ms3' 'https://service.iris.edu/fdsnws/dataselect/1/query?net=CO&sta=BIRD,JSC&cha=HH?&starttime=2024-02-06T11:30:00&endtime=2024-02-06T11:30:30&format=miniseed3&nodata=404'
 
 class TestMSeed3:
 
@@ -130,6 +131,14 @@ class TestMSeed3:
                 totNumSamp += r.header.numSamples
             assert p.header.numSamples == totNumSamp
 
+    def test_match(self):
+        filename = f"{TEST_DIR}/bird_jsc.ms3"
+        with open(filename, "rb") as infile:
+            p = None
+            recList = []
+            for rec in simplemseed.readMSeed3Records(infile, match="BIRD_.*_H_H_Z"):
+                recList.append(rec)
+        assert len(recList) == 13
 
 if __name__ == "__main__":
     TestMSeed3().test_ref_data()

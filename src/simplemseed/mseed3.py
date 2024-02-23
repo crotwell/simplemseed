@@ -5,6 +5,7 @@ from collections import namedtuple
 from datetime import datetime, timedelta, timezone
 import json
 import math
+import re
 import sys
 import crc32c
 from typing import Union
@@ -221,8 +222,6 @@ class MSeed3Header:
         out = out and self.hour >= 0 and self.hour < 24
         out = out and self.minute >= 0 and self.minute <= 60
         out = out and self.second >= 0 and self.second <= 60
-        if not out:
-            print(f"sanity {self.year} {self.dayOfYear} {self.hour} {self.minute} {self.second}")
         return out
 
 
@@ -554,7 +553,11 @@ def unpackMSeed3Record(recordBytes, check_crc=True):
     return ms3Rec
 
 
-def readMSeed3Records(fileptr, check_crc=True, matchRegEx=None):
+def readMSeed3Records(fileptr, check_crc=True, match=None, merge=False):
+    matchPat = None
+    prev = None
+    if match is not None:
+        matchPat = re.compile(match)
     while True:
         headBytes = fileptr.read(FIXED_HEADER_SIZE)
         if len(headBytes) == 0:
@@ -570,21 +573,38 @@ def readMSeed3Records(fileptr, check_crc=True, matchRegEx=None):
         if check_crc:
             crc = crc32c.crc32c(identifierBytes, crc)
         identifier = identifierBytes.decode("utf-8")
-        ehBytes = fileptr.read(ms3header.extraHeadersLength)
-        if check_crc:
-            crc = crc32c.crc32c(ehBytes, crc)
-        extraHeadersStr = ehBytes.decode("utf-8")
-        encodedDataBytes = fileptr.read(ms3header.dataLength)
-        if check_crc:
-            crc = crc32c.crc32c(encodedDataBytes, crc)
-            if ms3header.crc != crc:
-                raise MiniseedException(f"crc fail:  Calc: {crc}  Header: {ms3header.crc}")
+        if matchPat is None or matchPat.search(identifier) is not None:
+            # match pass
+            ehBytes = fileptr.read(ms3header.extraHeadersLength)
+            if check_crc:
+                crc = crc32c.crc32c(ehBytes, crc)
+            extraHeadersStr = ehBytes.decode("utf-8")
+            encodedDataBytes = fileptr.read(ms3header.dataLength)
+            if check_crc:
+                crc = crc32c.crc32c(encodedDataBytes, crc)
+                if ms3header.crc != crc:
+                    raise MiniseedException(f"crc fail:  Calc: {crc}  Header: {ms3header.crc}")
 
-        encodedData = EncodedDataSegment(
-            ms3header.encoding, encodedDataBytes, ms3header.numSamples, True
-        )
-        ms3 = MSeed3Record(ms3header, identifier, encodedData, extraHeaders=extraHeadersStr)
-        yield ms3
+            encodedData = EncodedDataSegment(
+                ms3header.encoding, encodedDataBytes, ms3header.numSamples, True
+            )
+            ms3 = MSeed3Record(ms3header, identifier, encodedData, extraHeaders=extraHeadersStr)
+            if merge:
+                ms3 = ms3.decompressedRecord()
+                mlist = merge(prev, ms3)
+                if len(mlist) == 2:
+                    prev = mlist[1]
+                    yield mlist[0]
+                else:
+                    prev = mlist[0]
+            else:
+                yield ms3
+        else:
+            # failed match, can skip ahead to next record
+            fileptr.seek(ms3header.extraHeadersLength, 1)
+            fileptr.seek(ms3header.dataLength, 1)
+        if prev is not None:
+            yield prev
 
 
 def areCompatible(ms3a: MSeed3Record, ms3b: MSeed3Record, timeTolFactor=0.5) -> bool:

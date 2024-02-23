@@ -68,13 +68,15 @@ def do_parseargs():
     )
     return parser.parse_args()
 
-def do_get_eh(getptr, matchPat, ms3files, getall=False, outfile=None,verbose=False):
+def do_get_eh(getptr, ms3files, match=None, getall=False, outfile=None, verbose=False):
     looking = True
     pointer = JsonPointer(getptr)
     for ms3file in ms3files:
+        if verbose:
+            print(f"file: {ms3file}")
         with open(ms3file, "rb") as inms3file:
-            for ms3 in readMSeed3Records(inms3file):
-                if (looking or getall) and (matchPat is None or matchPat.search(ms3.identifier) is not None):
+            for ms3 in readMSeed3Records(inms3file, match=match):
+                if looking or getall:
                     looking = False
                     # only get in first record
                     if verbose:
@@ -82,19 +84,19 @@ def do_get_eh(getptr, matchPat, ms3files, getall=False, outfile=None,verbose=Fal
                     try:
                         ehptr = pointer.resolve(ms3.eh)
                         ehStr = json.dumps(ehptr)
-                        if verbose or outfile is None:
+                        if outfile is None or outfile == sys.stdout:
                             print(f"  {ehStr}")
-                        if outfile is not None:
+                        else:
                             outfile.write(f"{ehStr}\n")
                     except JsonPointerException:
-                        if verbose or outfile is None:
+                        if outfile is None or outfile == sys.stdout:
                             print("  pointer not found in extra headers")
-                        if outfile is not None:
-                            out += "\n"
+                        else:
+                            outfile.write("\n")
         if not looking and not getall:
             break
 
-def do_set_eh(setptr, setval, matchPat, ms3files, setall=False, verbose=False):
+def do_set_eh(setptr, setval, ms3files, match=None, setall=False, verbose=False):
     looking = True
     setjson = json.loads(setval)
     now = datetime.utcnow().strftime("%Y%m%dT%H%M%S.%f")
@@ -104,8 +106,8 @@ def do_set_eh(setptr, setval, matchPat, ms3files, setall=False, verbose=False):
         tmpfile = f"{ms3file}_tmp{now}"
         with open(tmpfile, "wb") as fp:
             with open(ms3file, "rb") as inms3file:
-                for ms3 in readMSeed3Records(inms3file):
-                    if (looking or setall) and (matchPat is None or matchPat.search(ms3.identifier) is not None):
+                for ms3 in readMSeed3Records(inms3file, match=match):
+                    if looking or setall:
                         looking = False
                         # only set in first record
                         if usePointer:
@@ -125,42 +127,38 @@ def do_set_eh(setptr, setval, matchPat, ms3files, setall=False, verbose=False):
 
 def do_details():
     args = do_parseargs()
-    matchPat = None
     totSamples = 0
     numRecords = 0
-    if args.match is not None:
-        matchPat = re.compile(args.match)
     if args.outfile is not None:
         outfile = args.outfile
     else:
         outfile = sys.stdout
     if args.get is not None:
-        do_get_eh(args.get, matchPat, args.ms3files, outfile=outfile)
+        do_get_eh(args.get, args.ms3files, match=args.match, outfile=outfile, verbose=args.verbose)
     elif args.getall is not None:
-        do_get_eh(args.getall, matchPat, args.ms3files, getall=True, outfile=outfile)
+        do_get_eh(args.getall, args.ms3files, match=args.match, getall=True, outfile=outfile, verbose=args.verbose)
     elif args.set is not None:
-        do_set_eh(args.set[0], args.set[1], matchPat, args.ms3files)
+        do_set_eh(args.set[0], args.set[1], args.ms3files, match=args.match, verbose=args.verbose)
     elif args.setall is not None:
-        do_set_eh(args.setall[0], args.setall[1], matchPat, args.ms3files, setall=True)
+        do_set_eh(args.setall[0], args.setall[1], args.ms3files, match=args.match, setall=True, verbose=args.verbose)
     elif args.fset is not None:
         with open(args.fset[1], "r") as injson:
             jsoneh = injson.read()
-        do_set_eh(args.fset[0], jsoneh, matchPat, args.ms3files)
+        do_set_eh(args.fset[0], jsoneh, args.ms3files, match=args.match, verbose=args.verbose)
     elif args.fsetall is not None:
         with open(args.fsetall[1], "r") as injson:
             jsoneh = injson.read()
-        do_set_eh(args.fsetall[0], jsoneh, matchPat, args.ms3files, setall=True)
+        do_set_eh(args.fsetall[0], jsoneh, args.ms3files, match=args.match, setall=True, verbose=args.verbose)
     else:
         for ms3file in args.ms3files:
             with open(ms3file, "rb") as inms3file:
-                for ms3 in readMSeed3Records(inms3file):
-                    if matchPat is None or matchPat.search(ms3.identifier) is not None:
-                        numRecords += 1
-                        totSamples += ms3.header.numSamples
-                        if args.summary:
-                            print(ms3)
-                        else:
-                            print(ms3.details(showExtraHeaders=args.eh, showData=args.data))
+                for ms3 in readMSeed3Records(inms3file, match=args.match):
+                    numRecords += 1
+                    totSamples += ms3.header.numSamples
+                    if args.summary:
+                        print(ms3.summary())
+                    else:
+                        print(ms3.details(showExtraHeaders=args.eh, showData=args.data))
         print(f"Total {totSamples} samples in {numRecords} records")
 
 
