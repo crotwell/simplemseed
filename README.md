@@ -80,6 +80,37 @@ mseed3details casee.mseed3
 Total 104 samples in 1 records
 ```
 
+# getting and setting extra header values
+
+```
+% mseed3details --get "/FDSN/Time/Quality" casee_two.ms3
+FDSN:CO_CASEE_00_H_H_Z 2023-06-17T04:53:50.008392Z 2023-06-17T04:53:50.178392Z (18 pts)
+  0
+% mseed3details --getall "/FDSN/Time/Quality" casee_two.ms3
+FDSN:CO_CASEE_00_H_H_Z 2023-06-17T04:53:50.008392Z 2023-06-17T04:53:50.178392Z (18 pts)
+  0
+FDSN:CO_CASEE_00_H_H_Z 2023-06-17T04:53:50.188392Z 2023-06-17T04:53:55.498392Z (532 pts)
+  0
+% mseed3details --set "/data" '{ "key": "val", "keyb": 3 }' casee_two.ms3
+FDSN:CO_CASEE_00_H_H_Z 2023-06-17T04:53:50.008392Z 2023-06-17T04:53:50.178392Z (18 pts)
+  {"FDSN": {"Time": {"Quality": 0}}, "data": {"key": "val", "keyb": 3}}
+% mseed3details --getall "/data" casee_two.ms3
+FDSN:CO_CASEE_00_H_H_Z 2023-06-17T04:53:50.008392Z 2023-06-17T04:53:50.178392Z (18 pts)
+  {"key": "val", "keyb": 3}
+FDSN:CO_CASEE_00_H_H_Z 2023-06-17T04:53:50.188392Z 2023-06-17T04:53:55.498392Z (532 pts)
+  pointer not found in extra headers
+% mseed3details --setall "/data" '{ "key": "val", "keyb": 3 }' casee_two.ms3
+FDSN:CO_CASEE_00_H_H_Z 2023-06-17T04:53:50.008392Z 2023-06-17T04:53:50.178392Z (18 pts)
+  {"FDSN": {"Time": {"Quality": 0}}, "data": {"key": "val", "keyb": 3}}
+FDSN:CO_CASEE_00_H_H_Z 2023-06-17T04:53:50.188392Z 2023-06-17T04:53:55.498392Z (532 pts)
+  {"FDSN": {"Time": {"Quality": 0}}, "data": {"key": "val", "keyb": 3}}
+% mseed3details --setall "/data/keyb" 42 casee_two.ms3
+FDSN:CO_CASEE_00_H_H_Z 2023-06-17T04:53:50.008392Z 2023-06-17T04:53:50.178392Z (18 pts)
+  {"FDSN": {"Time": {"Quality": 0}}, "data": {"key": "val", "keyb": 42}}
+FDSN:CO_CASEE_00_H_H_Z 2023-06-17T04:53:50.188392Z 2023-06-17T04:53:55.498392Z (532 pts)
+  {"FDSN": {"Time": {"Quality": 0}}, "data": {"key": "val", "keyb": 42}}
+```
+
 #  mseed3merge
 - merge contiguous, in order, mseed3 records into larger records
 ```
