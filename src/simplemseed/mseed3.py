@@ -214,6 +214,14 @@ class MSeed3Header:
         ms3header.dataLength = self.dataLength
         return ms3header
 
+    def sanityCheck(self):
+        out = True
+        out = out and self.year >= 0 and self.year < 300
+        out = out and self.hour >= 0 and self.hour < 24
+        out = out and self.minute >= 0 and self.minute <= 60
+        out = out and self.second >= 0 and self.second <= 60
+        return out
+
 
 class MSeed3Record:
     header: MSeed3Header
