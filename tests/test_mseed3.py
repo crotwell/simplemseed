@@ -112,5 +112,24 @@ class TestMSeed3:
         assert header.nanosecond == 123456000
         assert simplemseed.isoWZ(header.starttime) == start
 
+    def test_merge(self):
+        filename = f"{TEST_DIR}/casee_two.ms3"
+        with open(filename, "rb") as infile:
+            p = None
+            recList = []
+            for rec in simplemseed.readMSeed3Records(infile):
+                recList.append(rec)
+                decompRec = rec.decompressedRecord()
+                mList = simplemseed.mseed3merge(p, decompRec)
+                assert len(mList) == 1
+                p = mList[0]
+            assert len(recList) == 2
+            assert p.header.encoding == simplemseed.seedcodec.INTEGER
+            totNumSamp = 0
+            for r in recList:
+                totNumSamp += r.header.numSamples
+            assert p.header.numSamples == totNumSamp
+
+
 if __name__ == "__main__":
     TestMSeed3().test_ref_data()
