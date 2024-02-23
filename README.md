@@ -4,7 +4,7 @@
 [![PyPI](https://img.shields.io/pypi/v/simplemseed)](https://pypi.org/project/simplemseed/)
 
 
-[Miniseed3](http://docs.fdsn.org/projects/miniseed3) (and 2) in pure python
+[Miniseed3](http://docs.fdsn.org/projects/miniseed3) (and reading 2) in pure python
 
 # Miniseed3
 
@@ -92,7 +92,7 @@ mseed3merge -o co_merged.ms3 --decomp  co_feb6.ms3
 Note most blockettes are ignored, other than 100, 1000, 1001
 
 ```
-mseed2to3 --ms2 casee.mseed2 --ms3 xxxcasee.mseed3
+mseed2to3 --ms2 casee.ms2 --ms3 casee.ms3
 ```
 
 
