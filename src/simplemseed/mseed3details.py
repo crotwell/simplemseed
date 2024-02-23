@@ -72,7 +72,7 @@ def do_set_eh(setptr, setval, matchPat, ms3files, setall=False):
     setjson = json.loads(setval)
     now = datetime.utcnow().strftime("%Y%m%dT%H%M%S.%f")
     for ms3file in ms3files:
-        tmpfile = ms3file+now
+        tmpfile = f"{ms3file}_tmp{now}"
         with open(tmpfile, "wb") as fp:
             with open(ms3file, "rb") as inms3file:
                 for ms3 in readMSeed3Records(inms3file):
