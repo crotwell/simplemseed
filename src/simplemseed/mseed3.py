@@ -453,7 +453,7 @@ class MSeed3Record:
                        start time: {isoWZ(self.starttime)} ({self.header.dayOfYear:03})
                 number of samples: {self.header.numSamples}
                  sample rate (Hz): {self.header.sampleRate}
-                            flags: [{self.header.flags:>08b}] 8 bits${bitFlagStr}
+                            flags: [{self.header.flags:>08b}] 8 bits{bitFlagStr}
                               CRC: {self.header.crcAsHex()}
               extra header length: {self.header.extraHeadersLength} bytes
               data payload length: {self.header.dataLength} bytes
