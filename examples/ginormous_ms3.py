@@ -7,11 +7,6 @@ from simplemseed import MSeed3Header, MSeed3Record
 import simplemseed
 import struct
 
-
-def crcAsHex(crc):
-    return "0x{:08X}".format(crc)
-
-
 eh = {
     "bag": {
         "y": {"proc": "raw", "si": "count"},
@@ -52,7 +47,6 @@ with open(ms3filename, "wb") as of:
     of.write(ms3record.pack())
     print(f"  save: {ms3record.details()} ")
     print(f"    to: {ms3filename} ")
-    print(f"   crc: {crcAsHex(ms3record.header.crc)}")
 
 print()
 print()
@@ -60,7 +54,6 @@ with open(ms3filename, "rb") as infile:
     readms3record = next(simplemseed.readMSeed3Records(infile))
     print(f"  extract: {readms3record.details()} ")
     print(f"     from: {ms3filename} ")
-    print(f"      crc: {crcAsHex(readms3record.header.crc)}")
     assert (
         readms3record.header.numSamples == ms3record.header.numSamples
     ), f"Num samples: {readms3record.header.numSamples} != {ms3record.header.numSamples}"
