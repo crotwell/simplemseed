@@ -216,10 +216,13 @@ class MSeed3Header:
 
     def sanityCheck(self):
         out = True
-        out = out and self.year >= 0 and self.year < 300
+        out = out and self.year >= 0 and self.year < 3000
+        out = out and self.dayOfYear >= 1 and self.dayOfYear <= 366
         out = out and self.hour >= 0 and self.hour < 24
         out = out and self.minute >= 0 and self.minute <= 60
         out = out and self.second >= 0 and self.second <= 60
+        if not out:
+            print(f"sanity {self.year} {self.dayOfYear} {self.hour} {self.minute} {self.second}")
         return out
 
 
@@ -551,9 +554,12 @@ def unpackMSeed3Record(recordBytes, check_crc=True):
     return ms3Rec
 
 
-def readMSeed3Records(fileptr, check_crc=True):
-    headBytes = fileptr.read(FIXED_HEADER_SIZE)
-    while len(headBytes) >= FIXED_HEADER_SIZE:
+def readMSeed3Records(fileptr, check_crc=True, matchRegEx=None):
+    while True:
+        headBytes = fileptr.read(FIXED_HEADER_SIZE)
+        if len(headBytes) == 0:
+            # no more to read, eof
+            return
         ms3header = unpackMSeed3FixedHeader(headBytes)
         crc = 0
         if check_crc:
@@ -579,7 +585,6 @@ def readMSeed3Records(fileptr, check_crc=True):
         )
         ms3 = MSeed3Record(ms3header, identifier, encodedData, extraHeaders=extraHeadersStr)
         yield ms3
-        headBytes = fileptr.read(FIXED_HEADER_SIZE)
 
 
 def areCompatible(ms3a: MSeed3Record, ms3b: MSeed3Record, timeTolFactor=0.5) -> bool:

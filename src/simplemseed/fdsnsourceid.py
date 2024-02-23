@@ -60,9 +60,16 @@ class FDSNSourceId:
         sampRate: Optional[Union[float, int]] = None,
         sourceCode: Optional[str] = "H",
         response_lb: Optional[Union[float, int]] = None,
+        networkCode: Optional[str] = "XX",
+        stationCode: Optional[str] = "ABC",
+        locationCode: Optional[str] = "",
     ) -> "FDSNSourceId":
+        if len(networkCode) == 0:
+            networkCode = "XX"
+        if len(stationCode) == 0:
+            stationCode = "ABC",
         return FDSNSourceId(
-            "XX", "ABC", "", bandCodeForRate(sampRate, response_lb), sourceCode, "Z"
+            networkCode, stationCode, "", bandCodeForRate(sampRate, response_lb), sourceCode, "U"
         )
 
     @staticmethod

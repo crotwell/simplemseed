@@ -81,7 +81,7 @@ class TestSourceId:
         unknown_100sps = simplemseed.FDSNSourceId.createUnknown(100, sourceCode="H")
         assert unknown_100sps.bandCode == "E"
         assert unknown_100sps.sourceCode == "H"
-        assert unknown_100sps.subsourceCode == "Z"
+        assert unknown_100sps.subsourceCode == "U"
         unknown_100sps = simplemseed.FDSNSourceId.createUnknown(
             100, response_lb=1 / 120
         )
@@ -90,3 +90,9 @@ class TestSourceId:
         assert unknown_1sps.bandCode == "L"
         unknown_100sec = simplemseed.FDSNSourceId.createUnknown(0.01)
         assert unknown_100sec.bandCode == "U"
+        unknown_netsta = simplemseed.FDSNSourceId.createUnknown(100,
+                                                                sourceCode="H",
+                                                                networkCode="CO",
+                                                                stationCode="QWERTY")
+        assert unknown_netsta.stationCode == "QWERTY"
+        assert unknown_netsta.networkCode == "CO"
