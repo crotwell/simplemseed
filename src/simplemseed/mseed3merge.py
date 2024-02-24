@@ -31,21 +31,10 @@ def main():
     args = do_parseargs()
     with open(args.outfile, "wb") as outms3file:
         with open(args.ms3file, "rb") as inms3file:
-            prevms3 = None
-            for ms3 in readMSeed3Records(inms3file):
-                if args.decomp:
-                    ms3 = ms3.decompressedRecord()
-                if prevms3 is not None:
-                    merged = mseed3merge(prevms3, ms3)
-                    if len(merged) == 2:
-                        outms3file.write(merged[0].pack())
-                        prevms3 = merged[1]
-                    else:
-                        prevms3 = merged[0]
-                else:
-                    prevms3 = ms3
-            if prevms3 is not None:
-                outms3file.write(prevms3.pack())
+            for ms3 in readMSeed3Records(inms3file, merge=True, verbose=args.verbose):
+                if args.verbose:
+                    print(ms3)
+                outms3file.write(ms3.pack())
 
 
 if __name__ == "__main__":

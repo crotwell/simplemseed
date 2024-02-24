@@ -553,7 +553,7 @@ def unpackMSeed3Record(recordBytes, check_crc=True):
     return ms3Rec
 
 
-def readMSeed3Records(fileptr, check_crc=True, matchsid=None, merge=False):
+def readMSeed3Records(fileptr, check_crc=True, matchsid=None, merge=False, verbose=False):
     matchPat = None
     prev = None
     if matchsid is not None:
@@ -562,7 +562,7 @@ def readMSeed3Records(fileptr, check_crc=True, matchsid=None, merge=False):
         headBytes = fileptr.read(FIXED_HEADER_SIZE)
         if len(headBytes) == 0:
             # no more to read, eof
-            return
+            break
         ms3header = unpackMSeed3FixedHeader(headBytes)
         crc = 0
         if check_crc:
@@ -589,6 +589,8 @@ def readMSeed3Records(fileptr, check_crc=True, matchsid=None, merge=False):
                 ms3header.encoding, encodedDataBytes, ms3header.numSamples, True
             )
             ms3 = MSeed3Record(ms3header, identifier, encodedData, extraHeaders=extraHeadersStr)
+            if verbose:
+                print(f"MSeed3Record {ms3}")
             if merge:
                 ms3 = ms3.decompressedRecord()
                 mlist = mseed3merge(prev, ms3)
@@ -601,10 +603,12 @@ def readMSeed3Records(fileptr, check_crc=True, matchsid=None, merge=False):
                 yield ms3
         else:
             # failed match, can skip ahead to next record
+            if verbose:
+                print(f"match fail, {identifier} skip")
             fileptr.seek(ms3header.extraHeadersLength, 1)
             fileptr.seek(ms3header.dataLength, 1)
-        if prev is not None:
-            yield prev
+    if prev is not None:
+        yield prev
 
 
 def areCompatible(ms3a: MSeed3Record, ms3b: MSeed3Record, timeTolFactor=0.5) -> bool:
