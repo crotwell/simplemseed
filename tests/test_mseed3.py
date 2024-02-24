@@ -130,6 +130,16 @@ class TestMSeed3:
             for r in recList:
                 totNumSamp += r.header.numSamples
             assert p.header.numSamples == totNumSamp
+        # now test merge in read
+        filename = f"{TEST_DIR}/casee_two.ms3"
+        mergeRecList = []
+        with open(filename, "rb") as infile:
+            for rec in simplemseed.readMSeed3Records(infile, merge=True):
+                mergeRecList.append(rec)
+        assert len(mergeRecList) == 1
+        p = mergeRecList[0]
+        assert p.header.encoding == simplemseed.seedcodec.INTEGER
+        assert p.header.numSamples == totNumSamp
 
     def test_match(self):
         filename = f"{TEST_DIR}/bird_jsc.ms3"
