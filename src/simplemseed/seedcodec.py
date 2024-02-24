@@ -96,6 +96,21 @@ class EncodedDataSegment:
             self.littleEndian,
         )
 
+def canDecompress(encoding: int) -> bool:
+    if encoding == SHORT:
+        return True
+    elif encoding == INTEGER:
+        return True
+    elif encoding == FLOAT:
+        return True
+    elif encoding == DOUBLE:
+        return True
+    elif encoding == STEIM1:
+        return True
+    elif encoding == STEIM2:
+        return True
+    else:
+        return False
 
 def arrayTypecodeFromMSeed(encoding: int) -> str:
     if encoding == SHORT:

@@ -40,6 +40,7 @@ from .seedcodec import (
     UnsupportedCompressionType,
     decodeSteim1,
     decodeSteim2,
+    canDecompress,
 )
 from .mseed2to3 import mseed2to3
 
@@ -64,6 +65,7 @@ __all__ = [
     bandCodeForRate,
     bandCodeDescribe,
     sourceCodeDescribe,
+    canDecompress,
     compress,
     decompress,
     CodecException,

@@ -12,6 +12,7 @@ from typing import Union
 
 from .miniseed import MiniseedException
 from .seedcodec import (
+    canDecompress,
     decompress,
     compress,
     STEIM1,
@@ -101,7 +102,7 @@ class MSeed3Header:
     def sampleRate(self):
         return (
             self.sampleRatePeriod
-            if self.sampleRatePeriod > 0
+            if self.sampleRatePeriod >= 0
             else -1.0 / self.sampleRatePeriod
         )
 
@@ -265,7 +266,10 @@ class MSeed3Record:
     @property
     def eh(self):
         if self._eh is not None and isinstance(self._eh, str):
-            self._eh = json.loads(self._eh)
+            if len(self._eh) > 0:
+                self._eh = json.loads(self._eh)
+            else:
+                self.eh = {}
         return self._eh
 
     @eh.setter
@@ -591,7 +595,7 @@ def readMSeed3Records(fileptr, check_crc=True, matchsid=None, merge=False, verbo
             ms3 = MSeed3Record(ms3header, identifier, encodedData, extraHeaders=extraHeadersStr)
             if verbose:
                 print(f"MSeed3Record {ms3}")
-            if merge:
+            if merge and canDecompress(ms3.header.encoding):
                 ms3 = ms3.decompressedRecord()
                 mlist = mseed3merge(prev, ms3)
                 if len(mlist) == 2:

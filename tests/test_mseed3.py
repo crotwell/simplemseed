@@ -41,35 +41,35 @@ class TestMSeed3:
             with open(filename, "rb") as infile:
                 rec_bytes = infile.read()
                 rec = simplemseed.mseed3.unpackMSeed3Record(rec_bytes)
+                jsonfilename = filename.replace(".mseed3", ".json")
+                with open(jsonfilename, "r") as injson:
+                    jsonrec = json.load(injson)[0]
+                assert jsonrec["FormatVersion"] == rec.header.formatVersion
+                assert jsonrec["EncodingFormat"] == rec.header.encoding
+                assert (
+                    jsonrec["SampleRate"] == rec.header.sampleRate
+                ), f"{jsonrec['SampleRate']} != {rec.header.sampleRate}"
+                assert jsonrec["SampleCount"] == rec.header.numSamples
+                assert (
+                    jsonrec["CRC"] == rec.header.crcAsHex()
+                ), f"{jsonrec['CRC']} {rec.header.crcAsHex()}"
+                assert (
+                    jsonrec["PublicationVersion"]
+                    == rec.header.publicationVersion
+                )
+                assert (
+                    jsonrec["SID"] == rec.identifier
+                ), f"sid {jsonrec['SID']}  {rec.identifier}"
                 if rec.header.encoding != 0:
                     # encoding == 0 is Text, with no structure, so cannot decompress
                     data = rec.decompress()
+                    jsondata = jsonrec["Data"]
                     assert len(data) > 0, filename
-                    jsonfilename = filename.replace(".mseed3", ".json")
-                    with open(jsonfilename, "r") as injson:
-                        jsonrec = json.load(injson)[0]
-                        assert jsonrec["FormatVersion"] == rec.header.formatVersion
-                        assert jsonrec["EncodingFormat"] == rec.header.encoding
+                    assert len(jsondata) == len(data)
+                    for i in range(len(jsondata)):
                         assert (
-                            jsonrec["SampleRate"] == rec.header.sampleRate
-                        ), f"{jsonrec['SampleRate']} != {rec.header.sampleRate}"
-                        assert jsonrec["SampleCount"] == rec.header.numSamples
-                        assert (
-                            jsonrec["CRC"] == rec.header.crcAsHex()
-                        ), f"{jsonrec['CRC']} {rec.header.crcAsHex()}"
-                        assert (
-                            jsonrec["PublicationVersion"]
-                            == rec.header.publicationVersion
-                        )
-                        assert (
-                            jsonrec["SID"] == rec.identifier
-                        ), f"sid {jsonrec['SID']}  {rec.identifier}"
-                        jsondata = jsonrec["Data"]
-                        assert len(jsondata) == len(data)
-                        for i in range(len(jsondata)):
-                            assert (
-                                jsondata[i] == data[i]
-                            ), f"{i}  {jsondata[i]} != {data[i]}"
+                            jsondata[i] == data[i]
+                        ), f"{i}  {jsondata[i]} != {data[i]}"
 
     def test_roundtrip(self):
         values = [3, 1, -1, 2000]
