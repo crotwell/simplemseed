@@ -10,7 +10,6 @@ import sys
 import crc32c
 from typing import Union
 
-from .miniseed import MiniseedException
 from .seedcodec import (
     canDecompress,
     decompress,
@@ -175,7 +174,7 @@ class MSeed3Header:
             fixTZ = stime.replace("Z", "+00:00")
             dt = datetime.fromisoformat(fixTZ)
         else:
-            raise MiniseedException(f"unknown type of starttime {type(stime)}")
+            raise Miniseed3Exception(f"unknown type of starttime {type(stime)}")
 
         # make sure timezone aware
         st = None
@@ -494,7 +493,7 @@ class MSeed3Record:
 
 def unpackMSeed3FixedHeader(recordBytes):
     if len(recordBytes) < FIXED_HEADER_SIZE:
-        raise MiniseedException(
+        raise Miniseed3Exception(
             "Not enough bytes for header: {:d}".format(len(recordBytes))
         )
     ms3header = MSeed3Header()
@@ -520,7 +519,7 @@ def unpackMSeed3FixedHeader(recordBytes):
         ms3header.dataLength,
     ) = struct.unpack(HEADER_PACK_FORMAT, recordBytes[0:FIXED_HEADER_SIZE])
     if recordIndicatorM != b"M" or recordIndicatorS != b"S":
-        raise MiniseedException(
+        raise Miniseed3Exception(
             f"expected record start to be MS but was {recordIndicatorM}{recordIndicatorS}"
         )
     return ms3header
@@ -550,7 +549,7 @@ def unpackMSeed3Record(recordBytes, check_crc=True):
         crc = crc32c.crc32c(encodedDataBytes, crc)
     offset += ms3header.dataLength
     if check_crc and ms3header.crc != crc:
-        raise MiniseedException(f"crc fail:  Calc: {crc}  Header: {ms3header.crc}")
+        raise Miniseed3Exception(f"crc fail:  Calc: {crc}  Header: {ms3header.crc}")
     encodedData = EncodedDataSegment(
         ms3header.encoding, encodedDataBytes, ms3header.numSamples, True
     )
@@ -590,7 +589,7 @@ def readMSeed3Records(fileptr, check_crc=True, matchsid=None, merge=False, verbo
             if check_crc:
                 crc = crc32c.crc32c(encodedDataBytes, crc)
                 if ms3header.crc != crc:
-                    raise MiniseedException(f"crc fail:  Calc: {crc}  Header: {ms3header.crc}")
+                    raise Miniseed3Exception(f"crc fail:  Calc: {crc}  Header: {ms3header.crc}")
 
             encodedData = EncodedDataSegment(
                 ms3header.encoding, encodedDataBytes, ms3header.numSamples, True
@@ -684,3 +683,7 @@ def crcAsHex(crc):
 
 def isoWZ(time) -> str:
     return time.isoformat().replace("+00:00", "Z")
+
+
+class Miniseed3Exception(Exception):
+    pass
