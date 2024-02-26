@@ -84,7 +84,7 @@ class MSeed3Header:
         self.hour = 0
         self.minute = 0
         self.second = 0
-        self.encoding = 3  # 32 bit ints
+        self.encoding = -1  # autoset from data if possible
 
         self.sampleRatePeriod = 1
         self.numSamples = 0
@@ -251,10 +251,6 @@ class MSeed3Record:
             self._data = data.dataBytes
             encoding = data.compressionType
             numSamples = data.numSamples
-            if self.header.encoding != data.compressionType:
-                raise Miniseed3Exception(f"Mismatched encoding: {self.header.encoding} != {encoding}")
-            if self.header.numSamples != data.numSamples:
-                raise Miniseed3Exception(f"Mismatched num samples: {self.header.numSamples} != {numSamples}")
         elif isinstance(data, bytes) or isinstance(data, bytearray):
             # bytes, hopefully header.numSamples set correctly
             self._data = data
@@ -264,10 +260,6 @@ class MSeed3Record:
             # array.array primitive
             encoding = mseed3EncodingFromArrayTypecode(data.typecode)
             numSamples = len(data)
-            if self.header.encoding != data.compressionType:
-                raise Miniseed3Exception(f"Mismatched encoding: {self.header.encoding} != {encoding}")
-            if self.header.numSamples != data.numSamples:
-                raise Miniseed3Exception(f"Mismatched num samples: {self.header.numSamples} != {numSamples}")
             self._data = data
         elif isinstance(data, numpy.ndarray):
             # numpy array
@@ -277,12 +269,22 @@ class MSeed3Record:
         elif isinstance(data, list):
             # list of numbers, use numpy?
             #
+            if self.header.encoding == -1:
+                encoding = 4 # default to 32 bit floats?
+            else:
+                encoding = self.header.encoding
             self._data = numpy.array(data,
-                                     dtype=numpyDTFromMseed3Encoding(self.header.encoding))
+                                     dtype=numpyDTFromMseed3Encoding(encoding))
             encoding = encoding = mseed3EncodingFromNumpyDT(self._data.dtype)
             numSamples = len(self._data)
         else:
             raise Miniseed3Exception(f"unknown data type: {type(data)}")
+        # set if header has defaults
+        if self.header.encoding == -1:
+            self.header.encoding = encoding
+        if self.header.numSamples == 0:
+            self.header.numSamples = numSamples
+        # sanity check with headers
         if self.header.encoding != encoding:
             raise Miniseed3Exception(f"Mismatched encoding: {self.header.encoding} != {encoding}")
         if self.header.numSamples != numSamples:
