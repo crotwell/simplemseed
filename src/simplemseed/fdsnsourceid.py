@@ -74,7 +74,7 @@ class FDSNSourceId:
         )
 
     @staticmethod
-    def parse(id: str) -> Union["FDSNSourceId", "NetworkSourceId", "StationSourceId"]:
+    def parse(id: str) -> Union["FDSNSourceId", "NetworkSourceId", "StationSourceId", "LocationSourceId"]:
         if not id.startswith(FDSN_PREFIX):
             raise FDSNSourceIdException(f"sourceid must start with {FDSN_PREFIX}: {id}")
 
@@ -83,9 +83,11 @@ class FDSNSourceId:
             return NetworkSourceId(items[0])
         elif len(items) == 2:
             return StationSourceId(items[0], items[1])
+        elif len(items) == 3:
+            return LocationSourceId(items[0], items[1], items[2])
         elif len(items) != 6:
             raise FDSNSourceIdException(
-                f"FDSN sourceid must have 6 items for channel, 2 for station or 1 for network; separated by '{SEP}': {id}"
+                f"FDSN sourceid must have 6 items for channel, 3 for loc, 2 for station or 1 for network; separated by '{SEP}': {id}"
             )
 
         return FDSNSourceId(items[0], items[1], items[2], items[3], items[4], items[5])
@@ -119,6 +121,9 @@ class FDSNSourceId:
             )
 
         return FDSNSourceId.fromNslc(items[0], items[1], items[2], items[3])
+
+    def locationSourceId(self) -> "LocationSourceId":
+        return LocationSourceId(self.networkCode, self.stationCode, self.locationCode)
 
     def stationSourceId(self) -> "StationSourceId":
         return StationSourceId(self.networkCode, self.stationCode)
@@ -191,6 +196,12 @@ class LocationSourceId:
         self.networkCode = networkCode
         self.stationCode = stationCode
         self.locationCode = locationCode
+
+    def stationSourceId(self) -> "StationSourceId":
+        return StationSourceId(self.networkCode, self.stationCode)
+
+    def networkSourceId(self) -> "NetworkSourceId":
+        return NetworkSourceId(self.networkCode)
 
     def __str__(self) -> str:
         return f"{FDSN_PREFIX}{self.networkCode}{SEP}{self.stationCode}{SEP}{self.locationCode}"
