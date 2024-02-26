@@ -9,6 +9,7 @@
 import numpy
 import sys
 import struct
+from typing import Union
 
 # ascii
 ASCII: int = 0
@@ -73,22 +74,22 @@ def isFloatCompression(compressionType: int) -> bool:
 
 class EncodedDataSegment:
     compressionType: int
-    dataBytes: bytearray
+    dataBytes: Union[bytes,bytearray]
     numSamples: int
     littleEndian: bool
 
     def __init__(
-        self, compressionType, dataBytes: bytearray, numSamples, littleEndian: bool
+        self, compressionType, dataBytes: Union[bytes,bytearray], numSamples, littleEndian: bool
     ):
         self.compressionType = compressionType
         self.dataBytes = dataBytes
         self.numSamples = numSamples
         self.littleEndian = littleEndian
 
-    def isFloatCompression() -> bool:
+    def isFloatCompression(self) -> bool:
         return isFloatCompression(self.compressionType)
 
-    def decode():
+    def decode(self):
         return decompress(
             self.compressionType,
             self.dataBytes,
@@ -155,7 +156,7 @@ def mseed3EncodingFromNumpyDT(dt: numpy.dtype) -> int:
         )
 
 
-def numpyDTFromMseed3Encoding(encoding: int) -> numpy.dtype:
+def numpyDTFromMseed3Encoding(encoding: int):
     if encoding == SHORT:
         return numpy.int16
     elif encoding == INTEGER:
@@ -473,7 +474,7 @@ def extractSteim1Samples(
             currNum += 1
 
         else:
-            raise CodecException("unreachable case: " + currNibble)
+            raise CodecException(f"unreachable case: {currNibble}")
         #  ("default")
 
     return temp
