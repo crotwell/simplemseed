@@ -155,6 +155,20 @@ def mseed3EncodingFromNumpyDT(dt: numpy.dtype) -> int:
         )
 
 
+def numpyDTFromMseed3Encoding(encoding: int) -> numpy.dtype:
+    if encoding == SHORT:
+        return numpy.int16
+    elif encoding == INTEGER:
+        return numpy.int32
+    elif encoding == FLOAT:
+        return numpy.float32
+    elif encoding == DOUBLE:
+        return numpy.float64
+    else:
+        raise UnsupportedCompressionType(
+            f"mseed encoding {encoding} not mapable to numpy type"
+        )
+
 def compress(compressionType: int, values) -> EncodedDataSegment:
     littleEndian = True
     try:
@@ -191,7 +205,7 @@ def decompress(
     dataBytes: bytearray,
     numSamples: int,
     littleEndian: bool,
-):
+) -> numpy.ndarray:
     # in case of record with no data points, ex detection blockette, which often have compression type
     # set to 0, which messes up the decompresser even though it doesn't matter since there is no data.
     if numSamples == 0:

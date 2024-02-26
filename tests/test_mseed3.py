@@ -101,7 +101,7 @@ class TestMSeed3:
             decompRec = rec.decompressedRecord()
             assert decompRec.header.encoding == simplemseed.seedcodec.INTEGER
             assert rec.header.numSamples == decompRec.header.numSamples
-            assert len(decompRec.encodedData.dataBytes) == 4 * rec.header.numSamples
+            assert len(decompRec.encodedDataBytes()) == 4 * rec.header.numSamples
 
     def test_starttime(self):
         header = simplemseed.MSeed3Header()

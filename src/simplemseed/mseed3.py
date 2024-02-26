@@ -8,7 +8,7 @@ import math
 import re
 import sys
 import crc32c
-from typing import Union
+from typing import Union, Optional
 
 from .seedcodec import (
     canDecompress,
@@ -20,6 +20,8 @@ from .seedcodec import (
     EncodedDataSegment,
     mseed3EncodingFromArrayTypecode,
     mseed3EncodingFromNumpyDT,
+    numpyDTFromMseed3Encoding,
+    UnsupportedCompressionType,
 )
 from .fdsnsourceid import FDSNSourceId
 
@@ -227,43 +229,65 @@ class MSeed3Header:
 
 class MSeed3Record:
     header: MSeed3Header
-    identifier: str
+    identifier: Union[FDSNSourceId, str]
     _eh: Union[str, dict, None]
-    encodedData: EncodedDataSegment
+    _data: Optional[Union[numpy.ndarray, array, list[int], list[float]]]
+    _encodedData: Optional[Union[bytes, bytearray]]
 
     def __init__(
         self,
         header: MSeed3Header,
         identifier: Union[FDSNSourceId, str],
-        data,
+        data: Union[numpy.ndarray, bytes, bytearray, array, list[int], list[float]],
         extraHeaders: Union[str, dict, None] = None,
     ):
         self.header = header
-        self._eh = extraHeaders
         self.identifier = identifier
+        self._eh = extraHeaders
+        self._internal_set_data(data)
+
+    def _internal_set_data(self, data):
         if isinstance(data, EncodedDataSegment):
-            self.encodedData = data
+            self._data = data.dataBytes
+            encoding = data.compressionType
+            numSamples = data.numSamples
+            if self.header.encoding != data.compressionType:
+                raise Miniseed3Exception(f"Mismatched encoding: {self.header.encoding} != {encoding}")
+            if self.header.numSamples != data.numSamples:
+                raise Miniseed3Exception(f"Mismatched num samples: {self.header.numSamples} != {numSamples}")
         elif isinstance(data, bytes) or isinstance(data, bytearray):
-            # bytes
-            self.encodedData = (
-                EncodedDataSegment(header.encoding, data, header.numSamples, True),
-            )
+            # bytes, hopefully header.numSamples set correctly
+            self._data = data
+            encoding = self.header.encoding
+            numSamples = self.header.numSamples
         elif isinstance(data, array):
             # array.array primitive
-            self.header.encoding = mseed3EncodingFromArrayTypecode(data.typecode)
-            self.encodedData = compress(self.header.encoding, data)
+            encoding = mseed3EncodingFromArrayTypecode(data.typecode)
+            numSamples = len(data)
+            if self.header.encoding != data.compressionType:
+                raise Miniseed3Exception(f"Mismatched encoding: {self.header.encoding} != {encoding}")
+            if self.header.numSamples != data.numSamples:
+                raise Miniseed3Exception(f"Mismatched num samples: {self.header.numSamples} != {numSamples}")
+            self._data = data
         elif isinstance(data, numpy.ndarray):
             # numpy array
-            self.header.encoding = mseed3EncodingFromNumpyDT(data.dtype)
-            if data.dtype.byteorder == ">":
-                data = data.newbyteorder("<")
-            self.encodedData = compress(self.header.encoding, data)
+            encoding = mseed3EncodingFromNumpyDT(data.dtype)
+            numSamples = len(data)
+            self._data = data
+        elif isinstance(data, list):
+            # list of numbers, use numpy?
+            #
+            self._data = numpy.array(data,
+                                     dtype=numpyDTFromMseed3Encoding(self.header.encoding))
+            encoding = encoding = mseed3EncodingFromNumpyDT(self._data.dtype)
+            numSamples = len(self._data)
         else:
-            # try to compress with given type?
-            self.encodedData = compress(self.header.encoding, data)
-        # header encoding from actual data, consistency
-        self.header.encoding = self.encodedData.compressionType
-        self.header.numSamples = self.encodedData.numSamples
+            raise Miniseed3Exception(f"unknown data type: {type(data)}")
+        if self.header.encoding != encoding:
+            raise Miniseed3Exception(f"Mismatched encoding: {self.header.encoding} != {encoding}")
+        if self.header.numSamples != numSamples:
+            raise Miniseed3Exception(f"Mismatched num samples: {self.header.numSamples} != {numSamples}")
+
 
     @property
     def eh(self):
@@ -287,9 +311,19 @@ class MSeed3Record:
         del self._eh
         self.header.extraHeadersLength = 0
 
-    def decompress(self):
+    def decompress(self) -> numpy.ndarray:
         data = None
-        if self.encodedData is not None:
+        if self._data is None:
+            raise UnsupportedCompressionType(f"data is missing in record")
+
+        elif isinstance(self._data, numpy.ndarray):
+            # already decompressed
+            data = self._data
+        elif isinstance(self._data, array):
+            # already decompressed
+            data = numpy.array(self._data)
+        elif isinstance(self._data, bytes) or isinstance(self._data, bytearray):
+            # try to decompress bytes-like
             byteOrder = LITTLE_ENDIAN
             if (
                 self.header.encoding == STEIM1
@@ -299,10 +333,12 @@ class MSeed3Record:
                 byteOrder = BIG_ENDIAN
             data = decompress(
                 self.header.encoding,
-                self.encodedData.dataBytes,
+                self._data,
                 self.header.numSamples,
                 byteOrder == LITTLE_ENDIAN,
             )
+        else:
+            raise UnsupportedCompressionType(f"encoding {self.header.encoding} not supported")
         return data
 
     def decompressedRecord(self):
@@ -354,6 +390,14 @@ class MSeed3Record:
         else:
             return None
 
+    def encodedDataBytes(self):
+        if isinstance(self._data, bytes) or isinstance(self._data, bytearray):
+            dataBytes = self._data
+        elif isinstance(self._data, numpy.ndarray) or isinstance(self._data, array):
+            encData = compress(self.header.encoding, self._data)
+            dataBytes = encData.dataBytes
+        return dataBytes
+
     def pack(self):
         """
         Pack the record contents into a bytearray. Header values for the lengths
@@ -376,7 +420,9 @@ class MSeed3Record:
             extraHeadersStr = ""
         extraHeadersBytes = extraHeadersStr.encode("UTF-8")
         self.header.extraHeadersLength = len(extraHeadersBytes)
-        self.header.dataLength = len(self.encodedData.dataBytes)
+        dataBytes = self.encodedDataBytes()
+
+        self.header.dataLength = len(dataBytes)
         rec_size = (
             FIXED_HEADER_SIZE
             + self.header.identifierLength
@@ -394,7 +440,7 @@ class MSeed3Record:
         )
         offset += self.header.extraHeadersLength
         recordBytes[offset : offset + self.header.dataLength] = (
-            self.encodedData.dataBytes
+            dataBytes
         )
 
         struct.pack_into("<I", recordBytes, CRC_OFFSET, 0)
@@ -550,11 +596,8 @@ def unpackMSeed3Record(recordBytes, check_crc=True):
     offset += ms3header.dataLength
     if check_crc and ms3header.crc != crc:
         raise Miniseed3Exception(f"crc fail:  Calc: {crc}  Header: {ms3header.crc}")
-    encodedData = EncodedDataSegment(
-        ms3header.encoding, encodedDataBytes, ms3header.numSamples, True
-    )
     ms3Rec = MSeed3Record(
-        ms3header, identifier, encodedData, extraHeaders=extraHeadersStr
+        ms3header, identifier, encodedDataBytes, extraHeaders=extraHeadersStr
     )
     return ms3Rec
 
@@ -591,10 +634,7 @@ def readMSeed3Records(fileptr, check_crc=True, matchsid=None, merge=False, verbo
                 if ms3header.crc != crc:
                     raise Miniseed3Exception(f"crc fail:  Calc: {crc}  Header: {ms3header.crc}")
 
-            encodedData = EncodedDataSegment(
-                ms3header.encoding, encodedDataBytes, ms3header.numSamples, True
-            )
-            ms3 = MSeed3Record(ms3header, identifier, encodedData, extraHeaders=extraHeadersStr)
+            ms3 = MSeed3Record(ms3header, identifier, encodedDataBytes, extraHeaders=extraHeadersStr)
             if verbose:
                 print(f"MSeed3Record {ms3}")
             if merge and canDecompress(ms3.header.encoding):
@@ -659,20 +699,14 @@ def mseed3merge(ms3a: MSeed3Record, ms3b: MSeed3Record) -> list[MSeed3Record]:
     elif areCompatible(ms3a, ms3b):
         header = ms3a.header.clone()
         header.numSamples += ms3b.header.numSamples
-        dataBytes = bytearray()
-        dataBytes.extend(ms3a.encodedData.dataBytes)
-        dataBytes.extend(ms3b.encodedData.dataBytes)
-        encodedData = EncodedDataSegment(
-            ms3a.encodedData.compressionType,
-            dataBytes,
-            header.numSamples,
-            ms3a.encodedData.littleEndian,
-        )
+        encodedDataBytes = bytearray()
+        encodedDataBytes.extend(ms3a.encodedDataBytes())
+        encodedDataBytes.extend(ms3b.encodedDataBytes())
         if ms3a.hasExtraHeaders():
             eh = json.loads(json.dumps(ms3a.eh))
         else:
             eh = None
-        merged = MSeed3Record(header, ms3a.identifier, encodedData, eh)
+        merged = MSeed3Record(header, ms3a.identifier, encodedDataBytes, eh)
         out = [merged]
     return out
 
