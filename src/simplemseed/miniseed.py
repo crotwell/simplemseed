@@ -269,7 +269,7 @@ class MiniseedRecord:
         offset = 48
         struct.pack_into(self.header.endianChar + "H", recordBytes, 46, offset)
         if len(self.blockettes) == 0:
-            recordBytes[39] = 1  #  one blockette, b1000
+            recordBytes[39] = 1  # one blockette, b1000
             offset = self.packB1000(recordBytes, offset, self.createB1000())
         else:
             recordBytes[39] = len(self.blockettes)

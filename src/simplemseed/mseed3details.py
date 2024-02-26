@@ -3,10 +3,8 @@ from datetime import datetime
 import json
 import os
 import sys
-import tempfile
-import re
-from jsonpointer import resolve_pointer, set_pointer, JsonPointer, JsonPointerException
-from .mseed3 import MSeed3Record, readMSeed3Records
+from jsonpointer import set_pointer, JsonPointer, JsonPointerException
+from .mseed3 import readMSeed3Records
 
 
 def do_parseargs():
@@ -118,7 +116,6 @@ def do_set_eh(setptr, setval, ms3files, matchsid=None, setall=False, verbose=Fal
                             ehptr = set_pointer(ms3.eh, setptr, setjson)
                         else:
                             # replace all
-                            ms3eh = setjson
                             ehptr = setjson
                         if verbose:
                             print(ms3.summary())

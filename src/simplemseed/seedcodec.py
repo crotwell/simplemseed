@@ -7,7 +7,6 @@
 # constants for compression types
 
 import numpy
-import sys
 import struct
 from typing import Union
 
@@ -181,12 +180,11 @@ def compress(compressionType: int, values) -> EncodedDataSegment:
     littleEndian = True
     try:
         compCode = arrayTypecodeFromMSeed(compressionType)
-    except:
+    except UnsupportedCompressionType:
         raise UnsupportedCompressionType(
             f"type {compressionType} not yet supported for compression"
         )
 
-    numSamples = len(values)
     dataBytes = struct.pack(f"<{len(values)}{compCode}", *values)
 
     return EncodedDataSegment(compressionType, dataBytes, len(values), littleEndian)
@@ -220,8 +218,6 @@ def decompress(
         dt = numpy.dtype(numpy.int32)
         dt = dt.newbyteorder("<")
         return numpy.asarray([], dt)
-
-    offset = 0
 
     # switch (compressionType):
     if compressionType == SHORT or compressionType == DWWSSN:

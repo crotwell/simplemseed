@@ -1,5 +1,5 @@
 import argparse
-from .mseed3 import readMSeed3Records, mseed3merge
+from .mseed3 import readMSeed3Records
 
 
 def do_parseargs():
@@ -26,8 +26,6 @@ def do_parseargs():
 
 
 def main():
-    import sys
-
     args = do_parseargs()
     with open(args.outfile, "wb") as outms3file:
         with open(args.ms3file, "rb") as inms3file:

@@ -1,12 +1,9 @@
 import struct
 from array import array
 import numpy
-from collections import namedtuple
 from datetime import datetime, timedelta, timezone
 import json
-import math
 import re
-import sys
 import crc32c
 from typing import Union, Optional
 
@@ -318,7 +315,7 @@ class MSeed3Record:
     def decompress(self) -> numpy.ndarray:
         data = None
         if self._data is None:
-            raise UnsupportedCompressionType(f"data is missing in record")
+            raise UnsupportedCompressionType("data is missing in record")
 
         elif isinstance(self._data, numpy.ndarray):
             # already decompressed
@@ -375,7 +372,7 @@ class MSeed3Record:
         return False
 
     def clone(self):
-        return unpackMiniseedRecord(self.pack())
+        return unpackMSeed3Record(self.pack())
 
     def getSize(self):
         """

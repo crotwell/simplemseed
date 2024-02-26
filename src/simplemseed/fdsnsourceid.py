@@ -374,8 +374,6 @@ def do_parseargs():
 
 
 def main():
-    import sys
-
     args = do_parseargs()
     if args.sps:
         bbc = bandCodeForRate(args.sps, 0.01)

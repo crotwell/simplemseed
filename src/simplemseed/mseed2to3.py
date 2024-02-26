@@ -1,4 +1,3 @@
-from .seedcodec import EncodedDataSegment
 from .mseed3 import MSeed3Record, MSeed3Header, UNKNOWN_DATA_VERSION
 from .miniseed import MiniseedRecord, MiniseedException, readMiniseed2Records
 from .fdsnsourceid import FDSNSourceId
@@ -128,7 +127,6 @@ def do_parseargs():
 
 
 def main():
-    import sys
 
     args = do_parseargs()
     bytesWritten = 0
