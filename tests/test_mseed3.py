@@ -60,6 +60,8 @@ class TestMSeed3:
                 assert (
                     jsonrec["SID"] == rec.identifier
                 ), f"sid {jsonrec['SID']}  {rec.identifier}"
+                if "ExtraHeaders" in jsonrec:
+                    assert jsonrec["ExtraHeaders"] == rec.eh
                 if rec.header.encoding != 0:
                     # encoding == 0 is Text, with no structure, so cannot decompress
                     data = rec.decompress()
