@@ -115,6 +115,19 @@ class TestMSeed3:
         assert header.nanosecond == 123456000
         assert simplemseed.isoWZ(header.starttime) == start
 
+    def test_long_fdsnsourceid(self):
+        values = [3, 1, -1, 2000]
+        header = simplemseed.MSeed3Header()
+        header.encoding = simplemseed.seedcodec.INTEGER
+        header.starttime = "2024-01-02T15:13:55.123456Z"
+        header.sampleRatePeriod = -1
+        header.numSamples = len(values)
+        identifier = "FDSN:XX2024_REALFAKE_012345_H_HRQ_Z"
+        record = simplemseed.MSeed3Record(header, identifier, values)
+        recordBytes = record.pack()
+        outRecord = simplemseed.unpackMSeed3Record(recordBytes)
+        assert identifier == outRecord.identifier
+
     def test_merge(self):
         filename = f"{TEST_DIR}/casee_two.ms3"
         with open(filename, "rb") as infile:
