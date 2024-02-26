@@ -60,6 +60,16 @@ class TestSourceId:
         assert sid_nslcparts.subsourceCode == subs
         assert sid == sid_nslcparts
 
+        sid_nslclong = simplemseed.FDSNSourceId.fromNslc(
+            net, sta, loc, f"{band}_{s}X_{subs}"
+        )
+        assert sid_nslclong.networkCode == net
+        assert sid_nslclong.stationCode == sta
+        assert sid_nslclong.locationCode == loc
+        assert sid_nslclong.bandCode == band
+        assert sid_nslclong.sourceCode == f"{s}X"
+        assert sid_nslclong.subsourceCode == subs
+
         staSidStr = "FDSN:CO_JSC"
         staSid = sid.stationSourceId()
         assert staSid.networkCode == net

@@ -7,6 +7,7 @@ http://www.seis.sc.edu
 from typing import Union, Optional
 import argparse
 import json
+import re
 from importlib import resources as importlib_resources
 
 FDSN_PREFIX = "FDSN:"
@@ -58,16 +59,16 @@ class FDSNSourceId:
     @staticmethod
     def createUnknown(
         sampRate: Optional[Union[float, int]] = None,
-        sourceCode: Optional[str] = "H",
+        sourceCode: str = "H",
         response_lb: Optional[Union[float, int]] = None,
-        networkCode: Optional[str] = "XX",
-        stationCode: Optional[str] = "ABC",
-        locationCode: Optional[str] = "",
+        networkCode: str = "XX",
+        stationCode: str = "ABC",
+        locationCode: str = "",
     ) -> "FDSNSourceId":
         if len(networkCode) == 0:
             networkCode = "XX"
         if len(stationCode) == 0:
-            stationCode = "ABC",
+            stationCode = "ABC"
         return FDSNSourceId(
             networkCode, stationCode, "", bandCodeForRate(sampRate, response_lb), sourceCode, "U"
         )
@@ -97,7 +98,7 @@ class FDSNSourceId:
             subsource = channelCode[2]
         else:
             b_s_ss = r"(\w)_(\w+)_(\w+)"
-            match = regex.match(b_s_ss, channelCode)
+            match = re.match(b_s_ss, channelCode)
             if match:
                 band = match[1]
                 source = match[2]
@@ -140,7 +141,7 @@ class FDSNSourceId:
     def __str__(self) -> str:
         return f"{FDSN_PREFIX}{self.networkCode}{SEP}{self.stationCode}{SEP}{self.locationCode}{SEP}{self.bandCode}{SEP}{self.sourceCode}{SEP}{self.subsourceCode}"
 
-    def __eq__(self, other: Optional["FDSNSourceId"] = None) -> bool:
+    def __eq__(self, other: object, /) -> bool:
         if not isinstance(other, self.__class__):
             return False
         return str(self) == str(other)
@@ -155,7 +156,7 @@ class NetworkSourceId:
     def __str__(self) -> str:
         return f"{FDSN_PREFIX}{self.networkCode}"
 
-    def __eq__(self, other: "NetworkSourceId") -> bool:
+    def __eq__(self, other: object, /) -> bool:
         if not isinstance(other, self.__class__):
             return False
         return str(self) == str(other)
@@ -175,7 +176,7 @@ class StationSourceId:
     def networkSourceId(self) -> "NetworkSourceId":
         return NetworkSourceId(self.networkCode)
 
-    def __eq__(self, other: "StationSourceId") -> bool:
+    def __eq__(self, other: object, /) -> bool:
         if not isinstance(other, self.__class__):
             return False
         return str(self) == str(other)
@@ -194,7 +195,7 @@ class LocationSourceId:
     def __str__(self) -> str:
         return f"{FDSN_PREFIX}{self.networkCode}{SEP}{self.stationCode}{SEP}{self.locationCode}"
 
-    def __eq__(self, other: "LocationSourceId") -> bool:
+    def __eq__(self, other: object, /) -> bool:
         if not isinstance(other, self.__class__):
             return False
         return str(self) == str(other)
@@ -319,7 +320,7 @@ class NslcId:
     def __str__(self) -> str:
         return f"{self.networkCode}_{self.stationCode}_{self.locationCode}_{self.channelCode}"
 
-    def __eq__(self, other: "NslcId") -> bool:
+    def __eq__(self, other: object, /) -> bool:
         if not isinstance(other, self.__class__):
             return False
         return str(self) == str(other)

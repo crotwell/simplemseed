@@ -214,7 +214,6 @@ def decompress(
         dt = dt.newbyteorder("<")
         return numpy.asarray([], dt)
 
-    out = None
     offset = 0
 
     # switch (compressionType):
@@ -421,7 +420,7 @@ def extractSteim1Samples(
     dataBytes: bytearray,
     offset: int,
     littleEndian: bool,
-) -> numpy.array:
+) -> list:
     # get nibbles
     nibbles = getUint32(dataBytes, offset, littleEndian)
     currNibble = 0
@@ -577,7 +576,7 @@ def extractSteim2Samples(
     dataBytes: bytearray,
     offset: int,
     littleEndian: bool,
-) -> numpy.array:
+) -> numpy.ndarray:
     # get nibbles
     nibbles = getUint32(dataBytes, offset, False)  # steim always big endian for nibbles
     currNibble = 0

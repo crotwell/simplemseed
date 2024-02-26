@@ -33,7 +33,7 @@ def mseed2to3(ms2: MiniseedRecord) -> MSeed3Record:
         else (-1.0 / ms2.header.sampleRate)
     )
     ms3Header.numSamples = ms2H.numSamples
-    ms3Header.recordCRC = 0
+    ms3Header.crc = 0
 
     b1000 = None
     for b in ms2.blockettes:
@@ -46,10 +46,7 @@ def mseed2to3(ms2: MiniseedRecord) -> MSeed3Record:
     ms3Header.publicationVersion = UNKNOWN_DATA_VERSION
     if ms2.encodedData is not None:
         ms3Header.dataLength = len(ms2.encodedData)
-        dataBytes = ms2.encodedData
-        data = EncodedDataSegment(
-            ms3Header.encoding, dataBytes, ms3Header.numSamples, b1000.byteorder
-        )
+        data = ms2.encodedData
     else:
         data = ms2.decompressed()
     identifier = FDSNSourceId.fromNslc(
@@ -97,11 +94,11 @@ def mseed2to3(ms2: MiniseedRecord) -> MSeed3Record:
     if len(fdsnExtras) > 0:
         ms3Extras["FDSN"] = fdsnExtras
     if len(ms3Extras) == 0:
-        ms3Extras = None
+        ms3ExtrasStr = ""
     else:
-        ms3Extras = json.dumps(ms3Extras)
-        ms3Header.extraHeadersLength = len(ms3Extras.encode("UTF-8"))
-    ms3 = MSeed3Record(ms3Header, str(identifier), data, ms3Extras)
+        ms3ExtrasStr = json.dumps(ms3Extras)
+        ms3Header.extraHeadersLength = len(ms3ExtrasStr.encode("UTF-8"))
+    ms3 = MSeed3Record(ms3Header, str(identifier), data, ms3ExtrasStr)
 
     return ms3
 
