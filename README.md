@@ -4,11 +4,11 @@
 [![PyPI](https://img.shields.io/pypi/v/simplemseed)](https://pypi.org/project/simplemseed/)
 
 
-[Miniseed3](http://docs.fdsn.org/projects/miniseed3) (and reading 2) in pure python
+[Miniseed3](http://docs.fdsn.org/projects/miniseed3) (and reading 2) in pure python.
 
 # Miniseed3
 
-Read and write mseed3 records like:
+Write and read mseed3 records like:
 
 ```
 #!/usr/bin/env python3
@@ -34,7 +34,7 @@ with open(ms3filename, "rb") as infile:
         print(f"     from: {ms3filename} ")
 ```
 
-Access uncompressed timeseries data with:
+Access uncompressed timeseries data as numpy ndarray with:
 ```
 dataArray = ms3record.decompress()
 ```
@@ -100,7 +100,7 @@ FDSN:CO_CASEE_00_H_H_Z 2023-06-17T04:53:50.188392Z 2023-06-17T04:53:55.498392Z (
   pointer not found in extra headers
 % mseed3details --setall "/data" '{ "key": "else", "keyb": 4 }' casee_two.ms3
 % mseed3details --set "/data/keyb" 42 casee_two.ms3
-% mseed3details --getall "/data" casee_two.ms3 --verbose                     
+% mseed3details --getall "/data" casee_two.ms3 --verbose
 file: casee_two.ms3
 FDSN:CO_CASEE_00_H_H_Z 2023-06-17T04:53:50.008392Z 2023-06-17T04:53:50.178392Z (18 pts)
   {"key": "else", "keyb": 42}
