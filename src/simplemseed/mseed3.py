@@ -245,13 +245,16 @@ class MSeed3Record:
         if isinstance(data, EncodedDataSegment):
             self.encodedData = data
         elif isinstance(data, bytes) or isinstance(data, bytearray):
+            # bytes
             self.encodedData = (
                 EncodedDataSegment(header.encoding, data, header.numSamples, True),
             )
         elif isinstance(data, array):
+            # array.array primitive
             self.header.encoding = mseed3EncodingFromArrayTypecode(data.typecode)
             self.encodedData = compress(self.header.encoding, data)
         elif isinstance(data, numpy.ndarray):
+            # numpy array
             self.header.encoding = mseed3EncodingFromNumpyDT(data.dtype)
             if data.dtype.byteorder == ">":
                 data = data.newbyteorder("<")
