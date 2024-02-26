@@ -54,7 +54,7 @@ class CodecException(Exception):
         self.name = "CodecException"
 
 
-class UnsupportedCompressionType(Exception):
+class UnsupportedCompressionType(CodecException):
     def __init__(self, message):
         super().__init__(message)
         self.message = message
