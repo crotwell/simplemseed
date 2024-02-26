@@ -164,7 +164,7 @@ class MSeed3Header:
             tzinfo=timezone.utc,
         )
         # start Jan 1, so shift by dayOfYear minus 1
-        doyMinusOne = timedelta(days=self.dayOfYear-1)
+        doyMinusOne = timedelta(days=self.dayOfYear - 1)
         return st + doyMinusOne
 
     @starttime.setter
@@ -270,11 +270,10 @@ class MSeed3Record:
             # list of numbers, use numpy?
             #
             if self.header.encoding == -1:
-                encoding = 4 # default to 32 bit floats?
+                encoding = 4  # default to 32 bit floats?
             else:
                 encoding = self.header.encoding
-            self._data = numpy.array(data,
-                                     dtype=numpyDTFromMseed3Encoding(encoding))
+            self._data = numpy.array(data, dtype=numpyDTFromMseed3Encoding(encoding))
             encoding = encoding = mseed3EncodingFromNumpyDT(self._data.dtype)
             numSamples = len(self._data)
         else:
@@ -286,10 +285,13 @@ class MSeed3Record:
             self.header.numSamples = numSamples
         # sanity check with headers
         if self.header.encoding != encoding:
-            raise Miniseed3Exception(f"Mismatched encoding: {self.header.encoding} != {encoding}")
+            raise Miniseed3Exception(
+                f"Mismatched encoding: {self.header.encoding} != {encoding}"
+            )
         if self.header.numSamples != numSamples:
-            raise Miniseed3Exception(f"Mismatched num samples: {self.header.numSamples} != {numSamples}")
-
+            raise Miniseed3Exception(
+                f"Mismatched num samples: {self.header.numSamples} != {numSamples}"
+            )
 
     @property
     def eh(self):
@@ -340,7 +342,9 @@ class MSeed3Record:
                 byteOrder == LITTLE_ENDIAN,
             )
         else:
-            raise UnsupportedCompressionType(f"encoding {self.header.encoding} not supported")
+            raise UnsupportedCompressionType(
+                f"encoding {self.header.encoding} not supported"
+            )
         return data
 
     def decompressedRecord(self):
@@ -441,9 +445,7 @@ class MSeed3Record:
             extraHeadersBytes
         )
         offset += self.header.extraHeadersLength
-        recordBytes[offset : offset + self.header.dataLength] = (
-            dataBytes
-        )
+        recordBytes[offset : offset + self.header.dataLength] = dataBytes
 
         struct.pack_into("<I", recordBytes, CRC_OFFSET, 0)
         crc = crc32c.crc32c(recordBytes)
@@ -604,7 +606,9 @@ def unpackMSeed3Record(recordBytes, check_crc=True):
     return ms3Rec
 
 
-def readMSeed3Records(fileptr, check_crc=True, matchsid=None, merge=False, verbose=False):
+def readMSeed3Records(
+    fileptr, check_crc=True, matchsid=None, merge=False, verbose=False
+):
     matchPat = None
     prev = None
     if matchsid is not None:
@@ -634,9 +638,13 @@ def readMSeed3Records(fileptr, check_crc=True, matchsid=None, merge=False, verbo
             if check_crc:
                 crc = crc32c.crc32c(encodedDataBytes, crc)
                 if ms3header.crc != crc:
-                    raise Miniseed3Exception(f"crc fail:  Calc: {crc}  Header: {ms3header.crc}")
+                    raise Miniseed3Exception(
+                        f"crc fail:  Calc: {crc}  Header: {ms3header.crc}"
+                    )
 
-            ms3 = MSeed3Record(ms3header, identifier, encodedDataBytes, extraHeaders=extraHeadersStr)
+            ms3 = MSeed3Record(
+                ms3header, identifier, encodedDataBytes, extraHeaders=extraHeadersStr
+            )
             if verbose:
                 print(f"MSeed3Record {ms3}")
             if merge and canDecompress(ms3.header.encoding):

@@ -74,12 +74,16 @@ def isFloatCompression(compressionType: int) -> bool:
 
 class EncodedDataSegment:
     compressionType: int
-    dataBytes: Union[bytes,bytearray]
+    dataBytes: Union[bytes, bytearray]
     numSamples: int
     littleEndian: bool
 
     def __init__(
-        self, compressionType, dataBytes: Union[bytes,bytearray], numSamples, littleEndian: bool
+        self,
+        compressionType,
+        dataBytes: Union[bytes, bytearray],
+        numSamples,
+        littleEndian: bool,
     ):
         self.compressionType = compressionType
         self.dataBytes = dataBytes
@@ -97,6 +101,7 @@ class EncodedDataSegment:
             self.littleEndian,
         )
 
+
 def canDecompress(encoding: int) -> bool:
     if encoding == SHORT:
         return True
@@ -112,6 +117,7 @@ def canDecompress(encoding: int) -> bool:
         return True
     else:
         return False
+
 
 def arrayTypecodeFromMSeed(encoding: int) -> str:
     if encoding == SHORT:
@@ -169,6 +175,7 @@ def numpyDTFromMseed3Encoding(encoding: int):
         raise UnsupportedCompressionType(
             f"mseed encoding {encoding} not mapable to numpy type"
         )
+
 
 def compress(compressionType: int, values) -> EncodedDataSegment:
     littleEndian = True

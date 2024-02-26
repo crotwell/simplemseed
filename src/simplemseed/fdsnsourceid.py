@@ -15,7 +15,7 @@ FDSN_PREFIX = "FDSN:"
 SEP = "_"
 
 BAND_CODE_JSON = {}
-bandcodes_file = (importlib_resources.files(__package__) / "bandcode.json")
+bandcodes_file = importlib_resources.files(__package__) / "bandcode.json"
 with bandcodes_file.open("rb") as f:
     # load as json array
     bcList = json.load(f)
@@ -24,13 +24,14 @@ with bandcodes_file.open("rb") as f:
         BAND_CODE_JSON[bc["code"]] = bc
 
 SOURCE_CODE_JSON = {}
-sourcecodes_file = (importlib_resources.files(__package__) / "sourcecode.json")
+sourcecodes_file = importlib_resources.files(__package__) / "sourcecode.json"
 with sourcecodes_file.open("rb") as f:
     # load as json array
     bcList = json.load(f)
     # convert to dict by code
     for bc in bcList:
         SOURCE_CODE_JSON[bc["code"]] = bc
+
 
 class FDSNSourceId:
     networkCode: str
@@ -70,11 +71,20 @@ class FDSNSourceId:
         if len(stationCode) == 0:
             stationCode = "ABC"
         return FDSNSourceId(
-            networkCode, stationCode, "", bandCodeForRate(sampRate, response_lb), sourceCode, "U"
+            networkCode,
+            stationCode,
+            "",
+            bandCodeForRate(sampRate, response_lb),
+            sourceCode,
+            "U",
         )
 
     @staticmethod
-    def parse(id: str) -> Union["FDSNSourceId", "NetworkSourceId", "StationSourceId", "LocationSourceId"]:
+    def parse(
+        id: str,
+    ) -> Union[
+        "FDSNSourceId", "NetworkSourceId", "StationSourceId", "LocationSourceId"
+    ]:
         if not id.startswith(FDSN_PREFIX):
             raise FDSNSourceIdException(f"sourceid must start with {FDSN_PREFIX}: {id}")
 
@@ -269,6 +279,7 @@ def bandCodeForRate(
             f"Unable to calc band code for: {sampRate} {response_lb}"
         )
 
+
 def bandCodeInfo(bandCode: str):
     """
     Type, rate and response lower bound describing the band code.
@@ -278,6 +289,7 @@ def bandCodeInfo(bandCode: str):
     See http://docs.fdsn.org/projects/source-identifiers/en/v1.0/channel-codes.html#band-code
     """
     return BAND_CODE_JSON[bandCode]
+
 
 def bandCodeDescribe(
     bandCode: str,
@@ -293,6 +305,7 @@ def bandCodeDescribe(
         bandD += f", response period {bc['response_lb']}"
     return bandD
 
+
 def sourceCodeInfo(sourceCode: str):
     """
     Type, describing the source code.
@@ -302,6 +315,7 @@ def sourceCodeInfo(sourceCode: str):
     See http://docs.fdsn.org/projects/source-identifiers/en/v1.0/channel-codes.html
     """
     return SOURCE_CODE_JSON[sourceCode]
+
 
 def sourceCodeDescribe(
     sourceCode: str,
@@ -347,10 +361,10 @@ def do_parseargs():
         "-v", "--verbose", help="increase output verbosity", action="store_true"
     )
     parser.add_argument(
-        "-b", "--band", nargs='+', required=False, help="describe band code"
+        "-b", "--band", nargs="+", required=False, help="describe band code"
     )
     parser.add_argument(
-        "-s", "--source", nargs='+', required=False, help="describe source code"
+        "-s", "--source", nargs="+", required=False, help="describe source code"
     )
     parser.add_argument(
         "--sps", required=False, type=float, help="band code for sample rate"

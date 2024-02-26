@@ -32,7 +32,7 @@ from .fdsnsourceid import (
     bandCodeForRate,
     NslcId,
     bandCodeDescribe,
-    sourceCodeDescribe
+    sourceCodeDescribe,
 )
 from .seedcodec import (
     compress,
