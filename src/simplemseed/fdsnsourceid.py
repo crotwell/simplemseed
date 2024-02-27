@@ -132,6 +132,16 @@ class FDSNSourceId:
 
         return FDSNSourceId.fromNslc(items[0], items[1], items[2], items[3])
 
+    def validate(self) -> (bool, Union[str, None]):
+        (valid, reason) = self.locationSourceId().validate()
+        if not valid:
+            return (valid, reason)
+        # band code allowed to be empty
+        if len(self.sourceCode) == 0:
+            return (False, "Source code empty")
+        # Subsource code allowed to be empty
+        return (True, "")
+
     def locationSourceId(self) -> "LocationSourceId":
         return LocationSourceId(self.networkCode, self.stationCode, self.locationCode)
 
@@ -167,7 +177,12 @@ class NetworkSourceId:
 
     def __init__(self, networkCode: str):
         self.networkCode = networkCode
-
+    def validate(self) -> (bool, Union[str, None]):
+        if len(self.networkCode) == 0:
+            return (False, "Network code empty")
+        elif len(self.networkCode) > 8:
+            return (False, f"Network code > 8 chars, len({self.networkCode})>8")
+        return (True, "")
     def __str__(self) -> str:
         return f"{FDSN_PREFIX}{self.networkCode}"
 
@@ -184,6 +199,15 @@ class StationSourceId:
     def __init__(self, networkCode: str, stationCode: str):
         self.networkCode = networkCode
         self.stationCode = stationCode
+    def validate(self) -> (bool, Union[str, None]):
+        (valid, reason) = self.networkSourceId().validate()
+        if not valid:
+            return (valid, reason)
+        if len(self.stationCode) == 0:
+            return (False, "Station code empty")
+        elif len(self.stationCode) > 8:
+            return (False, f"Station code > 8 chars, len({self.stationCode})>8")
+        return (True, "")
 
     def __str__(self) -> str:
         return f"{FDSN_PREFIX}{self.networkCode}{SEP}{self.stationCode}"
@@ -206,6 +230,16 @@ class LocationSourceId:
         self.networkCode = networkCode
         self.stationCode = stationCode
         self.locationCode = locationCode
+
+    def validate(self) -> (bool, Union[str, None]):
+        (valid, reason) = self.stationSourceId().validate()
+        if not valid:
+            return (valid, reason)
+        if self.locationCode == "--":
+            return (False, "Location code cannot be '--'")
+        elif len(self.locationCode) > 8:
+            return (False, f"Location code > 8 chars, len({self.locationCode})>8")
+        return (True, "")
 
     def stationSourceId(self) -> "StationSourceId":
         return StationSourceId(self.networkCode, self.stationCode)

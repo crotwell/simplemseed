@@ -17,6 +17,7 @@ class TestSourceId:
         chanDotNslc = "CO.JSC.00.LHZ"
 
         sid = simplemseed.FDSNSourceId.parse(chanSourceId)
+        assert sid.validate()[0] == True
         assert sid.networkCode == net
         assert sid.stationCode == sta
         assert sid.locationCode == loc
@@ -32,6 +33,7 @@ class TestSourceId:
         assert nslc.channelCode == f"{band}{s}{subs}"
 
         sid_nslc = simplemseed.FDSNSourceId.parseNslc(chanNslc, sep="_")
+        assert sid_nslc.validate()[0] == True
         assert sid_nslc.networkCode == net
         assert sid_nslc.stationCode == sta
         assert sid_nslc.locationCode == loc
@@ -41,6 +43,7 @@ class TestSourceId:
         assert sid == sid_nslc
 
         sid_dotnslc = simplemseed.FDSNSourceId.parseNslc(chanDotNslc, sep=".")
+        assert sid_dotnslc.validate()[0] == True
         assert sid_dotnslc.networkCode == net
         assert sid_dotnslc.stationCode == sta
         assert sid_dotnslc.locationCode == loc
@@ -52,6 +55,7 @@ class TestSourceId:
         sid_nslcparts = simplemseed.FDSNSourceId.fromNslc(
             net, sta, loc, f"{band}{s}{subs}"
         )
+        assert sid_nslcparts.validate()[0] == True
         assert sid_nslcparts.networkCode == net
         assert sid_nslcparts.stationCode == sta
         assert sid_nslcparts.locationCode == loc
@@ -63,6 +67,7 @@ class TestSourceId:
         sid_nslclong = simplemseed.FDSNSourceId.fromNslc(
             net, sta, loc, f"{band}_{s}X_{subs}"
         )
+        assert sid_nslclong.validate()[0] == True
         assert sid_nslclong.networkCode == net
         assert sid_nslclong.stationCode == sta
         assert sid_nslclong.locationCode == loc
@@ -72,6 +77,7 @@ class TestSourceId:
 
         staSidStr = "FDSN:CO_JSC"
         staSid = sid.stationSourceId()
+        assert staSid.validate()[0] == True
         assert staSid.networkCode == net
         assert staSid.stationCode == sta
         staSid2 = simplemseed.FDSNSourceId.parse(staSidStr)
@@ -79,30 +85,38 @@ class TestSourceId:
         assert str(staSid) == str(staSid2)
 
         netSid = sid.networkSourceId()
+        assert netSid.validate()[0] == True
         netSidStr = "FDSN:CO"
         netSid2 = simplemseed.FDSNSourceId.parse(netSidStr)
+        assert netSid2.validate()[0] == True
         assert sid.networkSourceId() == netSid
         assert netSid == netSid2
         assert str(netSid) == str(netSid2)
 
         unknown = simplemseed.FDSNSourceId.createUnknown()
+        assert unknown.validate()[0] == True, unknown.validate()[1]
         assert unknown.networkCode == "XX"
         assert unknown.stationCode == "ABC"
         unknown_100sps = simplemseed.FDSNSourceId.createUnknown(100, sourceCode="H")
+        assert unknown_100sps.validate()[0] == True
         assert unknown_100sps.bandCode == "E"
         assert unknown_100sps.sourceCode == "H"
         assert unknown_100sps.subsourceCode == "U"
         unknown_100sps = simplemseed.FDSNSourceId.createUnknown(
             100, response_lb=1 / 120
         )
+        assert unknown_100sps.validate()[0] == True
         assert unknown_100sps.bandCode == "H"
         unknown_1sps = simplemseed.FDSNSourceId.createUnknown(1)
+        assert unknown_1sps.validate()[0] == True
         assert unknown_1sps.bandCode == "L"
         unknown_100sec = simplemseed.FDSNSourceId.createUnknown(0.01)
+        assert unknown_100sec.validate()[0] == True
         assert unknown_100sec.bandCode == "U"
         unknown_netsta = simplemseed.FDSNSourceId.createUnknown(100,
                                                                 sourceCode="H",
                                                                 networkCode="CO",
                                                                 stationCode="QWERTY")
+        assert unknown_netsta.validate()[0] == True
         assert unknown_netsta.stationCode == "QWERTY"
         assert unknown_netsta.networkCode == "CO"
