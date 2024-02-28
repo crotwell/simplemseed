@@ -6,6 +6,8 @@
 
 [Miniseed3](http://docs.fdsn.org/projects/miniseed3) (and reading 2) in pure python.
 
+Read the docs at [readthedocs](https://readthedocs.org/projects/simplemseed/)
+
 # Miniseed3
 
 Write and read mseed3 records like:
