@@ -2,7 +2,7 @@
 
 
 [![PyPI](https://img.shields.io/pypi/v/simplemseed)](https://pypi.org/project/simplemseed/)
-
+[![Documentation Status](https://readthedocs.org/projects/simplemseed/badge/?version=latest)](https://simplemseed.readthedocs.io/en/latest/?badge=latest)
 
 [Miniseed3](http://docs.fdsn.org/projects/miniseed3) (and reading 2) in pure python.
 
