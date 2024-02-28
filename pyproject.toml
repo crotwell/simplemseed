@@ -28,7 +28,7 @@ dependencies = [
 
 [project.urls]
 Homepage = "https://github.com/crotwell/simplemseed"
-Documentation = "https://readthedocs.org"
+Documentation = "https://simplemseed.readthedocs.io/en/latest/"
 Repository = "https://github.com/crotwell/simplemseed"
 Issues = "https://github.com/crotwell/simplemseed/issues"
 
