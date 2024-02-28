@@ -52,6 +52,11 @@ HEADER_PACK_FORMAT = "<ccBBIHHBBBBdIIBBHI"
 
 
 class MSeed3Header:
+    """
+    Represents the fixed header section of a mseed3 record.
+
+    See the [specification](http://docs.fdsn.org/projects/miniseed3/en/latest/).
+    """
     recordIndicator: str
     formatVersion: int
     flags: int
@@ -225,6 +230,11 @@ class MSeed3Header:
 
 
 class MSeed3Record:
+    """
+    Represents a mseed3 record.
+
+    See the [specification](http://docs.fdsn.org/projects/miniseed3/en/latest/).
+    """
     header: MSeed3Header
     identifier: Union[FDSNSourceId, str]
     _eh: Union[str, dict, None]

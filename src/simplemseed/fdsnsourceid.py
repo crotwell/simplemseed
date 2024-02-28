@@ -34,6 +34,10 @@ with sourcecodes_file.open("rb") as f:
 
 
 class FDSNSourceId:
+    """
+    A FDSN Source Id, as defined in the
+    [specification](http://docs.fdsn.org/projects/source-identifiers/en/v1.0/)
+    """
     networkCode: str
     stationCode: str
     locationCode: str
@@ -66,6 +70,12 @@ class FDSNSourceId:
         stationCode: str = "ABC",
         locationCode: str = "",
     ) -> "FDSNSourceId":
+        """
+        Creates a Source Id for non-real data. This will have network code XX
+        which is defined to be a "do not use" network. The band code can be
+        calculated based on the optional sample rate and response lower bound.
+        See bandCodeForRate() for details.
+        """
         if len(networkCode) == 0:
             networkCode = "XX"
         if len(stationCode) == 0:
@@ -85,6 +95,14 @@ class FDSNSourceId:
     ) -> Union[
         "FDSNSourceId", "NetworkSourceId", "StationSourceId", "LocationSourceId"
     ]:
+        """
+        Parse a FDSN Source Id string, like
+        FDSN:CO_BIRD_00_H_H_Z into its constituant parts.
+        Also will handle parsing abbreviated codes for
+        network, FDSN:CO
+        station, FDSN:CO_BIRD
+        location, FDSN:CO_BIRD_00
+        """
         if not id.startswith(FDSN_PREFIX):
             raise FDSNSourceIdException(f"sourceid must start with {FDSN_PREFIX}: {id}")
 
@@ -104,6 +122,10 @@ class FDSNSourceId:
 
     @staticmethod
     def fromNslc(net: str, sta: str, loc: str, channelCode: str) -> "FDSNSourceId":
+        """
+        Create a FDSN Source Id from an older seed-style nslc, network, station
+        location, channel.
+        """
         if len(channelCode) == 3:
             band = channelCode[0]
             source = channelCode[1]
@@ -124,6 +146,11 @@ class FDSNSourceId:
 
     @staticmethod
     def parseNslc(nslc: str, sep=".") -> "FDSNSourceId":
+        """
+        Create a FDSN Source Id by parsing an older seed-style nslc, network, station
+        location, channel, wheret the 4 sections are separated by the given
+        separator, which defaults to a dot, '.'.
+        """
         items = nslc.split(sep)
         if len(items) < 4:
             raise FDSNSourceIdException(
@@ -133,6 +160,11 @@ class FDSNSourceId:
         return FDSNSourceId.fromNslc(items[0], items[1], items[2], items[3])
 
     def validate(self) -> (bool, Union[str, None]):
+        """
+        Validates a source id, primarily for lenth limitations.
+
+        Returns a tuple of either (True, None) or (False, <reason>)
+        """
         (valid, reason) = self.locationSourceId().validate()
         if not valid:
             return (valid, reason)
@@ -152,6 +184,12 @@ class FDSNSourceId:
         return NetworkSourceId(self.networkCode)
 
     def asNslc(self) -> "NslcId":
+        """
+        Convert the source id into an older seed-style nslc.
+        If the source and subsource are single characters, then a 3 char
+        channel code will be created, like BHZ. But if any are larger, then
+        a longer string with separators will be creates, like B_AA_QW
+        """
         if (
             len(self.bandCode) == 1
             and len(self.sourceCode) == 1
@@ -173,6 +211,9 @@ class FDSNSourceId:
 
 
 class NetworkSourceId:
+    """
+    An abbreviated source id representing a network, like FDSN:CO
+    """
     networkCode: str
 
     def __init__(self, networkCode: str):
@@ -193,6 +234,9 @@ class NetworkSourceId:
 
 
 class StationSourceId:
+    """
+    An abbreviated source id representing a station, like FDSN:CO_BIRD
+    """
     networkCode: str
     stationCode: str
 
@@ -222,6 +266,13 @@ class StationSourceId:
 
 
 class LocationSourceId:
+    """
+    An abbreviated source id representing a station-location,
+    like FDSN:CO_BIRD_00
+
+    Note if the location segment in zero length, the code will end with
+    the underscore like FDSN:IU_ANMO_
+    """
     networkCode: str
     stationCode: str
     locationCode: str

@@ -32,6 +32,9 @@ BlocketteUnknown = namedtuple("BlocketteUnknown", "blocketteNum, nextOffset, raw
 
 
 class MiniseedHeader:
+    """
+    Represents the fixed header section of a miniseed2 record
+    """
     def __init__(
         self,
         network,
@@ -229,6 +232,9 @@ class MiniseedHeader:
 
 
 class MiniseedRecord:
+    """
+    Represents a miniseed2 record
+    """
     def __init__(self, header, data, encodedData=None, blockettes=[]):
         self.header = header
         self.blockettes = blockettes

@@ -62,16 +62,19 @@ class UnsupportedCompressionType(CodecException):
 
 
 def isFloatCompression(compressionType: int) -> bool:
+    """
+    True if the compression is not representable by integers, so not
+    compressable via the standard compression types.
+    """
     if compressionType == FLOAT or compressionType == DOUBLE:
         return True
     return False
 
 
-#
-# A holder for compressed data independent of the file format.
-
-
 class EncodedDataSegment:
+    """
+    A holder for compressed data independent of the file format.
+    """
     compressionType: int
     dataBytes: Union[bytes, bytearray]
     numSamples: int
@@ -102,6 +105,9 @@ class EncodedDataSegment:
 
 
 def canDecompress(encoding: int) -> bool:
+    """
+    True if the given encoding can be decompressed by this library.
+    """
     if encoding == SHORT:
         return True
     elif encoding == INTEGER:
@@ -119,6 +125,9 @@ def canDecompress(encoding: int) -> bool:
 
 
 def arrayTypecodeFromMSeed(encoding: int) -> str:
+    """
+    Get the typecode for a python array.array from the mseed encoding type.
+    """
     if encoding == SHORT:
         return "h"
     elif encoding == INTEGER:
@@ -132,6 +141,9 @@ def arrayTypecodeFromMSeed(encoding: int) -> str:
 
 
 def mseed3EncodingFromArrayTypecode(typecode: str) -> int:
+    """
+    Get the mseed3 encoding type for a python array.arry typecode
+    """
     if typecode == "h":
         return SHORT
     elif typecode == "l":
@@ -147,6 +159,9 @@ def mseed3EncodingFromArrayTypecode(typecode: str) -> int:
 
 
 def mseed3EncodingFromNumpyDT(dt: numpy.dtype) -> int:
+    """
+    Get the mseed3 encoding for a numpy dtype code
+    """
     if dt.type is numpy.int16:
         return SHORT
     elif dt.type is numpy.int32:
@@ -162,6 +177,9 @@ def mseed3EncodingFromNumpyDT(dt: numpy.dtype) -> int:
 
 
 def numpyDTFromMseed3Encoding(encoding: int):
+    """
+    Get a numpy dtype for a mseed3 encoding
+    """
     if encoding == SHORT:
         return numpy.int16
     elif encoding == INTEGER:
@@ -177,6 +195,12 @@ def numpyDTFromMseed3Encoding(encoding: int):
 
 
 def compress(compressionType: int, values) -> EncodedDataSegment:
+    """
+    Encode the given values into bytes.
+
+    Note that currently no actual compression is done, the resulting
+    bytes will occupy the same space, just converted for output.
+    """
     littleEndian = True
     try:
         compCode = arrayTypecodeFromMSeed(compressionType)
@@ -190,21 +214,6 @@ def compress(compressionType: int, values) -> EncodedDataSegment:
     return EncodedDataSegment(compressionType, dataBytes, len(values), littleEndian)
 
 
-#
-#  Decompress the samples from the provided bytes and
-#  return an array of the decompressed values.
-#  Only 16 bit short, 32 bit int, 32 bit float and 64 bit double
-#  along with Steim1 and Steim2 are supported.
-#
-#  @param compressionType compression format as defined in SEED blockette 1000
-#  @param dataBytes input bytes to be decoded
-#  @param numSamples the number of samples that can be decoded from array
-#  <b>b</b>
-#  @param littleEndian if True, dataBytes is little-endian (intel byte order) <b>b</b>.
-#  @returns array of length <b>numSamples</b>.
-#  @throws CodecException fail to decompress.
-#  @throws UnsupportedCompressionType unsupported compression type
-
 
 def decompress(
     compressionType: int,
@@ -212,6 +221,21 @@ def decompress(
     numSamples: int,
     littleEndian: bool,
 ) -> numpy.ndarray:
+    """
+    Decompress the samples from the provided bytes and
+    return an array of the decompressed values.
+    Only 16 bit short, 32 bit int, 32 bit float and 64 bit double
+    along with Steim1 and Steim2 are supported.
+
+    @param compressionType compression format as defined in SEED blockette 1000
+    @param dataBytes input bytes to be decoded
+    @param numSamples the number of samples that can be decoded from array
+    <b>b</b>
+    @param littleEndian if True, dataBytes is little-endian (intel byte order) <b>b</b>.
+    @returns array of length <b>numSamples</b>.
+    @throws CodecException fail to decompress.
+    @throws UnsupportedCompressionType unsupported compression type
+    """
     # in case of record with no data points, ex detection blockette, which often have compression type
     # set to 0, which messes up the decompresser even though it doesn't matter since there is no data.
     if numSamples == 0:
