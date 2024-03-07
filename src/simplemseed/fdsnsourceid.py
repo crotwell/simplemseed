@@ -268,10 +268,10 @@ class StationSourceId:
 class LocationSourceId:
     """
     An abbreviated source id representing a station-location,
-    like FDSN:CO_BIRD_00
+    like `FDSN:CO_BIRD_00`
 
     Note if the location segment in zero length, the code will end with
-    the underscore like FDSN:IU_ANMO_
+    the underscore like `FDSN:IU_ANMO_`
     """
     networkCode: str
     stationCode: str
