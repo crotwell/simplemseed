@@ -140,21 +140,23 @@ def arrayTypecodeFromMSeed(encoding: int) -> str:
         raise UnsupportedCompressionType(f"type {encoding} not mapable to python array")
 
 
-def mseed3EncodingFromArrayTypecode(typecode: str) -> int:
+def mseed3EncodingFromArrayTypecode(typecode: str, itemsize: int) -> int:
     """
-    Get the mseed3 encoding type for a python array.arry typecode
+    Get the mseed3 encoding type for a python array.arry typecode and itemsize.
     """
-    if typecode == "h":
-        return SHORT
-    elif typecode == "l":
-        return INTEGER
-    elif typecode == "f":
-        return FLOAT
-    elif typecode == "d":
-        return DOUBLE
+    if typecode == "h" or typecode == "i" or typecode == "l":
+        if itemsize == 2:
+            return SHORT
+        elif itemsize == 4:
+            return INTEGER
+    elif typecode == "f" or typecode == "d":
+        if itemsize == 4:
+            return FLOAT
+        elif itemsize == 8:
+            return DOUBLE
     else:
         raise UnsupportedCompressionType(
-            f"typecode {typecode} not mapable to mseed encoding"
+            f"typecode {typecode} of size {itemsize} not mapable to mseed encoding, only h,i,l,f,d and 2,4,8"
         )
 
 

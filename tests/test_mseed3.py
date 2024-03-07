@@ -165,5 +165,17 @@ class TestMSeed3:
                 recList.append(rec)
         assert len(recList) == 13
 
+    def test_array_to_encoding(self):
+        assert simplemseed.seedcodec.mseed3EncodingFromArrayTypecode('h',2) == simplemseed.seedcodec.SHORT
+        assert simplemseed.seedcodec.mseed3EncodingFromArrayTypecode('i',2) == simplemseed.seedcodec.SHORT
+        assert simplemseed.seedcodec.mseed3EncodingFromArrayTypecode('l',2) == simplemseed.seedcodec.SHORT
+        assert simplemseed.seedcodec.mseed3EncodingFromArrayTypecode('h',4) == simplemseed.seedcodec.INTEGER
+        assert simplemseed.seedcodec.mseed3EncodingFromArrayTypecode('i',4) == simplemseed.seedcodec.INTEGER
+        assert simplemseed.seedcodec.mseed3EncodingFromArrayTypecode('l',4) == simplemseed.seedcodec.INTEGER
+
+        assert simplemseed.seedcodec.mseed3EncodingFromArrayTypecode('f',4) == simplemseed.seedcodec.FLOAT
+        assert simplemseed.seedcodec.mseed3EncodingFromArrayTypecode('f',8) == simplemseed.seedcodec.DOUBLE
+        assert simplemseed.seedcodec.mseed3EncodingFromArrayTypecode('d',8) == simplemseed.seedcodec.DOUBLE
+
 if __name__ == "__main__":
     TestMSeed3().test_ref_data()

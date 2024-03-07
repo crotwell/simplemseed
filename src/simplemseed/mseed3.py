@@ -265,7 +265,7 @@ class MSeed3Record:
             numSamples = self.header.numSamples
         elif isinstance(data, array):
             # array.array primitive
-            encoding = mseed3EncodingFromArrayTypecode(data.typecode)
+            encoding = mseed3EncodingFromArrayTypecode(data.typecode, data.itemsize)
             numSamples = len(data)
             self._data = data
         elif isinstance(data, numpy.ndarray):
