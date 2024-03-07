@@ -109,6 +109,10 @@ class MSeed3Header:
             else -1.0 / self.sampleRatePeriod
         )
 
+    @sampleRate.setter
+    def sampleRate(self, val):
+        self.sampleRatePeriod = val
+
     @property
     def samplePeriod(self):
         return (
@@ -116,6 +120,10 @@ class MSeed3Header:
             if self.sampleRatePeriod < 0
             else 1.0 / self.sampleRatePeriod
         )
+
+    @samplePeriod.setter
+    def samplePeriod(self, val):
+        self.sampleRatePeriod = -1*val
 
     def pack(self):
         header = bytearray(FIXED_HEADER_SIZE)

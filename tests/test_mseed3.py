@@ -114,6 +114,9 @@ class TestMSeed3:
         assert header.second == 55
         assert header.nanosecond == 123456000
         assert simplemseed.isoWZ(header.starttime) == start
+        header.samplePeriod = 2
+        assert header.samplePeriod == 2
+        assert header.sampleRate == 1/2
 
     def test_long_fdsnsourceid(self):
         values = [3, 1, -1, 2000]
