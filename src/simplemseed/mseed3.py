@@ -239,7 +239,6 @@ class MSeed3Record:
     identifier: Union[FDSNSourceId, str]
     _eh: Union[str, dict, None]
     _data: Optional[Union[numpy.ndarray, array, list[int], list[float]]]
-    _encodedData: Optional[Union[bytes, bytearray]]
 
     def __init__(
         self,
