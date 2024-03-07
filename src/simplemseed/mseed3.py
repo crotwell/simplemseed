@@ -413,11 +413,16 @@ class MSeed3Record:
 
     def encodedDataBytes(self):
         if isinstance(self._data, bytes) or isinstance(self._data, bytearray):
-            dataBytes = self._data
-        elif isinstance(self._data, numpy.ndarray) or isinstance(self._data, array):
-            encData = compress(self.header.encoding, self._data)
-            dataBytes = encData.dataBytes
-        return dataBytes
+            return self._data
+        if isinstance(self._data, numpy.ndarray):
+            encoding = mseed3EncodingFromNumpyDT(self._data.dtype)
+            encData = compress(encoding, self._data)
+            return encData.dataBytes
+        if isinstance(self._data, array):
+            encoding = mseed3EncodingFromArrayTypecode(self._data.typecode, self._data.itemsize)
+            encData = compress(encoding, self._data)
+            return encData.dataBytes
+        raise Miniseed3Exception("Unable to encode data")
 
     def pack(self):
         """
