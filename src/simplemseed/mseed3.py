@@ -1,11 +1,12 @@
 import struct
 from array import array
-import numpy
 from datetime import datetime, timedelta, timezone
 import json
 import re
-import crc32c
 from typing import Union, Optional
+
+import numpy
+import crc32c
 
 from .seedcodec import (
     canDecompress,
@@ -265,7 +266,7 @@ class MSeed3Record:
             self._data = data.dataBytes
             encoding = data.compressionType
             numSamples = data.numSamples
-        elif isinstance(data, bytes) or isinstance(data, bytearray):
+        elif isinstance(data, (bytes, bytearray)):
             # bytes, hopefully header.numSamples set correctly
             self._data = data
             encoding = self.header.encoding
@@ -334,13 +335,13 @@ class MSeed3Record:
         if self._data is None:
             raise UnsupportedCompressionType("data is missing in record")
 
-        elif isinstance(self._data, numpy.ndarray):
+        if isinstance(self._data, numpy.ndarray):
             # already decompressed
             data = self._data
         elif isinstance(self._data, array):
             # already decompressed
             data = numpy.array(self._data)
-        elif isinstance(self._data, bytes) or isinstance(self._data, bytearray):
+        elif isinstance(self._data, (bytes, bytearray)):
             # try to decompress bytes-like
             byteOrder = LITTLE_ENDIAN
             if (
@@ -585,6 +586,10 @@ def unpackMSeed3FixedHeader(recordBytes):
     if recordIndicatorM != b"M" or recordIndicatorS != b"S":
         raise Miniseed3Exception(
             f"expected record start to be MS but was {recordIndicatorM}{recordIndicatorS}"
+        )
+    if formatVersion != 3:
+        raise Miniseed3Exception(
+            f"expected format version to be 3 but was {formatVersion}"
         )
     return ms3header
 
