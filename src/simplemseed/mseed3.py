@@ -306,7 +306,7 @@ class MSeed3Record:
             if len(self._eh) > 0:
                 self._eh = json.loads(self._eh)
             else:
-                self.eh = {}
+                self._eh = {}
         return self._eh
 
     @eh.setter
