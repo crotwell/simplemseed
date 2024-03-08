@@ -154,10 +154,9 @@ def mseed3EncodingFromArrayTypecode(typecode: str, itemsize: int) -> int:
             return FLOAT
         elif itemsize == 8:
             return DOUBLE
-    else:
-        raise UnsupportedCompressionType(
-            f"typecode {typecode} of size {itemsize} not mapable to mseed encoding, only h,i,l,f,d and 2,4,8"
-        )
+    raise UnsupportedCompressionType(
+        f"typecode {typecode} of size {itemsize} not mapable to mseed encoding, only h,i,l,f,d and 2,4,8"
+    )
 
 
 def mseed3EncodingFromNumpyDT(dt: numpy.dtype) -> int:
