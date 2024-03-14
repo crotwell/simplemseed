@@ -43,6 +43,12 @@ from .seedcodec import (
     decodeSteim2,
     canDecompress,
 )
+from .steim1 import (
+    encodeSteim1
+)
+from .steim2 import (
+    encodeSteim2
+)
 from .mseed2to3 import mseed2to3
 
 __all__ = [
@@ -76,7 +82,9 @@ __all__ = [
     "CodecException",
     "UnsupportedCompressionType",
     "decodeSteim1",
+    "encodeSteim1",
     "decodeSteim2",
+    "encodeSteim2",
     "mseed2to3",
     "crcAsHex",
     "isoWZ",
