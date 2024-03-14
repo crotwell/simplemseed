@@ -1,4 +1,3 @@
-
 import pytest
 import simplemseed
 
@@ -8,7 +7,7 @@ class TestSteim2:
     def test_ref_data(self):
         data = [1, 2, -10, 45, -999, 4008]
         numSamples = len(data)
-        littleEndian=False
+        littleEndian = False
         encoded = simplemseed.encodeSteim2(data)
         decoded = simplemseed.decodeSteim2(encoded, numSamples, littleEndian, 0)
         assert len(decoded) == len(data)
