@@ -76,15 +76,16 @@ class TestMSeed3:
     def test_roundtrip(self):
         values = [3, 1, -1, 2000]
         header = simplemseed.MSeed3Header()
-        header.encoding = simplemseed.seedcodec.INTEGER
+        encodedValues = simplemseed.encodeSteim2(values)
+        header.encoding = simplemseed.seedcodec.STEIM2
         header.starttime = "2024-01-02T15:13:55.123456Z"
         header.sampleRatePeriod = -1
         header.numSamples = len(values)
-        identifier = "FDSN:XX_FAKE__H_H_Z"
-        record = simplemseed.MSeed3Record(header, identifier, values)
+        identifier = simplemseed.FDSNSourceId.createUnknown(header.sampleRate)
+        record = simplemseed.MSeed3Record(header, identifier, encodedValues)
         recordBytes = record.pack()
         outRecord = simplemseed.unpackMSeed3Record(recordBytes)
-        assert identifier == outRecord.identifier
+        assert identifier == outRecord.parseIdentifier()
         decomp_data = outRecord.decompress()
         assert record.details() == outRecord.details()
         assert len(decomp_data) == len(values)

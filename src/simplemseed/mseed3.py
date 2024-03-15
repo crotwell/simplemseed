@@ -330,6 +330,15 @@ class MSeed3Record:
         del self._eh
         self.header.extraHeadersLength = 0
 
+    def parseIdentifier(self) -> FDSNSourceId:
+        if isinstance(self.identifier, FDSNSourceId):
+            return self.identifier
+        # assume string
+        if self.identifier.startswith(FDSN_PREFIX):
+            return FDSNSourceId.parse(self.identifier)
+        raise Miniseed3Exception("Unable to parse identifier as FDSN SourceId")
+
+
     def decompress(self) -> numpy.ndarray:
         data = None
         if self._data is None:

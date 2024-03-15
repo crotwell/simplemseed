@@ -207,6 +207,7 @@ class FDSNSourceId:
     def __eq__(self, other: object, /) -> bool:
         if not isinstance(other, self.__class__):
             return False
+        # both FDSNSourceId, so compare as strings is easy
         return str(self) == str(other)
 
 
