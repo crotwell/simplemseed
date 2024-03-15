@@ -75,6 +75,7 @@ class EncodedDataSegment:
     """
     A holder for compressed data independent of the file format.
     """
+
     compressionType: int
     dataBytes: Union[bytes, bytearray]
     numSamples: int
@@ -213,7 +214,6 @@ def compress(compressionType: int, values) -> EncodedDataSegment:
     dataBytes = struct.pack(f"<{len(values)}{compCode}", *values)
 
     return EncodedDataSegment(compressionType, dataBytes, len(values), littleEndian)
-
 
 
 def decompress(

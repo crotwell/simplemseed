@@ -38,6 +38,7 @@ class FDSNSourceId:
     A FDSN Source Id, as defined in the
     [specification](http://docs.fdsn.org/projects/source-identifiers/en/v1.0/)
     """
+
     networkCode: str
     stationCode: str
     locationCode: str
@@ -215,16 +216,19 @@ class NetworkSourceId:
     """
     An abbreviated source id representing a network, like FDSN:CO
     """
+
     networkCode: str
 
     def __init__(self, networkCode: str):
         self.networkCode = networkCode
+
     def validate(self) -> (bool, Union[str, None]):
         if len(self.networkCode) == 0:
             return (False, "Network code empty")
         elif len(self.networkCode) > 8:
             return (False, f"Network code > 8 chars, len({self.networkCode})>8")
         return (True, "")
+
     def __str__(self) -> str:
         return f"{FDSN_PREFIX}{self.networkCode}"
 
@@ -238,12 +242,14 @@ class StationSourceId:
     """
     An abbreviated source id representing a station, like FDSN:CO_BIRD
     """
+
     networkCode: str
     stationCode: str
 
     def __init__(self, networkCode: str, stationCode: str):
         self.networkCode = networkCode
         self.stationCode = stationCode
+
     def validate(self) -> (bool, Union[str, None]):
         (valid, reason) = self.networkSourceId().validate()
         if not valid:
@@ -274,6 +280,7 @@ class LocationSourceId:
     Note if the location segment in zero length, the code will end with
     the underscore like `FDSN:IU_ANMO_`
     """
+
     networkCode: str
     stationCode: str
     locationCode: str

@@ -113,10 +113,9 @@ class TestSourceId:
         unknown_100sec = simplemseed.FDSNSourceId.createUnknown(0.01)
         assert unknown_100sec.validate()[0] == True
         assert unknown_100sec.bandCode == "U"
-        unknown_netsta = simplemseed.FDSNSourceId.createUnknown(100,
-                                                                sourceCode="H",
-                                                                networkCode="CO",
-                                                                stationCode="QWERTY")
+        unknown_netsta = simplemseed.FDSNSourceId.createUnknown(
+            100, sourceCode="H", networkCode="CO", stationCode="QWERTY"
+        )
         assert unknown_netsta.validate()[0] == True
         assert unknown_netsta.stationCode == "QWERTY"
         assert unknown_netsta.networkCode == "CO"

@@ -32,6 +32,7 @@ ref_data_list = [
 # bird_jsc.ms3
 # curl -o 'bird_jsc.ms3' 'https://service.iris.edu/fdsnws/dataselect/1/query?net=CO&sta=BIRD,JSC&cha=HH?&starttime=2024-02-06T11:30:00&endtime=2024-02-06T11:30:30&format=miniseed3&nodata=404'
 
+
 class TestMSeed3:
 
     def test_ref_data(self):
@@ -53,10 +54,7 @@ class TestMSeed3:
                 assert (
                     jsonrec["CRC"] == rec.header.crcAsHex()
                 ), f"{jsonrec['CRC']} {rec.header.crcAsHex()}"
-                assert (
-                    jsonrec["PublicationVersion"]
-                    == rec.header.publicationVersion
-                )
+                assert jsonrec["PublicationVersion"] == rec.header.publicationVersion
                 assert (
                     jsonrec["SID"] == rec.identifier
                 ), f"sid {jsonrec['SID']}  {rec.identifier}"
@@ -117,7 +115,7 @@ class TestMSeed3:
         assert simplemseed.isoWZ(header.starttime) == start
         header.samplePeriod = 2
         assert header.samplePeriod == 2
-        assert header.sampleRate == 1/2
+        assert header.sampleRate == 1 / 2
 
     def test_long_fdsnsourceid(self):
         values = [3, 1, -1, 2000]
@@ -170,16 +168,44 @@ class TestMSeed3:
         assert len(recList) == 13
 
     def test_array_to_encoding(self):
-        assert simplemseed.seedcodec.mseed3EncodingFromArrayTypecode('h',2) == simplemseed.seedcodec.SHORT
-        assert simplemseed.seedcodec.mseed3EncodingFromArrayTypecode('i',2) == simplemseed.seedcodec.SHORT
-        assert simplemseed.seedcodec.mseed3EncodingFromArrayTypecode('l',2) == simplemseed.seedcodec.SHORT
-        assert simplemseed.seedcodec.mseed3EncodingFromArrayTypecode('h',4) == simplemseed.seedcodec.INTEGER
-        assert simplemseed.seedcodec.mseed3EncodingFromArrayTypecode('i',4) == simplemseed.seedcodec.INTEGER
-        assert simplemseed.seedcodec.mseed3EncodingFromArrayTypecode('l',4) == simplemseed.seedcodec.INTEGER
+        assert (
+            simplemseed.seedcodec.mseed3EncodingFromArrayTypecode("h", 2)
+            == simplemseed.seedcodec.SHORT
+        )
+        assert (
+            simplemseed.seedcodec.mseed3EncodingFromArrayTypecode("i", 2)
+            == simplemseed.seedcodec.SHORT
+        )
+        assert (
+            simplemseed.seedcodec.mseed3EncodingFromArrayTypecode("l", 2)
+            == simplemseed.seedcodec.SHORT
+        )
+        assert (
+            simplemseed.seedcodec.mseed3EncodingFromArrayTypecode("h", 4)
+            == simplemseed.seedcodec.INTEGER
+        )
+        assert (
+            simplemseed.seedcodec.mseed3EncodingFromArrayTypecode("i", 4)
+            == simplemseed.seedcodec.INTEGER
+        )
+        assert (
+            simplemseed.seedcodec.mseed3EncodingFromArrayTypecode("l", 4)
+            == simplemseed.seedcodec.INTEGER
+        )
 
-        assert simplemseed.seedcodec.mseed3EncodingFromArrayTypecode('f',4) == simplemseed.seedcodec.FLOAT
-        assert simplemseed.seedcodec.mseed3EncodingFromArrayTypecode('f',8) == simplemseed.seedcodec.DOUBLE
-        assert simplemseed.seedcodec.mseed3EncodingFromArrayTypecode('d',8) == simplemseed.seedcodec.DOUBLE
+        assert (
+            simplemseed.seedcodec.mseed3EncodingFromArrayTypecode("f", 4)
+            == simplemseed.seedcodec.FLOAT
+        )
+        assert (
+            simplemseed.seedcodec.mseed3EncodingFromArrayTypecode("f", 8)
+            == simplemseed.seedcodec.DOUBLE
+        )
+        assert (
+            simplemseed.seedcodec.mseed3EncodingFromArrayTypecode("d", 8)
+            == simplemseed.seedcodec.DOUBLE
+        )
+
 
 if __name__ == "__main__":
     TestMSeed3().test_ref_data()

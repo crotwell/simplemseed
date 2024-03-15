@@ -58,6 +58,7 @@ class MSeed3Header:
 
     See the [specification](http://docs.fdsn.org/projects/miniseed3/en/latest/).
     """
+
     recordIndicator: str
     formatVersion: int
     flags: int
@@ -124,7 +125,7 @@ class MSeed3Header:
 
     @samplePeriod.setter
     def samplePeriod(self, val):
-        self.sampleRatePeriod = -1*val
+        self.sampleRatePeriod = -1 * val
 
     def pack(self):
         header = bytearray(FIXED_HEADER_SIZE)
@@ -244,6 +245,7 @@ class MSeed3Record:
 
     See the [specification](http://docs.fdsn.org/projects/miniseed3/en/latest/).
     """
+
     header: MSeed3Header
     identifier: Union[FDSNSourceId, str]
     _eh: Union[str, dict, None]
@@ -338,7 +340,6 @@ class MSeed3Record:
             return FDSNSourceId.parse(self.identifier)
         raise Miniseed3Exception("Unable to parse identifier as FDSN SourceId")
 
-
     def decompress(self) -> numpy.ndarray:
         data = None
         if self._data is None:
@@ -428,7 +429,9 @@ class MSeed3Record:
             encData = compress(encoding, self._data)
             return encData.dataBytes
         if isinstance(self._data, array):
-            encoding = mseed3EncodingFromArrayTypecode(self._data.typecode, self._data.itemsize)
+            encoding = mseed3EncodingFromArrayTypecode(
+                self._data.typecode, self._data.itemsize
+            )
             encData = compress(encoding, self._data)
             return encData.dataBytes
         raise Miniseed3Exception("Unable to encode data")
