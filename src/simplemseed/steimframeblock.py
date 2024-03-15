@@ -43,7 +43,7 @@ class SteimFrameBlock:
         int  # number of current frame being built, start before first (zero) index
     )
     steimFrameList: list[SteimFrame]  # list of frames, added as needed
-    currentSteimFrame: SteimFrame  # current frame appending to, may be null if now frame needs to be created
+    currentSteimFrame: SteimFrame  # current frame appending to, may be None if now frame needs to be created
 
     # *** constructors ***
 
@@ -57,7 +57,7 @@ class SteimFrameBlock:
         formed for the data record) AND the version of Steim
         compression used (1 and 2 currently)
         the number of frames remains static...frames that are
-        not filled with data are simply full of nulls.
+        not filled with data are simply full of Nones.
         @param maxNumFrames the max number of frames in this Steim record, zero for unlimited
         @param steimVersion which version of Steim compression is being used
         (1,2,3).
@@ -139,7 +139,7 @@ class SteimFrameBlock:
         self.numSamples += samples
         pos += 1  # increment position in frame
         if pos > 15:  # need next frame?
-            self.currentSteimFrame = null
+            self.currentSteimFrame = None
             if (
                 self.maxNumFrames > 0 and self.currentFrame >= self.maxNumFrames
             ):  # exceeded frame limit?

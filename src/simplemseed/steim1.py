@@ -12,7 +12,7 @@ def encodeSteim1(
     This number should be determined from the desired logical record length
     <i>minus</i> the data offset from the record header (modulo 64)
     If <b>samples</b> is exhausted before all frames are filled, the remaining frames
-    will be nulls.
+    will be Nones.
     <b>bias</b> is a value carried over from a previous data record, representing
     X(-1)...set to 0 otherwise
     @param samples the data points represented as signed integers

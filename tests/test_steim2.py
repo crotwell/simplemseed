@@ -5,7 +5,7 @@ import simplemseed
 class TestSteim2:
 
     def test_ref_data(self):
-        data = [1, 2, -10, 45, -999, 4008]
+        data = [1, 2, -10, 45, -999, 4008]+ [47]*1000
         numSamples = len(data)
         littleEndian = False
         encoded = simplemseed.encodeSteim2(data)
