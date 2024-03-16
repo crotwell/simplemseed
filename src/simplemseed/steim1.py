@@ -2,6 +2,7 @@ from .steimframeblock import SteimFrameBlock
 
 import numpy
 
+
 def encodeSteim1(
     samples: list[int], frames: int = 0, bias: int = 0, offset: int = 0
 ) -> bytearray:
@@ -58,7 +59,9 @@ def encodeSteim1FrameBlock(
     # and reverse integration constant X(N)
     # ...reverse integration constant may need to be changed if
     # the frameBlock fills up.
-    frameBlock.addEncodedWord(numpy.int32(samples[offset]), 0, 0)  # X(0) -- first sample value
+    frameBlock.addEncodedWord(
+        numpy.int32(samples[offset]), 0, 0
+    )  # X(0) -- first sample value
     frameBlock.addEncodedWord(
         numpy.int32(samples[len(samples) - 1]), 0, 0
     )  # X(N) -- last sample value
@@ -83,7 +86,9 @@ def encodeSteim1FrameBlock(
                     # special case for d(0) = x(0) - x(-1).
                     diff[0] = numpy.int32(samples[offset] - bias)
                 else:
-                    diff[i] = numpy.int32(samples[sampleIndex + i] - samples[sampleIndex + i - 1])
+                    diff[i] = numpy.int32(
+                        samples[sampleIndex + i] - samples[sampleIndex + i - 1]
+                    )
 
                 # and increment the counter
                 diffCount += 1
@@ -140,7 +145,9 @@ def encodeSteim1FrameBlock(
             # frame block is full (but the value did get added)
             # so modify reverse integration constant to be the very last value added
             # and break out of loop (read no more samples)
-            frameBlock.setXsubN(numpy.int32(samples[sampleIndex + diffCount - 1]))  # X(N)
+            frameBlock.setXsubN(
+                numpy.int32(samples[sampleIndex + diffCount - 1])
+            )  # X(N)
             break
 
         # increment the sampleIndex by the diffCount

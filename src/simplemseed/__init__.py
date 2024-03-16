@@ -43,14 +43,8 @@ from .seedcodec import (
     decodeSteim2,
     canDecompress,
 )
-from .steim1 import (
-    encodeSteim1,
-    encodeSteim1FrameBlock
-    )
-from .steim2 import (
-    encodeSteim2,
-    encodeSteim2FrameBlock
-    )
+from .steim1 import encodeSteim1, encodeSteim1FrameBlock
+from .steim2 import encodeSteim2, encodeSteim2FrameBlock
 from .steimframeblock import SteimFrameBlock
 from .mseed2to3 import mseed2to3
 
@@ -86,7 +80,7 @@ __all__ = [
     "UnsupportedCompressionType",
     "decodeSteim1",
     "encodeSteim1",
-    "encodeSteim1FrameBlock"
+    "encodeSteim1FrameBlock",
     "decodeSteim2",
     "encodeSteim2",
     "encodeSteim2FrameBlock",

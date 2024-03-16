@@ -78,7 +78,9 @@ def encodeSteim2FrameBlock(
     # and reverse integration constant X(N)
     # ...reverse integration constant may need to be changed if
     # the frameBlock fills up.
-    frameBlock.addEncodedWord(numpy.int32(samples[0]), 0, 0)  # X(0) -- first sample value
+    frameBlock.addEncodedWord(
+        numpy.int32(samples[0]), 0, 0
+    )  # X(0) -- first sample value
     frameBlock.addEncodedWord(
         numpy.int32(samples[len(samples) - 1]), 0, 0
     )  # X(N) -- last sample value

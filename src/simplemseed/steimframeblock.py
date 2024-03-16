@@ -4,6 +4,7 @@ import numpy
 
 from typing import Union
 
+
 class SteimFrame:
     """
     This represents a single Steim compression frame.  It stores values
@@ -11,7 +12,9 @@ class SteimFrame:
     """
 
     def __init__(self):
-        self.word = numpy.zeros(16, dtype=numpy.dtype(numpy.int32)).newbyteorder('>')  # 16 32-byte words
+        self.word = numpy.zeros(16, dtype=numpy.dtype(numpy.int32)).newbyteorder(
+            ">"
+        )  # 16 32-byte words
         self.pos = 0  # word position in frame (pos: 0 = W0, 1 = W1, etc...)
 
     def isEmpty(self):
@@ -120,7 +123,9 @@ class SteimFrameBlock:
 
     # *** private and protected methods ***
 
-    def addEncodedWord(self, word: Union[numpy.int32,numpy.uint32], samples: int, nibble: int):
+    def addEncodedWord(
+        self, word: Union[numpy.int32, numpy.uint32], samples: int, nibble: int
+    ):
         """
         Add a single 32-bit word to current frame.
         @param samples the number of sample differences in the word
