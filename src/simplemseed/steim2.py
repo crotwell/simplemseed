@@ -1,5 +1,6 @@
 from .steimframeblock import SteimFrameBlock
 
+import numpy
 
 """
 
@@ -77,9 +78,9 @@ def encodeSteim2FrameBlock(
     # and reverse integration constant X(N)
     # ...reverse integration constant may need to be changed if
     # the frameBlock fills up.
-    frameBlock.addEncodedWord(samples[0], 0, 0)  # X(0) -- first sample value
+    frameBlock.addEncodedWord(numpy.int32(samples[0]), 0, 0)  # X(0) -- first sample value
     frameBlock.addEncodedWord(
-        samples[len(samples) - 1], 0, 0
+        numpy.int32(samples[len(samples) - 1]), 0, 0
     )  # X(N) -- last sample value
     #
     # now begin looping over differences
@@ -164,7 +165,7 @@ def encodeSteim2FrameBlock(
             # frame block is full (but the value did get added)
             # so modify reverse integration constant to be the very last value added
             # and break out of loop (read no more samples)
-            frameBlock.setXsubN(samples[sampleIndex + ndiff - 1])  # X(N)
+            frameBlock.setXsubN(numpy.int32(samples[sampleIndex + ndiff - 1]))  # X(N)
             break
 
         # increment the sampleIndex by the number of differences
@@ -256,10 +257,10 @@ def steimPackWord(diff: list[int], nbits: int, ndiff: int, bitmask: int, submask
     @param bitmask the bit mask
     @param submask the sub mask or 0 if none
     """
-    val = 0
+    val = numpy.uint32(0)
     i = 0
     while i < ndiff:
-        val = (val << nbits) | (diff[i] & bitmask)
+        val = (val << nbits) | (numpy.int32(diff[i]) & bitmask)
         i += 1
     if submask != 0:
         val |= submask << 30

@@ -1,5 +1,6 @@
 from .steimframeblock import SteimFrameBlock
 
+import numpy
 
 def encodeSteim1(
     samples: list[int], frames: int = 0, bias: int = 0, offset: int = 0
@@ -57,9 +58,9 @@ def encodeSteim1FrameBlock(
     # and reverse integration constant X(N)
     # ...reverse integration constant may need to be changed if
     # the frameBlock fills up.
-    frameBlock.addEncodedWord(samples[offset], 0, 0)  # X(0) -- first sample value
+    frameBlock.addEncodedWord(numpy.int32(samples[offset]), 0, 0)  # X(0) -- first sample value
     frameBlock.addEncodedWord(
-        samples[len(samples) - 1], 0, 0
+        numpy.int32(samples[len(samples) - 1]), 0, 0
     )  # X(N) -- last sample value
     #
     # now begin looping over differences
@@ -80,9 +81,9 @@ def encodeSteim1FrameBlock(
                 # get next difference  X[i] - X[i-1]
                 if sampleIndex == offset and i == 0:
                     # special case for d(0) = x(0) - x(-1).
-                    diff[0] = samples[offset] - bias
+                    diff[0] = numpy.int32(samples[offset] - bias)
                 else:
-                    diff[i] = samples[sampleIndex + i] - samples[sampleIndex + i - 1]
+                    diff[i] = numpy.int32(samples[sampleIndex + i] - samples[sampleIndex + i - 1])
 
                 # and increment the counter
                 diffCount += 1
@@ -118,8 +119,8 @@ def encodeSteim1FrameBlock(
         # end for (0..3)
 
         # generate the encoded word and the nibble value
-        nibble = 0
-        word = 0
+        nibble = numpy.uint32(0)
+        word = numpy.uint32(0)
         if diffCount == 1:
             word = diff[0]
             nibble = 3  # size 4 = 11
@@ -139,7 +140,7 @@ def encodeSteim1FrameBlock(
             # frame block is full (but the value did get added)
             # so modify reverse integration constant to be the very last value added
             # and break out of loop (read no more samples)
-            frameBlock.setXsubN(samples[sampleIndex + diffCount - 1])  # X(N)
+            frameBlock.setXsubN(numpy.int32(samples[sampleIndex + diffCount - 1]))  # X(N)
             break
 
         # increment the sampleIndex by the diffCount

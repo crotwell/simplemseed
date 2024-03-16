@@ -1,5 +1,8 @@
 import struct
 
+import numpy
+
+from typing import Union
 
 class SteimFrame:
     """
@@ -8,17 +11,17 @@ class SteimFrame:
     """
 
     def __init__(self):
-        self.word = [0] * 16  # 16 32-byte words
+        self.word = numpy.zeros(16, dtype=numpy.dtype(numpy.int32)).newbyteorder('>')  # 16 32-byte words
         self.pos = 0  # word position in frame (pos: 0 = W0, 1 = W1, etc...)
 
     def isEmpty(self):
         if self.word[0] == 0:
             return true
         else:
-            return false
+            return False
 
     def pack(self):
-        return struct.pack(">16I", *self.word)
+        return self.word.tobytes()
 
 
 class SteimFrameBlock:
@@ -66,7 +69,7 @@ class SteimFrameBlock:
         self.steimVersion = steimVersion
         self.numSamples = 0
         self.steimFrameList = []
-        self.currentFrame = -1
+        self.currentFrame = 0
         self.currentSteimFrame = None
 
     # *** public methods ***
@@ -101,8 +104,8 @@ class SteimFrameBlock:
         offset = 0
         for frame in self.steimFrameList:
             # for each frame
-            encodedData[offset : offset + 16] = frame.pack()
-            offset += 16
+            encodedData[offset : offset + 64] = frame.pack()
+            offset += 64
         return encodedData
 
     def getNumFrames(self):
@@ -117,7 +120,7 @@ class SteimFrameBlock:
 
     # *** private and protected methods ***
 
-    def addEncodedWord(self, word: int, samples: int, nibble: int):
+    def addEncodedWord(self, word: Union[numpy.int32,numpy.uint32], samples: int, nibble: int):
         """
         Add a single 32-bit word to current frame.
         @param samples the number of sample differences in the word
@@ -143,14 +146,14 @@ class SteimFrameBlock:
             if (
                 self.maxNumFrames > 0 and self.currentFrame >= self.maxNumFrames
             ):  # exceeded frame limit?
-                return true  # block is full
+                return True  # block is full
 
         else:
             self.currentSteimFrame.pos = pos  # increment position in frame
 
         return False  # block is not yet full
 
-    def setXsubN(self, word: int):
+    def setXsubN(self, word: numpy.int32):
         """
         Set the reverse integration constant X(N) explicitly to the
         provided word value.
@@ -158,10 +161,10 @@ class SteimFrameBlock:
         fill the frame block before all samples have been read.
         @param word integer value to be placed in X(N)
         """
-        self.steimFrameList.get(0).word[2] = word
+        self.steimFrameList[0].word[2] = word
         return
 
-    def addEncodingNibble(self, bitFlag: int):
+    def addEncodingNibble(self, bitFlag: numpy.uint32):
         """
         * Add encoding nibble to W0.
         * @param bitFlag a value 0 to 3 representing an encoding nibble
