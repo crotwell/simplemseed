@@ -281,7 +281,7 @@ def encodeSteim1FrameBlock(
             # (the whole idea is we are looking for the proper fit)
             if maxSize * diffCount == 4:
                 break
-            elif maxSize * diffCount > 4:
+            if maxSize * diffCount > 4:
                 diffCount -= 1
                 if diffCount == 3:
                     diffCount -= 1

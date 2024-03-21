@@ -338,38 +338,38 @@ def bandCodeForRate(
 
     if sampRate >= 5000:
         return "J"
-    if sampRate >= 1000 and sampRate < 5000:
+    if 1000 <= sampRate < 5000:
         if response_lb is not None and response_lb < 0.1:
             return "F"
         return "G"
-    if sampRate >= 250 and sampRate < 1000:
+    if 250 <= sampRate < 1000:
         if response_lb is not None and response_lb < 0.1:
             return "C"
         return "D"
-    if sampRate >= 80 and sampRate < 250:
+    if 80 <= sampRate < 250:
         if response_lb is not None and response_lb < 0.1:
             return "H"
         return "E"
-    if sampRate >= 10 and sampRate < 80:
+    if 10 <= sampRate < 80:
         if response_lb is not None and response_lb < 0.1:
             return "B"
         return "S"
-    if sampRate > 1 and sampRate < 10:
+    if 1 < sampRate < 10:
         return "M"
-    if sampRate > 0.5 and sampRate < 1.5:
+    if 0.5 < sampRate < 1.5:
         # spec not clear about how far from 1 is L
         return "L"
-    if sampRate >= 0.1 and sampRate < 1:
+    if 0.1 <= sampRate < 1:
         return "V"
-    if sampRate >= 0.01 and sampRate < 0.1:
+    if 0.01 <= sampRate < 0.1:
         return "U"
-    if sampRate >= 0.001 and sampRate < 0.01:
+    if 0.001 <= sampRate < 0.01:
         return "W"
-    if sampRate >= 0.0001 and sampRate < 0.001:
+    if 0.0001 <= sampRate < 0.001:
         return "R"
-    if sampRate >= 0.00001 and sampRate < 0.0001:
+    if 0.00001 <= sampRate < 0.0001:
         return "P"
-    if sampRate >= 0.000001 and sampRate < 0.00001:
+    if 0.000001 <= sampRate < 0.00001:
         return "T"
     if sampRate < 0.000001:
         return "Q"
