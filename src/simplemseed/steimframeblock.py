@@ -5,8 +5,6 @@ import numpy
 from typing import Union
 
 
-
-
 def getInt16(dataBytes, offset, littleEndian):
     endianChar = "<" if littleEndian else ">"
     vals = struct.unpack(endianChar + "h", dataBytes[offset : offset + 2])
@@ -24,10 +22,12 @@ def getFloat32(dataBytes, offset, littleEndian):
     vals = struct.unpack(endianChar + "f", dataBytes[offset : offset + 4])
     return vals[0]
 
+
 def getUint32(dataBytes, offset, littleEndian):
     endianChar = "<" if littleEndian else ">"
     vals = struct.unpack(endianChar + "I", dataBytes[offset : offset + 4])
     return vals[0]
+
 
 class SteimFrame:
     """

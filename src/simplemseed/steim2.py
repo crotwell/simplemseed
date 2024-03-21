@@ -35,7 +35,6 @@ February, 1993
  """
 
 
-
 #
 #  Decode the indicated number of samples from the provided byte array and
 #  return an integer array of the decompressed values.  Being differencing

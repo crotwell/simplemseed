@@ -7,13 +7,8 @@
 # constants for compression types
 
 
-from .steim1 import (
-    decodeSteim1,
-    encodeSteim1, encodeSteim1FrameBlock
-    )
-from .steim2 import (
-    decodeSteim2,
-    encodeSteim2, encodeSteim2FrameBlock)
+from .steim1 import decodeSteim1, encodeSteim1, encodeSteim1FrameBlock
+from .steim2 import decodeSteim2, encodeSteim2, encodeSteim2FrameBlock
 from .steimframeblock import getUint32
 
 import numpy
@@ -325,7 +320,6 @@ def decompress(
 
     # end of switch ()
     return out
-
 
 
 def getFloat64(dataBytes, offset, littleEndian):

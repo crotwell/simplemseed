@@ -41,13 +41,8 @@ from .seedcodec import (
     UnsupportedCompressionType,
     canDecompress,
 )
-from .steim1 import (
-    decodeSteim1,
-    encodeSteim1, encodeSteim1FrameBlock
-    )
-from .steim2 import (
-    decodeSteim2,
-    encodeSteim2, encodeSteim2FrameBlock)
+from .steim1 import decodeSteim1, encodeSteim1, encodeSteim1FrameBlock
+from .steim2 import decodeSteim2, encodeSteim2, encodeSteim2FrameBlock
 from .steimframeblock import SteimFrameBlock
 from .mseed2to3 import mseed2to3
 
