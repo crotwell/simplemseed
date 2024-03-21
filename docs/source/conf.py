@@ -36,6 +36,7 @@ exclude_patterns = []
 autodoc2_packages = [
     "../../src/simplemseed",
 ]
+autodoc2_sort_names = True
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
