@@ -30,11 +30,10 @@ from .steimframeblock import getUint32, getInt32
 def decodeSteim1(
     dataBytes: bytearray,
     numSamples,
-    littleEndian: bool,
     bias,
 ):
     # Decode Steim1 compression format from the provided byte array, which contains numSamples number
-    # of samples.  littleEndian is true for little endian byte order.  bias represents
+    # of samples.  bias represents
     # a previous value which acts as a starting constant for continuing differences integration.  At the
     # very start, bias is set to 0.
     if len(dataBytes) % 64 != 0:
@@ -52,7 +51,7 @@ def decodeSteim1(
 
     for i in range(numFrames):
         tempSamples = extractSteim1Samples(
-            dataBytes, i * 64, littleEndian
+            dataBytes, i * 64,
         )  # returns only differences except for frame 0
 
         firstData = 0  # d(0) is byte 0 by default
@@ -109,10 +108,9 @@ def decodeSteim1(
 def extractSteim1Samples(
     dataBytes: bytearray,
     offset: int,
-    littleEndian: bool,
 ) -> list:
     # get nibbles
-    nibbles = getUint32(dataBytes, offset, littleEndian)
+    nibbles = getUint32(dataBytes, offset, False)
     currNibble = 0
     temp = []  # 4 samples * 16 longwords, can't be more than 64
 
@@ -137,29 +135,27 @@ def extractSteim1Samples(
             #  ("0 means header info")
             # only include header info if offset is 0
             if offset == 0:
-                temp.append(getInt32(dataBytes, offset + i * 4, littleEndian))
+                temp.append(getInt32(dataBytes, offset + i * 4, False))
                 currNum += 1
         elif currNibble == 1:
             #  ("1 means 4 one byte differences")
 
-            endianChar = "<" if littleEndian else ">"
             temp += struct.unpack(
-                endianChar + "bbbb", dataBytes[offset + i * 4 : offset + i * 4 + 4]
+                ">bbbb", dataBytes[offset + i * 4 : offset + i * 4 + 4]
             )
             currNum += 4
 
         elif currNibble == 2:
             #  ("2 means 2 two byte differences")
 
-            endianChar = "<" if littleEndian else ">"
             temp += struct.unpack(
-                endianChar + "hh", dataBytes[offset + i * 4 : offset + i * 4 + 4]
+                ">hh", dataBytes[offset + i * 4 : offset + i * 4 + 4]
             )
             currNum += 2
 
         elif currNibble == 3:
             #  ("3 means 1 four byte difference")
-            temp.append(getInt32(dataBytes, offset + i * 4, littleEndian))
+            temp.append(getInt32(dataBytes, offset + i * 4, False))
             currNum += 1
 
         else:

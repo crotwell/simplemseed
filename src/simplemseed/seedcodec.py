@@ -297,11 +297,11 @@ def decompress(
 
     elif compressionType == STEIM1:
         # steim 1
-        out = decodeSteim1(dataBytes, numSamples, littleEndian, 0)
+        out = decodeSteim1(dataBytes, numSamples, 0)
 
     elif compressionType == STEIM2:
         # steim 2
-        out = decodeSteim2(dataBytes, numSamples, littleEndian, 0)
+        out = decodeSteim2(dataBytes, numSamples, 0)
 
     else:
         # unknown format????

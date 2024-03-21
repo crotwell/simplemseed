@@ -8,9 +8,8 @@ class TestSteim2:
     def test_simple_encode_data(self):
         data = [1, 2, -10, 45, -999, 4008] + [47] * 1000
         numSamples = len(data)
-        littleEndian = False
         encoded = simplemseed.encodeSteim2(data)
-        decoded = simplemseed.decodeSteim2(encoded, numSamples, littleEndian, 0)
+        decoded = simplemseed.decodeSteim2(encoded, numSamples, 0)
         assert len(decoded) == len(data)
         for i in range(len(data)):
             assert decoded[i] == data[i]
@@ -20,14 +19,13 @@ class TestSteim2:
             (int)(499 * math.sin(i)) for i in range(100000)
         ]
         totalNumSamples = len(data)
-        littleEndian = False
         idx = 0
         while len(data) > 0:
             frameBlock = simplemseed.encodeSteim2FrameBlock(data, 63)
             assert len(frameBlock.steimFrameList) <= 63
             encoded = frameBlock.pack()
             decoded = simplemseed.decodeSteim2(
-                encoded, frameBlock.numSamples, littleEndian, 0
+                encoded, frameBlock.numSamples, 0
             )
             assert len(decoded) == frameBlock.numSamples
             for i in range(frameBlock.numSamples):

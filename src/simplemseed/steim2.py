@@ -60,8 +60,7 @@ February, 1993
 def decodeSteim2(
     dataBytes: bytearray,
     numSamples: int,
-    littleEndian: bool,
-    bias: int,
+    bias: int = 0,
 ):
     if len(dataBytes) % 64 != 0:
         raise CodecException(
