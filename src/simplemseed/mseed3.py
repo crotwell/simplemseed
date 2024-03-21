@@ -101,7 +101,7 @@ class MSeed3Header:
         self.dataLength = 0
 
     def crcAsHex(self):
-        return "0x{:08X}".format(self.crc)
+        return f"0x{self.crc:08X}"
 
     @property
     def sampleRate(self):
@@ -559,7 +559,7 @@ class MSeed3Record:
             line = ""
             data = self.decompress()
             for i in range(self.header.numSamples):
-                line += " {:<8}".format(data[i])
+                line += f" {data[i]:<8}"
                 if i % 10 == 9:
                     line += "\n"
                     out += line
@@ -754,7 +754,7 @@ def mseed3merge(ms3a: MSeed3Record, ms3b: MSeed3Record) -> list[MSeed3Record]:
 
 
 def crcAsHex(crc):
-    return "0x{:08X}".format(crc)
+    return f"0x{crc:08X}"
 
 
 def isoWZ(time) -> str:

@@ -246,7 +246,7 @@ class MiniseedHeader:
             ) + timedelta(days=self.btime.yday - 1)
         else:
             raise MiniseedException(
-                "unknown type of starttime {}".format(type(starttime))
+                f"unknown type of starttime {type(starttime)}"
             )
 
 
@@ -487,7 +487,7 @@ class MiniseedRecord:
 def unpackMiniseedHeader(recordBytes, endianChar=">"):
     if len(recordBytes) < 48:
         raise MiniseedException(
-            "Not enough bytes for header: {:d}".format(len(recordBytes))
+            f"Not enough bytes for header: {len(recordBytes):d}"
         )
     (
         seq,
