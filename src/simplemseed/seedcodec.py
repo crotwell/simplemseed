@@ -7,13 +7,16 @@
 # constants for compression types
 
 
-from .steim1 import decodeSteim1, encodeSteim1, encodeSteim1FrameBlock
-from .steim2 import decodeSteim2, encodeSteim2, encodeSteim2FrameBlock
-from .steimframeblock import getUint32
-
-import numpy
+import array
 import struct
 from typing import Union
+
+import numpy
+
+from .exceptions import CodecException, UnsupportedCompressionType
+from .steim1 import decodeSteim1
+from .steim2 import decodeSteim2
+
 
 # ascii
 ASCII: int = 0
@@ -52,26 +55,13 @@ SRO: int = 30
 DWWSSN: int = 32
 
 
-class CodecException(Exception):
-    def __init__(self, message):
-        super().__init__(message)
-        self.message = message
-        self.name = "CodecException"
-
-
-class UnsupportedCompressionType(CodecException):
-    def __init__(self, message):
-        super().__init__(message)
-        self.message = message
-        self.name = "UnsupportedCompressionType"
-
 
 def isFloatCompression(compressionType: int) -> bool:
     """
     True if the compression is not representable by integers, so not
     compressable via the standard compression types.
     """
-    if compressionType == FLOAT or compressionType == DOUBLE:
+    if compressionType in (FLOAT, DOUBLE):
         return True
     return False
 
@@ -114,20 +104,7 @@ def canDecompress(encoding: int) -> bool:
     """
     True if the given encoding can be decompressed by this library.
     """
-    if encoding == SHORT:
-        return True
-    elif encoding == INTEGER:
-        return True
-    elif encoding == FLOAT:
-        return True
-    elif encoding == DOUBLE:
-        return True
-    elif encoding == STEIM1:
-        return True
-    elif encoding == STEIM2:
-        return True
-    else:
-        return False
+    return encoding in (SHORT, INTEGER, FLOAT, DOUBLE, STEIM1, STEIM2)
 
 
 def arrayTypecodeFromMSeed(encoding: int) -> str:
@@ -136,29 +113,28 @@ def arrayTypecodeFromMSeed(encoding: int) -> str:
     """
     if encoding == SHORT:
         return "h"
-    elif encoding == INTEGER:
+    if encoding == INTEGER:
         return "l"
-    elif encoding == FLOAT:
+    if encoding == FLOAT:
         return "f"
-    elif encoding == DOUBLE:
+    if encoding == DOUBLE:
         return "d"
-    else:
-        raise UnsupportedCompressionType(f"type {encoding} not mapable to python array")
+    raise UnsupportedCompressionType(f"type {encoding} not mapable to python array")
 
 
 def mseed3EncodingFromArrayTypecode(typecode: str, itemsize: int) -> int:
     """
     Get the mseed3 encoding type for a python array.arry typecode and itemsize.
     """
-    if typecode == "h" or typecode == "i" or typecode == "l":
+    if typecode in ("h", "i", "l"):
         if itemsize == 2:
             return SHORT
-        elif itemsize == 4:
+        if itemsize == 4:
             return INTEGER
-    elif typecode == "f" or typecode == "d":
+    elif typecode in ("f", "d"):
         if itemsize == 4:
             return FLOAT
-        elif itemsize == 8:
+        if itemsize == 8:
             return DOUBLE
     raise UnsupportedCompressionType(
         f"typecode {typecode} of size {itemsize} not mapable to mseed encoding, only h,i,l,f,d and 2,4,8"
@@ -171,16 +147,15 @@ def mseed3EncodingFromNumpyDT(dt: numpy.dtype) -> int:
     """
     if dt.type is numpy.int16:
         return SHORT
-    elif dt.type is numpy.int32:
+    if dt.type is numpy.int32:
         return INTEGER
-    elif dt.type is numpy.float32:
+    if dt.type is numpy.float32:
         return FLOAT
-    elif dt.type is numpy.float64:
+    if dt.type is numpy.float64:
         return DOUBLE
-    else:
-        raise UnsupportedCompressionType(
-            f"numpy type {dt.type} not mapable to mseed encoding"
-        )
+    raise UnsupportedCompressionType(
+        f"numpy type {dt.type} not mapable to mseed encoding"
+    )
 
 
 def numpyDTFromMseed3Encoding(encoding: int):
@@ -189,16 +164,15 @@ def numpyDTFromMseed3Encoding(encoding: int):
     """
     if encoding == SHORT:
         return numpy.int16
-    elif encoding == INTEGER:
+    if encoding == INTEGER:
         return numpy.int32
-    elif encoding == FLOAT:
+    if encoding == FLOAT:
         return numpy.float32
-    elif encoding == DOUBLE:
+    if encoding == DOUBLE:
         return numpy.float64
-    else:
-        raise UnsupportedCompressionType(
-            f"mseed encoding {encoding} not mapable to numpy type"
-        )
+    raise UnsupportedCompressionType(
+        f"mseed encoding {encoding} not mapable to numpy type"
+    )
 
 
 def encode(data, encoding=None, littleEndian=True):
@@ -210,38 +184,30 @@ def encode(data, encoding=None, littleEndian=True):
     If encoding is not given, the encoding will be guessed from the array type.
     If endian is given, defaults to little endian.
     """
-    if isinstance(data, bytes) or isinstance(data, bytearray):
+    if isinstance(data, (bytearray, bytes)):
         # already byte-like, so ???
-        raise Miniseed3Exception("Unable to encode data, already bytes-like")
+        raise UnsupportedCompressionType("Unable to encode data, already bytes-like")
     if encoding is None or encoding < 0:
         # try to guess a primitive encoding
         if isinstance(data, numpy.ndarray):
             encoding = mseed3EncodingFromNumpyDT(data.dtype)
-        elif isinstance(data, array):
+        elif isinstance(data, array.array):
             encoding = mseed3EncodingFromArrayTypecode(data.typecode, data.itemsize)
         else:
-            raise Miniseed3Exception(
+            raise UnsupportedCompressionType(
                 "Unable to guess encoding for data, encoding is " + encoding
             )
     try:
         compCode = arrayTypecodeFromMSeed(encoding)
-    except UnsupportedCompressionType:
+    except UnsupportedCompressionType as exc:
         if encoding == STEIM1:
-            raise UnsupportedCompressionType(
-                f"see encodeSteim1() for encoding STEIM1 ({STEIM1}) "
-            )
-        elif encoding == STEIM2:
-            raise UnsupportedCompressionType(
-                f"see encodeSteim2() for encoding STEIM2 ({STEIM2}) "
-            )
-        else:
-            raise UnsupportedCompressionType(
-                f"type {encoding} not supported for encoding"
-            )
+            raise UnsupportedCompressionType(f'see encodeSteim1() for encoding STEIM1 ({STEIM1}) ') from exc
+        if encoding == STEIM2:
+            raise UnsupportedCompressionType(f'see encodeSteim2() for encoding STEIM2 ({STEIM2}) ') from exc
+        raise UnsupportedCompressionType(f'type {encoding} not supported for encoding') from exc
+
     endianChar = "<" if littleEndian else ">"
-
     dataBytes = struct.pack(f"{endianChar}{len(data)}{compCode}", *data)
-
     return EncodedDataSegment(encoding, dataBytes, len(data), littleEndian)
 
 
@@ -275,7 +241,7 @@ def decompress(
         return numpy.asarray([], dt)
 
     # switch (compressionType):
-    if compressionType == SHORT or compressionType == DWWSSN:
+    if compressionType in (SHORT, DWWSSN):
         # 16 bit values
         if len(dataBytes) < 2 * numSamples:
             raise CodecException(

@@ -1,9 +1,10 @@
-from .mseed3 import MSeed3Record, MSeed3Header, UNKNOWN_DATA_VERSION
-from .miniseed import MiniseedRecord, MiniseedException, readMiniseed2Records
-from .fdsnsourceid import FDSNSourceId
 
 import argparse
 import json
+
+from .mseed3 import MSeed3Record, MSeed3Header, UNKNOWN_DATA_VERSION
+from .miniseed import MiniseedRecord, MiniseedException, readMiniseed2Records
+from .fdsnsourceid import FDSNSourceId
 
 
 def mseed2to3(ms2: MiniseedRecord) -> MSeed3Record:

@@ -1,8 +1,7 @@
 import struct
+from typing import Union
 
 import numpy
-
-from typing import Union
 
 
 def getInt16(dataBytes, offset, littleEndian):
@@ -43,9 +42,8 @@ class SteimFrame:
 
     def isEmpty(self):
         if self.word[0] == 0:
-            return true
-        else:
-            return False
+            return True
+        return False
 
     def pack(self):
         return self.word.tobytes()
@@ -141,7 +139,7 @@ class SteimFrameBlock:
         @return integer value indicating number of frames
         """
         if self.maxNumFrames == 0:
-            return self.steimFrameList.size()
+            return len(self.steimFrameList)
 
         return self.maxNumFrames
 
@@ -191,7 +189,6 @@ class SteimFrameBlock:
         @param word integer value to be placed in X(N)
         """
         self.steimFrameList[0].word[2] = word
-        return
 
     def addEncodingNibble(self, bitFlag: numpy.uint32):
         """
@@ -201,7 +198,6 @@ class SteimFrameBlock:
         offset = self.currentSteimFrame.pos  # W0 nibble offset - determines Cn in W0
         shift = (15 - offset) * 2  # how much to shift bitFlag
         self.currentSteimFrame.word[0] |= bitFlag << shift
-        return
 
     def pack(self):
         out = bytearray()

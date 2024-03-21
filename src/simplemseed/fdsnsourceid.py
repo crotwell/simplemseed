@@ -16,21 +16,26 @@ SEP = "_"
 
 BAND_CODE_JSON = {}
 bandcodes_file = importlib_resources.files(__package__) / "bandcode.json"
-with bandcodes_file.open("rb") as f:
-    # load as json array
-    bcList = json.load(f)
-    # convert to dict by code
-    for bc in bcList:
-        BAND_CODE_JSON[bc["code"]] = bc
+
+def loadBandCodes():
+    with bandcodes_file.open("rb") as f:
+        # load as json array
+        bcList = json.load(f)
+        # convert to dict by code
+        for bc in bcList:
+            BAND_CODE_JSON[bc["code"]] = bc
+loadBandCodes()
 
 SOURCE_CODE_JSON = {}
 sourcecodes_file = importlib_resources.files(__package__) / "sourcecode.json"
-with sourcecodes_file.open("rb") as f:
-    # load as json array
-    bcList = json.load(f)
-    # convert to dict by code
-    for bc in bcList:
-        SOURCE_CODE_JSON[bc["code"]] = bc
+def loadSourceCodes():
+    with sourcecodes_file.open("rb") as f:
+        # load as json array
+        bcList = json.load(f)
+        # convert to dict by code
+        for bc in bcList:
+            SOURCE_CODE_JSON[bc["code"]] = bc
+loadSourceCodes()
 
 
 class FDSNSourceId:
@@ -84,7 +89,7 @@ class FDSNSourceId:
         return FDSNSourceId(
             networkCode,
             stationCode,
-            "",
+            locationCode,
             bandCodeForRate(sampRate, response_lb),
             sourceCode,
             "U",
@@ -92,7 +97,7 @@ class FDSNSourceId:
 
     @staticmethod
     def parse(
-        id: str,
+        sid: str,
     ) -> Union[
         "FDSNSourceId", "NetworkSourceId", "StationSourceId", "LocationSourceId"
     ]:
@@ -104,19 +109,19 @@ class FDSNSourceId:
         station, FDSN:CO_BIRD
         location, FDSN:CO_BIRD_00
         """
-        if not id.startswith(FDSN_PREFIX):
-            raise FDSNSourceIdException(f"sourceid must start with {FDSN_PREFIX}: {id}")
+        if not sid.startswith(FDSN_PREFIX):
+            raise FDSNSourceIdException(f"sourceid must start with {FDSN_PREFIX}: {sid}")
 
-        items = id[len(FDSN_PREFIX) :].split(SEP)
+        items = sid[len(FDSN_PREFIX) :].split(SEP)
         if len(items) == 1:
             return NetworkSourceId(items[0])
-        elif len(items) == 2:
+        if len(items) == 2:
             return StationSourceId(items[0], items[1])
-        elif len(items) == 3:
+        if len(items) == 3:
             return LocationSourceId(items[0], items[1], items[2])
-        elif len(items) != 6:
+        if len(items) != 6:
             raise FDSNSourceIdException(
-                f"FDSN sourceid must have 6 items for channel, 3 for loc, 2 for station or 1 for network; separated by '{SEP}': {id}"
+                f"FDSN sourceid must have 6 items for channel, 3 for loc, 2 for station or 1 for network; separated by '{SEP}': {sid}"
             )
 
         return FDSNSourceId(items[0], items[1], items[2], items[3], items[4], items[5])
@@ -225,7 +230,7 @@ class NetworkSourceId:
     def validate(self) -> (bool, Union[str, None]):
         if len(self.networkCode) == 0:
             return (False, "Network code empty")
-        elif len(self.networkCode) > 8:
+        if len(self.networkCode) > 8:
             return (False, f"Network code > 8 chars, len({self.networkCode})>8")
         return (True, "")
 
@@ -256,7 +261,7 @@ class StationSourceId:
             return (valid, reason)
         if len(self.stationCode) == 0:
             return (False, "Station code empty")
-        elif len(self.stationCode) > 8:
+        if len(self.stationCode) > 8:
             return (False, f"Station code > 8 chars, len({self.stationCode})>8")
         return (True, "")
 
@@ -296,7 +301,7 @@ class LocationSourceId:
             return (valid, reason)
         if self.locationCode == "--":
             return (False, "Location code cannot be '--'")
-        elif len(self.locationCode) > 8:
+        if len(self.locationCode) > 8:
             return (False, f"Location code > 8 chars, len({self.locationCode})>8")
         return (True, "")
 
@@ -332,45 +337,44 @@ def bandCodeForRate(
 
     if sampRate >= 5000:
         return "J"
-    elif sampRate >= 1000 and sampRate < 5000:
+    if sampRate >= 1000 and sampRate < 5000:
         if response_lb is not None and response_lb < 0.1:
             return "F"
         return "G"
-    elif sampRate >= 250 and sampRate < 1000:
+    if sampRate >= 250 and sampRate < 1000:
         if response_lb is not None and response_lb < 0.1:
             return "C"
         return "D"
-    elif sampRate >= 80 and sampRate < 250:
+    if sampRate >= 80 and sampRate < 250:
         if response_lb is not None and response_lb < 0.1:
             return "H"
         return "E"
-    elif sampRate >= 10 and sampRate < 80:
+    if sampRate >= 10 and sampRate < 80:
         if response_lb is not None and response_lb < 0.1:
             return "B"
         return "S"
-    elif sampRate > 1 and sampRate < 10:
+    if sampRate > 1 and sampRate < 10:
         return "M"
-    elif sampRate > 0.5 and sampRate < 1.5:
+    if sampRate > 0.5 and sampRate < 1.5:
         # spec not clear about how far from 1 is L
         return "L"
-    elif sampRate >= 0.1 and sampRate < 1:
+    if sampRate >= 0.1 and sampRate < 1:
         return "V"
-    elif sampRate >= 0.01 and sampRate < 0.1:
+    if sampRate >= 0.01 and sampRate < 0.1:
         return "U"
-    elif sampRate >= 0.001 and sampRate < 0.01:
+    if sampRate >= 0.001 and sampRate < 0.01:
         return "W"
-    elif sampRate >= 0.0001 and sampRate < 0.001:
+    if sampRate >= 0.0001 and sampRate < 0.001:
         return "R"
-    elif sampRate >= 0.00001 and sampRate < 0.0001:
+    if sampRate >= 0.00001 and sampRate < 0.0001:
         return "P"
-    elif sampRate >= 0.000001 and sampRate < 0.00001:
+    if sampRate >= 0.000001 and sampRate < 0.00001:
         return "T"
-    elif sampRate < 0.000001:
+    if sampRate < 0.000001:
         return "Q"
-    else:
-        raise FDSNSourceIdException(
-            f"Unable to calc band code for: {sampRate} {response_lb}"
-        )
+    raise FDSNSourceIdException(
+        f"Unable to calc band code for: {sampRate} {response_lb}"
+    )
 
 
 def bandCodeInfo(bandCode: str):

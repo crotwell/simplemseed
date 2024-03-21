@@ -37,9 +37,11 @@ from .fdsnsourceid import (
 from .seedcodec import (
     encode,
     decompress,
+    canDecompress,
+)
+from .exceptions import (
     CodecException,
     UnsupportedCompressionType,
-    canDecompress,
 )
 from .steim1 import decodeSteim1, encodeSteim1, encodeSteim1FrameBlock
 from .steim2 import decodeSteim2, encodeSteim2, encodeSteim2FrameBlock

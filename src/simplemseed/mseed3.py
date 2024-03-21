@@ -355,9 +355,7 @@ class MSeed3Record:
             # try to decompress bytes-like
             byteOrder = LITTLE_ENDIAN
             if (
-                self.header.encoding == STEIM1
-                or self.header.encoding == STEIM2
-                or self.header.encoding == STEIM3
+                self.header.encoding in ( STEIM1, STEIM2, STEIM3)
             ):
                 byteOrder = BIG_ENDIAN
             data = decompress(
@@ -393,9 +391,9 @@ class MSeed3Record:
     def hasExtraHeaders(self):
         if self._eh is None:
             return False
-        elif isinstance(self._eh, dict) and len(self._eh) > 0:
+        if isinstance(self._eh, dict) and len(self._eh) > 0:
             return True
-        elif isinstance(self._eh, str) and len(self._eh) > 2:
+        if isinstance(self._eh, str) and len(self._eh) > 2:
             return True
         return False
 
@@ -418,14 +416,12 @@ class MSeed3Record:
                 + self.header.extraHeadersLength
                 + self.header.dataLength
             )
-        else:
-            return None
+        return None
 
     def encodedDataBytes(self):
-        if isinstance(self._data, bytes) or isinstance(self._data, bytearray):
+        if isinstance(self._data, (bytearray, bytes)):
             return self._data
-        else:
-            return encode(self._data, self.header.encoding).dataBytes
+        return encode(self._data, self.header.encoding).dataBytes
 
     def pack(self):
         """
@@ -449,7 +445,7 @@ class MSeed3Record:
             extraHeadersStr = ""
         extraHeadersBytes = extraHeadersStr.encode("UTF-8")
         self.header.extraHeadersLength = len(extraHeadersBytes)
-        if isinstance(self._data, bytes) or isinstance(self._data, bytearray):
+        if isinstance(self._data, (bytearray, bytes)):
             # already byte-like, so just use
             dataBytes = self._data
         else:
@@ -576,7 +572,7 @@ class MSeed3Record:
 def unpackMSeed3FixedHeader(recordBytes):
     if len(recordBytes) < FIXED_HEADER_SIZE:
         raise Miniseed3Exception(
-            "Not enough bytes for header: {:d}".format(len(recordBytes))
+            f"Not enough bytes for header: {len(recordBytes)}"
         )
     ms3header = MSeed3Header()
 

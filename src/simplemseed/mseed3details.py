@@ -170,7 +170,7 @@ def do_details():
             verbose=args.verbose,
         )
     elif args.fset is not None:
-        with open(args.fset[1], "r") as injson:
+        with open(args.fset[1], "r", encoding="utf-8") as injson:
             jsoneh = injson.read()
         do_set_eh(
             args.fset[0],
@@ -180,7 +180,7 @@ def do_details():
             verbose=args.verbose,
         )
     elif args.fsetall is not None:
-        with open(args.fsetall[1], "r") as injson:
+        with open(args.fsetall[1], "r", encoding="utf-8") as injson:
             jsoneh = injson.read()
         do_set_eh(
             args.fsetall[0],

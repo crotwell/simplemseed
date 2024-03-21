@@ -1,10 +1,13 @@
-from .steimframeblock import SteimFrameBlock
 
-from .steimframeblock import getUint32, getInt32
-
-import numpy
 import struct
+import numpy
 
+from .exceptions import (
+    CodecException,
+    SteimException,
+)
+from .steimframeblock import SteimFrameBlock
+from .steimframeblock import getUint32, getInt32
 
 #
 #  Decode the indicated number of samples from the provided byte array and

@@ -1,9 +1,14 @@
-from .steimframeblock import SteimFrameBlock
-
-from .steimframeblock import getUint32, getInt32
 
 import struct
 import numpy
+
+from .exceptions import (
+    CodecException,
+    SteimException,
+)
+from .steimframeblock import SteimFrameBlock
+from .steimframeblock import getUint32, getInt32
+
 
 """
 
