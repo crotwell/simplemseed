@@ -35,7 +35,7 @@ from .fdsnsourceid import (
     sourceCodeDescribe,
 )
 from .seedcodec import (
-    compress,
+    encode,
     decompress,
     CodecException,
     UnsupportedCompressionType,
@@ -72,7 +72,7 @@ __all__ = [
     "bandCodeDescribe",
     "sourceCodeDescribe",
     "canDecompress",
-    "compress",
+    "encode",
     "decompress",
     "CodecException",
     "UnsupportedCompressionType",

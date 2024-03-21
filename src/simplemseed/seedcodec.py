@@ -200,25 +200,48 @@ def numpyDTFromMseed3Encoding(encoding: int):
             f"mseed encoding {encoding} not mapable to numpy type"
         )
 
-
-def compress(compressionType: int, values) -> EncodedDataSegment:
+def encode(data, encoding=None, littleEndian=True):
     """
-    Encode the given values into bytes.
+    Encode the given numpy.ndarray or array.array into bytes.
 
     Note that currently no actual compression is done, the resulting
     bytes will occupy the same space, just converted for output.
+    If encoding is not given, the encoding will be guessed from the array type.
+    If endian is given, defaults to little endian.
     """
-    littleEndian = True
+    if isinstance(data, bytes) or isinstance(data, bytearray):
+        # already byte-like, so ???
+        raise Miniseed3Exception("Unable to encode data, already bytes-like")
+    if encoding is None or encoding < 0:
+        # try to guess a primitive encoding
+        if isinstance(data, numpy.ndarray):
+            encoding = mseed3EncodingFromNumpyDT(data.dtype)
+        elif isinstance(data, array):
+            encoding = mseed3EncodingFromArrayTypecode(
+                data.typecode, data.itemsize
+            )
+        else:
+            raise Miniseed3Exception("Unable to guess encoding for data, encoding is "+encoding)
     try:
-        compCode = arrayTypecodeFromMSeed(compressionType)
+        compCode = arrayTypecodeFromMSeed(encoding)
     except UnsupportedCompressionType:
-        raise UnsupportedCompressionType(
-            f"type {compressionType} not yet supported for compression"
-        )
+        if encoding == STEIM1:
+            raise UnsupportedCompressionType(
+                f"see encodeSteim1() for encoding STEIM1 ({STEIM1}) "
+            )
+        elif encoding == STEIM2:
+            raise UnsupportedCompressionType(
+                f"see encodeSteim2() for encoding STEIM2 ({STEIM2}) "
+            )
+        else:
+            raise UnsupportedCompressionType(
+                f"type {encoding} not supported for encoding"
+            )
+    endianChar = "<" if littleEndian else ">"
 
-    dataBytes = struct.pack(f"<{len(values)}{compCode}", *values)
+    dataBytes = struct.pack(f"{endianChar}{len(data)}{compCode}", *data)
 
-    return EncodedDataSegment(compressionType, dataBytes, len(values), littleEndian)
+    return EncodedDataSegment(encoding, dataBytes, len(data), littleEndian)
 
 
 def decompress(

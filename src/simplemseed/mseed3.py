@@ -11,7 +11,7 @@ import crc32c
 from .seedcodec import (
     canDecompress,
     decompress,
-    compress,
+    encode,
     STEIM1,
     STEIM2,
     STEIM3,
@@ -291,7 +291,7 @@ class MSeed3Record:
             else:
                 encoding = self.header.encoding
             self._data = numpy.array(data, dtype=numpyDTFromMseed3Encoding(encoding))
-            encoding = encoding = mseed3EncodingFromNumpyDT(self._data.dtype)
+            encoding = mseed3EncodingFromNumpyDT(self._data.dtype)
             numSamples = len(self._data)
         else:
             raise Miniseed3Exception(f"unknown data type: {type(data)}")
@@ -424,17 +424,8 @@ class MSeed3Record:
     def encodedDataBytes(self):
         if isinstance(self._data, bytes) or isinstance(self._data, bytearray):
             return self._data
-        if isinstance(self._data, numpy.ndarray):
-            encoding = mseed3EncodingFromNumpyDT(self._data.dtype)
-            encData = compress(encoding, self._data)
-            return encData.dataBytes
-        if isinstance(self._data, array):
-            encoding = mseed3EncodingFromArrayTypecode(
-                self._data.typecode, self._data.itemsize
-            )
-            encData = compress(encoding, self._data)
-            return encData.dataBytes
-        raise Miniseed3Exception("Unable to encode data")
+        else:
+            return encode(self._data, self.header.encoding).dataBytes
 
     def pack(self):
         """
@@ -458,7 +449,14 @@ class MSeed3Record:
             extraHeadersStr = ""
         extraHeadersBytes = extraHeadersStr.encode("UTF-8")
         self.header.extraHeadersLength = len(extraHeadersBytes)
-        dataBytes = self.encodedDataBytes()
+        if isinstance(self._data, bytes) or isinstance(self._data, bytearray):
+            # already byte-like, so just use
+            dataBytes = self._data
+        else:
+            encData = encode(self._data, self.header.encoding)
+            if encData.compressionType != self.header.encoding:
+                raise Miniseed3Exception("Header encoding "+self.header.encoding+" not same as data "+encData.compressionType)
+            dataBytes = encData.dataBytes
 
         self.header.dataLength = len(dataBytes)
         rec_size = (
