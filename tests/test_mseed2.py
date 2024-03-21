@@ -59,9 +59,7 @@ class TestMseed2:
                 assert msi_data[i] == data[i]
 
     def test_create(self):
-        data = numpy.fromfunction(
-            lambda i: (i % 99 - 49), (100 ,), dtype=numpy.int16
-        )
+        data = numpy.fromfunction(lambda i: (i % 99 - 49), (100,), dtype=numpy.int16)
         network = "XX"
         station = "TEST"
         location = "00"
@@ -89,7 +87,7 @@ class TestMseed2:
 
     def test_create_float(self):
         data = numpy.fromfunction(
-            lambda i: (i % 99 - 49.2), (100 ,), dtype=numpy.float32
+            lambda i: (i % 99 - 49.2), (100,), dtype=numpy.float32
         )
         network = "XX"
         station = "TEST"
@@ -118,9 +116,7 @@ class TestMseed2:
             assert data[i] == outdata[i]
 
     def test_create_double(self):
-        data = numpy.fromfunction(
-            lambda i: (i % 99 - 49.2), (50 ,), dtype=numpy.float64
-        )
+        data = numpy.fromfunction(lambda i: (i % 99 - 49.2), (50,), dtype=numpy.float64)
         network = "XX"
         station = "TEST"
         location = "00"

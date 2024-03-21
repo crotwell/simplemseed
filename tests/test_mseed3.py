@@ -73,9 +73,7 @@ class TestMSeed3:
                         ), f"{i}  {jsondata[i]} != {data[i]}"
 
     def test_roundtrip_float(self):
-        data = numpy.fromfunction(
-            lambda i: (i % 99 - 49), (400 ,), dtype=numpy.float32
-        )
+        data = numpy.fromfunction(lambda i: (i % 99 - 49), (400,), dtype=numpy.float32)
         header = simplemseed.MSeed3Header()
         header.starttime = "2024-01-02T15:13:55.123456Z"
         header.sampleRatePeriod = -1
@@ -90,9 +88,7 @@ class TestMSeed3:
         assert record.details() == outRecord.details()
         assert len(decomp_data) == len(data)
         for i in range(len(decomp_data)):
-            assert (
-                decomp_data[i] == data[i]
-            ), f"{i} msi:{decomp_data[i]} != {data[i]} "
+            assert decomp_data[i] == data[i], f"{i} msi:{decomp_data[i]} != {data[i]} "
 
     def test_roundtrip_steim1(self):
         values = data = numpy.fromfunction(

@@ -6,11 +6,13 @@ from datetime import datetime, timedelta, timezone
 import math
 import sys
 from .seedcodec import (
-    decompress, encode,
+    decompress,
+    encode,
     mseed3EncodingFromArrayTypecode,
     mseed3EncodingFromNumpyDT,
-    EncodedDataSegment
+    EncodedDataSegment,
 )
+
 MICRO = 1000000
 
 EMPTY_SEQ = "      ".encode("UTF-8")
@@ -254,7 +256,7 @@ class MiniseedRecord:
         self.encodedData = encodedData
 
     def _internal_set_data(self, data):
-        sys_is_le = sys.byteorder == 'little'
+        sys_is_le = sys.byteorder == "little"
         if isinstance(data, EncodedDataSegment):
             self._data = data.dataBytes
             encoding = data.compressionType
@@ -270,17 +272,17 @@ class MiniseedRecord:
             # array.array primitive
             encoding = mseed3EncodingFromArrayTypecode(data.typecode, data.itemsize)
             numSamples = len(data)
-            byteorder = LITTLE_ENDIAN if sys.byteorder == 'little' else BIG_ENDIAN
+            byteorder = LITTLE_ENDIAN if sys.byteorder == "little" else BIG_ENDIAN
             self._data = data
         elif isinstance(data, numpy.ndarray):
             # numpy array
             encoding = mseed3EncodingFromNumpyDT(data.dtype)
-            if data.dtype.byteorder == '<':
+            if data.dtype.byteorder == "<":
                 byteorder = LITTLE_ENDIAN
-            elif data.dtype.byteorder == '>':
+            elif data.dtype.byteorder == ">":
                 byteorder = BIG_ENDIAN
             else:
-                byteorder = LITTLE_ENDIAN if sys.byteorder == 'little' else BIG_ENDIAN
+                byteorder = LITTLE_ENDIAN if sys.byteorder == "little" else BIG_ENDIAN
             numSamples = len(data)
             self._data = data
         elif isinstance(data, list):
@@ -293,7 +295,7 @@ class MiniseedRecord:
             self._data = numpy.array(data, dtype=numpyDTFromMseed3Encoding(encoding))
             encoding = mseed3EncodingFromNumpyDT(self._data.dtype)
             numSamples = len(self._data)
-            byteorder = LITTLE_ENDIAN if sys.byteorder == 'little' else BIG_ENDIAN
+            byteorder = LITTLE_ENDIAN if sys.byteorder == "little" else BIG_ENDIAN
         else:
             raise Miniseed3Exception(f"unknown data type: {type(data)}")
         # set if header has defaults
@@ -311,8 +313,6 @@ class MiniseedRecord:
             raise MiniseedException(
                 f"Mismatched num samples: {self.header.numSamples} != {numSamples}"
             )
-
-
 
     def decompressed(self):
         if self._data is not None:
@@ -354,7 +354,7 @@ class MiniseedRecord:
                 break
         if not hasB1000:
             # make sure we have a b1000 to be valid miniseed
-            self.blockettes.insert(0,self.createB1000())
+            self.blockettes.insert(0, self.createB1000())
         recordBytes[39] = len(self.blockettes)
         for b in self.blockettes:
             offset = self.packBlockette(recordBytes, offset, b)
@@ -453,14 +453,16 @@ class MiniseedRecord:
         )
 
     def packData(self, recordBytes, offset, data):
-        dataBytes = encode(data, self.header.encoding, self.header.byteorder == LITTLE_ENDIAN).dataBytes
+        dataBytes = encode(
+            data, self.header.encoding, self.header.byteorder == LITTLE_ENDIAN
+        ).dataBytes
         if len(recordBytes) < offset + len(dataBytes):
             raise MiniseedException(
                 "not enough bytes in record to fit data: byte:{:d} offset: {:d} len(data): {:d}  enc:{:d}".format(
                     len(recordBytes), offset, len(data), self.header.encoding
                 )
             )
-        recordBytes[offset:offset+len(dataBytes)] = dataBytes
+        recordBytes[offset : offset + len(dataBytes)] = dataBytes
 
     def __str__(self):
         return self.summary()
@@ -650,6 +652,7 @@ def unpackMiniseedRecord(recordBytes):
 
 def decompressEncodedData(encoding, byteorder, numSamples, recordBytes):
     return decompress(encoding, recordBytes, numSamples, byteorder == LITTLE_ENDIAN)
+
 
 def dummy():
     needSwap = (byteorder == BIG_ENDIAN and sys.byteorder == "little") or (

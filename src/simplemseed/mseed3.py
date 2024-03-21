@@ -455,7 +455,9 @@ class MSeed3Record:
         else:
             encData = encode(self._data, self.header.encoding)
             if encData.compressionType != self.header.encoding:
-                raise Miniseed3Exception("Header encoding "+self.header.encoding+" not same as data "+encData.compressionType)
+                raise Miniseed3Exception(
+                    f"Header encoding {self.header.encoding} not same as data {encData.compressionType}"
+                )
             dataBytes = encData.dataBytes
 
         self.header.dataLength = len(dataBytes)
