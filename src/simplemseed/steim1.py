@@ -1,6 +1,169 @@
 from .steimframeblock import SteimFrameBlock
 
+from .steimframeblock import getUint32, getInt32
+
 import numpy
+import struct
+
+
+#
+#  Decode the indicated number of samples from the provided byte array and
+#  return an integer array of the decompressed values.  Being differencing
+#  compression, there may be an offset carried over from a previous data
+#  record.  This offset value can be placed in <b>bias</b>, otherwise leave
+#  the value as 0.
+#
+#  @param dataBytes input bytes to be decoded
+#  @param numSamples the number of samples that can be decoded from array
+#  <b>b</b>
+#  @param littleEndian if True, dataBytes is little-endian (intel byte order) <b>b</b>.
+#  @param bias the first difference value will be computed from this value.
+#  If set to 0, the method will attempt to use the X(0) constant instead.
+#  @returns int array of length <b>numSamples</b>.
+#  @throws CodecException - encoded data length is not multiple of 64
+#  bytes.
+
+
+def decodeSteim1(
+    dataBytes: bytearray,
+    numSamples,
+    littleEndian: bool,
+    bias,
+):
+    # Decode Steim1 compression format from the provided byte array, which contains numSamples number
+    # of samples.  littleEndian is true for little endian byte order.  bias represents
+    # a previous value which acts as a starting constant for continuing differences integration.  At the
+    # very start, bias is set to 0.
+    if len(dataBytes) % 64 != 0:
+        raise CodecException(
+            f"encoded data length is not multiple of 64 bytes ({len(dataBytes)})",
+        )
+
+    dt = numpy.dtype(numpy.int32)
+    samples = numpy.zeros((numSamples,), dt)
+    numFrames = len(dataBytes) // 64
+    current = 0
+    start = 0
+    firstData = 0
+    lastValue = 0
+
+    for i in range(numFrames):
+        tempSamples = extractSteim1Samples(
+            dataBytes, i * 64, littleEndian
+        )  # returns only differences except for frame 0
+
+        firstData = 0  # d(0) is byte 0 by default
+
+        if i == 0:
+            # special case for first frame
+            lastValue = bias  # assign our X(-1)
+
+            # x0 and xn are in 1 and 2 spots
+            start = tempSamples[1]  # X(0) is byte 1 for frame 0
+
+            #  end = tempSamples[2]    # X(n) is byte 2 for frame 0
+            firstData = 3  # d(0) is byte 3 for frame 0
+
+            # if bias was zero, then we want the first sample to be X(0) constant
+            if bias == 0:
+                lastValue = start - tempSamples[3]  # X(-1) = X(0) - d(0)
+
+        for j in range(firstData, len(tempSamples)):
+            if current >= numSamples:
+                break
+            samples[current] = lastValue + tempSamples[j]  # X(n) = X(n-1) + d(n)
+
+            lastValue = samples[current]
+            current += 1
+
+    # end for each frame...
+    if current != numSamples:
+        raise CodecException(
+            f"Number of samples decompressed doesn't match number in header: {current} != {numSamples}",
+        )
+
+    # ignore last sample check???
+    # if (end != samples[numSamples-1]):
+    #    raise SteimException("Last sample decompressed doesn't match value x(n) value in Steim1 record: "+samples[numSamples-1]+" != "+end)
+    #
+    return samples
+
+
+#
+# Extracts differences from the next 64 byte frame of the given compressed
+# byte array (starting at offset) and returns those differences in an int
+# array.
+# An offset of 0 means that we are at the first frame, so include the header
+# bytes in the returned int array...else, do not include the header bytes
+# in the returned array.
+#
+# @param dataBytes byte array of compressed data differences
+# @param offset index to begin reading compressed bytes for decoding
+# @param littleEndian reverse the endian-ness of the compressed bytes being read
+# @returns integer array of difference (and constant) values
+
+
+def extractSteim1Samples(
+    dataBytes: bytearray,
+    offset: int,
+    littleEndian: bool,
+) -> list:
+    # get nibbles
+    nibbles = getUint32(dataBytes, offset, littleEndian)
+    currNibble = 0
+    temp = []  # 4 samples * 16 longwords, can't be more than 64
+
+    currNum = 0
+
+    for i in range(16):
+        # i is the word number of the frame starting at 0
+        # currNibble = (nibbles >>> (30 - i*2 ) ) & 0x03 # count from top to bottom each nibble in W(0)
+        currNibble = (
+            nibbles >> (30 - i * 2)
+        ) & 0x03  # count from top to bottom each nibble in W(0)
+
+        # Rule appears to be:
+        # only check for byte-swap on actual value-atoms, so a 32-bit word in of itself
+        # is not swapped, but two 16-bit short *values* are or a single
+        # 32-bit int *value* is, if the flag is set to True.  8-bit values
+        # are naturally not swapped.
+        # It would seem that the W(0) word is swap-checked, though, which is confusing...
+        # maybe it has to do with the reference to high-order bits for c(0)
+        # switch (currNibble):
+        if currNibble == 0:
+            #  ("0 means header info")
+            # only include header info if offset is 0
+            if offset == 0:
+                temp.append(getInt32(dataBytes, offset + i * 4, littleEndian))
+                currNum += 1
+        elif currNibble == 1:
+            #  ("1 means 4 one byte differences")
+
+            endianChar = "<" if littleEndian else ">"
+            temp += struct.unpack(
+                endianChar + "bbbb", dataBytes[offset + i * 4 : offset + i * 4 + 4]
+            )
+            currNum += 4
+
+        elif currNibble == 2:
+            #  ("2 means 2 two byte differences")
+
+            endianChar = "<" if littleEndian else ">"
+            temp += struct.unpack(
+                endianChar + "hh", dataBytes[offset + i * 4 : offset + i * 4 + 4]
+            )
+            currNum += 2
+
+        elif currNibble == 3:
+            #  ("3 means 1 four byte difference")
+            temp.append(getInt32(dataBytes, offset + i * 4, littleEndian))
+            currNum += 1
+
+        else:
+            raise CodecException(f"unreachable case: {currNibble}")
+        #  ("default")
+
+    return temp
 
 
 def encodeSteim1(
