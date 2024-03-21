@@ -1,5 +1,6 @@
 import pytest
 import json
+import numpy
 import os
 import simplemseed
 from datetime import datetime
@@ -71,8 +72,53 @@ class TestMSeed3:
                             jsondata[i] == data[i]
                         ), f"{i}  {jsondata[i]} != {data[i]}"
 
-    def test_roundtrip(self):
-        values = [3, 1, -1, 2000]
+    def test_roundtrip_float(self):
+        data = numpy.fromfunction(
+            lambda i: (i % 99 - 49), (400 ,), dtype=numpy.float32
+        )
+        header = simplemseed.MSeed3Header()
+        header.starttime = "2024-01-02T15:13:55.123456Z"
+        header.sampleRatePeriod = -1
+        header.numSamples = len(data)
+        identifier = simplemseed.FDSNSourceId.createUnknown(header.sampleRate)
+        record = simplemseed.MSeed3Record(header, identifier, data)
+        recordBytes = record.pack()
+        assert record.header.encoding == simplemseed.seedcodec.FLOAT
+        outRecord = simplemseed.unpackMSeed3Record(recordBytes)
+        assert identifier == outRecord.parseIdentifier()
+        decomp_data = outRecord.decompress()
+        assert record.details() == outRecord.details()
+        assert len(decomp_data) == len(data)
+        for i in range(len(decomp_data)):
+            assert (
+                decomp_data[i] == data[i]
+            ), f"{i} msi:{decomp_data[i]} != {data[i]} "
+
+    def test_roundtrip_steim1(self):
+        values = data = numpy.fromfunction(
+            lambda i: (i % 99 - 49), (100,), dtype=numpy.int32
+        )
+        header = simplemseed.MSeed3Header()
+        encodedValues = simplemseed.encodeSteim1(values)
+        header.encoding = simplemseed.seedcodec.STEIM1
+        header.starttime = "2024-01-02T15:13:55.123456Z"
+        header.sampleRatePeriod = -1
+        header.numSamples = len(values)
+        identifier = simplemseed.FDSNSourceId.createUnknown(header.sampleRate)
+        record = simplemseed.MSeed3Record(header, identifier, encodedValues)
+        recordBytes = record.pack()
+        outRecord = simplemseed.unpackMSeed3Record(recordBytes)
+        assert identifier == outRecord.parseIdentifier()
+        decomp_data = outRecord.decompress()
+        assert record.details() == outRecord.details()
+        assert len(decomp_data) == len(values)
+        for i in range(len(decomp_data)):
+            assert (
+                decomp_data[i] == values[i]
+            ), f"{i} msi:{decomp_data[i]} != {values[i]} "
+
+    def test_roundtrip_steim2(self):
+        values = [3, 1, -1, 2000] + []
         header = simplemseed.MSeed3Header()
         encodedValues = simplemseed.encodeSteim2(values)
         header.encoding = simplemseed.seedcodec.STEIM2

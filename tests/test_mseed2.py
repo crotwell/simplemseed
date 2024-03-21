@@ -1,4 +1,7 @@
+import numpy
 import os
+import array
+import math
 import pytest
 import simplemseed
 from datetime import datetime
@@ -54,6 +57,95 @@ class TestMseed2:
             ), f"d:{len(data)} should be orig:{len(msi_data)}"
             for i in range(len(msi_data)):
                 assert msi_data[i] == data[i]
+
+    def test_create(self):
+        data = numpy.fromfunction(
+            lambda i: (i % 99 - 49), (100 ,), dtype=numpy.int16
+        )
+        network = "XX"
+        station = "TEST"
+        location = "00"
+        channel = f"HNZ"
+        starttime = "2024-01-01T15:13:55.123400Z"
+        numsamples = len(data)
+        sampleRate = 200
+        shortData = array.array("h")  # shorts
+        for i in range(numsamples):
+            shortData.append(data[i])
+        msh = simplemseed.MiniseedHeader(
+            network, station, location, channel, starttime, numsamples, sampleRate
+        )
+        msr = simplemseed.MiniseedRecord(msh, shortData)
+        recordBytes = msr.pack()
+        outmsr = simplemseed.unpackMiniseedRecord(recordBytes)
+        assert msr.codes() == outmsr.codes()
+        assert msr.starttime() == outmsr.starttime()
+        outdata = outmsr.decompressed()
+        print(outdata[0:10])
+        assert len(outdata) == len(data)
+        assert len(outdata) == msr.header.numSamples
+        for i in range(len(data)):
+            assert data[i] == outdata[i]
+
+    def test_create_float(self):
+        data = numpy.fromfunction(
+            lambda i: (i % 99 - 49.2), (100 ,), dtype=numpy.float32
+        )
+        network = "XX"
+        station = "TEST"
+        location = "00"
+        channel = f"HNZ"
+        starttime = "2024-01-01T15:13:55.123400Z"
+        numsamples = len(data)
+        sampleRate = 200
+
+        msh = simplemseed.MiniseedHeader(
+            network, station, location, channel, starttime, numsamples, sampleRate
+        )
+        msr = simplemseed.MiniseedRecord(msh, data)
+        assert msr.header.byteorder == simplemseed.miniseed.LITTLE_ENDIAN
+        recordBytes = msr.pack()
+        assert msr.header.encoding == simplemseed.seedcodec.FLOAT
+        assert msr.header.byteorder == simplemseed.miniseed.LITTLE_ENDIAN
+        outmsr = simplemseed.unpackMiniseedRecord(recordBytes)
+        assert outmsr.header.byteorder == msr.header.byteorder
+        assert msr.codes() == outmsr.codes()
+        assert msr.starttime() == outmsr.starttime()
+        outdata = outmsr.decompressed()
+        assert len(outdata) == len(data)
+        assert len(outdata) == msr.header.numSamples
+        for i in range(len(data)):
+            assert data[i] == outdata[i]
+
+    def test_create_double(self):
+        data = numpy.fromfunction(
+            lambda i: (i % 99 - 49.2), (50 ,), dtype=numpy.float64
+        )
+        network = "XX"
+        station = "TEST"
+        location = "00"
+        channel = f"HNZ"
+        starttime = "2024-01-01T15:13:55.123400Z"
+        numsamples = len(data)
+        sampleRate = 200
+
+        msh = simplemseed.MiniseedHeader(
+            network, station, location, channel, starttime, numsamples, sampleRate
+        )
+        msr = simplemseed.MiniseedRecord(msh, data)
+        assert msr.header.byteorder == simplemseed.miniseed.LITTLE_ENDIAN
+        recordBytes = msr.pack()
+        assert msr.header.encoding == simplemseed.seedcodec.DOUBLE
+        assert msr.header.byteorder == simplemseed.miniseed.LITTLE_ENDIAN
+        outmsr = simplemseed.unpackMiniseedRecord(recordBytes)
+        assert outmsr.header.byteorder == msr.header.byteorder
+        assert msr.codes() == outmsr.codes()
+        assert msr.starttime() == outmsr.starttime()
+        outdata = outmsr.decompressed()
+        assert len(outdata) == len(data)
+        assert len(outdata) == msr.header.numSamples
+        for i in range(len(data)):
+            assert data[i] == outdata[i]
 
 
 if __name__ == "__main__":

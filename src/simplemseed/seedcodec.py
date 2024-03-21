@@ -200,6 +200,7 @@ def numpyDTFromMseed3Encoding(encoding: int):
             f"mseed encoding {encoding} not mapable to numpy type"
         )
 
+
 def encode(data, encoding=None, littleEndian=True):
     """
     Encode the given numpy.ndarray or array.array into bytes.
@@ -217,11 +218,11 @@ def encode(data, encoding=None, littleEndian=True):
         if isinstance(data, numpy.ndarray):
             encoding = mseed3EncodingFromNumpyDT(data.dtype)
         elif isinstance(data, array):
-            encoding = mseed3EncodingFromArrayTypecode(
-                data.typecode, data.itemsize
-            )
+            encoding = mseed3EncodingFromArrayTypecode(data.typecode, data.itemsize)
         else:
-            raise Miniseed3Exception("Unable to guess encoding for data, encoding is "+encoding)
+            raise Miniseed3Exception(
+                "Unable to guess encoding for data, encoding is " + encoding
+            )
     try:
         compCode = arrayTypecodeFromMSeed(encoding)
     except UnsupportedCompressionType:
@@ -265,6 +266,7 @@ def decompress(
     @throws CodecException fail to decompress.
     @throws UnsupportedCompressionType unsupported compression type
     """
+
     # in case of record with no data points, ex detection blockette, which often have compression type
     # set to 0, which messes up the decompresser even though it doesn't matter since there is no data.
     if numSamples == 0:
