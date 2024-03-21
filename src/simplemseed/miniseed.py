@@ -490,7 +490,7 @@ def unpackMiniseedHeader(recordBytes, endianChar=">"):
     (
         seq,
         qualityChar,
-        reserved,
+        _reserved,
         sta,
         loc,
         chan,
@@ -646,9 +646,7 @@ def unpackMiniseedRecord(recordBytes):
                 nextBOffset = b.nextOffset
             except struct.error as e:
                 print(
-                    "Unable to unpack blockette, fail codes: {} start: {} {}".format(
-                        header.codes(), header.starttime, e
-                    )
+                    f"Unable to unpack blockette, fail codes: {header.codes()} start: {header.starttime} {e}"
                 )
                 raise
 
@@ -702,9 +700,7 @@ def readMiniseed2Records(fileptr):
                     nextBOffset = b.nextOffset
                 except struct.error as e:
                     print(
-                        "Unable to unpack blockette, fail codes: {} start: {} {}".format(
-                            header.codes(), header.starttime, e
-                        )
+                        f"Unable to unpack blockette, fail codes: {header.codes()} start: {header.starttime} {e}"
                     )
                     raise
         recordBytesSize = 512

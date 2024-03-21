@@ -421,19 +421,19 @@ def encodeSteim2FrameBlock(
 
 def minBitsNeeded(diff: int):
     minbits = 0
-    if diff >= -8 and diff < 8:
+    if -8 <= diff < 8:
         minbits = 4
-    elif diff >= -16 and diff < 16:
+    elif  -16 <= diff < 16:
         minbits = 5
-    elif diff >= -32 and diff < 32:
+    elif -32 <= diff < 32:
         minbits = 6
-    elif diff >= -128 and diff < 128:
+    elif -128 <= diff < 128:
         minbits = 8
-    elif diff >= -512 and diff < 512:
+    elif -512 <= diff < 512:
         minbits = 10
-    elif diff >= -16384 and diff < 16384:
+    elif -16384 <= diff < 16384:
         minbits = 15
-    elif diff >= -536870912 and diff < 536870912:
+    elif -536870912 <= diff < 536870912:
         minbits = 30
     else:
         minbits = 32
