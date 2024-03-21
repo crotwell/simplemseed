@@ -75,6 +75,7 @@ class FDSNSourceId:
         networkCode: str = "XX",
         stationCode: str = "ABC",
         locationCode: str = "",
+        subsourceCode: str = "U",
     ) -> "FDSNSourceId":
         """
         Creates a Source Id for non-real data. This will have network code XX
@@ -92,7 +93,7 @@ class FDSNSourceId:
             locationCode,
             bandCodeForRate(sampRate, response_lb),
             sourceCode,
-            "U",
+            subsourceCode,
         )
 
     @staticmethod
