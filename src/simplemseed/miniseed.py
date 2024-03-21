@@ -651,7 +651,7 @@ def unpackMiniseedRecord(recordBytes):
                 raise
 
     encodedData = recordBytes[header.dataOffset :]
-    if header.encoding == ENC_SHORT or header.encoding == ENC_INT:
+    if header.encoding in (ENC_SHORT, ENC_INT):
         data = decompressEncodedData(
             header.encoding, header.byteorder, header.numSamples, encodedData
         )
