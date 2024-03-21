@@ -471,9 +471,7 @@ class MiniseedRecord:
         ).dataBytes
         if len(recordBytes) < offset + len(dataBytes):
             raise MiniseedException(
-                "not enough bytes in record to fit data: byte:{:d} offset: {:d} len(data): {:d}  enc:{:d}".format(
-                    len(recordBytes), offset, len(data), self.header.encoding
-                )
+                f"not enough bytes in record to fit data: byte:{len(recordBytes):d} offset: {offset:d} len(data): {len(data):d}  enc:{self.header.encoding:d}"
             )
         recordBytes[offset : offset + len(dataBytes)] = dataBytes
 
@@ -615,9 +613,7 @@ def unpackFixedHeaderGuessByteOrder(recordBytes):
         endianChar = "<"
     else:
         raise MiniseedException(
-            "unable to determine byte order from year bytes: {:d} {:d}".format(
-                recordBytes[21], recordBytes[22]
-            )
+            f"unable to determine byte order from year bytes: {recordBytes[21]:d} {recordBytes[22]:d}"
         )
     header = unpackMiniseedHeader(recordBytes, endianChar)
     header.byteorder = byteorder  # in case no b1000
