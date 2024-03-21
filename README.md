@@ -56,8 +56,8 @@ or read and convert to miniseed3:
 ```
 with open(ms3filename, "wb") as outms3:
     with open(ms2filename, "rb") as inms2:
-        for ms2rec in readMiniseed2Records(inms2):
-            ms3rec = mseed2to3(ms2rec)
+        for ms2rec in simplemseed.readMiniseed2Records(inms2):
+            ms3rec = simplemseed.mseed2to3(ms2rec)
             outms3.write(ms3rec.pack())
 ```
 
