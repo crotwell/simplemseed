@@ -5,6 +5,7 @@ import json
 from .mseed3 import MSeed3Record, MSeed3Header, UNKNOWN_DATA_VERSION
 from .miniseed import MiniseedRecord, MiniseedException, readMiniseed2Records
 from .fdsnsourceid import FDSNSourceId
+from .seedcodec import isPrimitiveCompression, BIG_ENDIAN
 
 
 def mseed2to3(ms2: MiniseedRecord) -> MSeed3Record:
@@ -45,8 +46,12 @@ def mseed2to3(ms2: MiniseedRecord) -> MSeed3Record:
     ms3Header.encoding = b1000.encoding
     ms3Header.publicationVersion = UNKNOWN_DATA_VERSION
     if ms2.encodedData is not None:
-        ms3Header.dataLength = len(ms2.encodedData)
-        data = ms2.encodedData
+        if isPrimitiveCompression(b1000.encoding) and ms2H.byteorder == BIG_ENDIAN:
+            # need to decompress to byte swap primitive array
+            data = ms2.decompressed().byteswap()
+        else:
+            ms3Header.dataLength = len(ms2.encodedData)
+            data = ms2.encodedData
     else:
         data = ms2.decompressed()
     identifier = FDSNSourceId.fromNslc(
@@ -98,6 +103,9 @@ def mseed2to3(ms2: MiniseedRecord) -> MSeed3Record:
     else:
         ms3ExtrasStr = json.dumps(ms3Extras)
         ms3Header.extraHeadersLength = len(ms3ExtrasStr.encode("UTF-8"))
+    if data.dtype.byteorder == '>' or (data.dtype.byteorder == '=' and sys.byteorder == "big"):
+        # need to swap to little endian
+        data = data.byteswap()
     ms3 = MSeed3Record(ms3Header, str(identifier), data, ms3ExtrasStr)
 
     return ms3

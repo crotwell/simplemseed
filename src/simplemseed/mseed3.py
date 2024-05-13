@@ -20,6 +20,8 @@ from .seedcodec import (
     mseed3EncodingFromNumpyDT,
     numpyDTFromMseed3Encoding,
     UnsupportedCompressionType,
+    BIG_ENDIAN,
+    LITTLE_ENDIAN,
 )
 from .fdsnsourceid import FDSNSourceId
 
@@ -45,9 +47,6 @@ ENDIAN = "<"
 # const for big endian, false */
 # BIG_ENDIAN = False;
 
-
-BIG_ENDIAN = 1
-LITTLE_ENDIAN = 0
 
 HEADER_PACK_FORMAT = "<ccBBIHHBBBBdIIBBHI"
 
@@ -421,7 +420,7 @@ class MSeed3Record:
     def encodedDataBytes(self):
         if isinstance(self._data, (bytearray, bytes)):
             return self._data
-        return encode(self._data, self.header.encoding).dataBytes
+        return encode(self._data, self.header.encoding, littleEndian = True).dataBytes
 
     def pack(self):
         """
@@ -449,7 +448,7 @@ class MSeed3Record:
             # already byte-like, so just use
             dataBytes = self._data
         else:
-            encData = encode(self._data, self.header.encoding)
+            encData = encode(self._data, self.header.encoding, littleEndian=True)
             if encData.compressionType != self.header.encoding:
                 raise Miniseed3Exception(
                     f"Header encoding {self.header.encoding} not same as data {encData.compressionType}"

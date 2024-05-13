@@ -17,6 +17,8 @@ from .seedcodec import (
     mseed3EncodingFromNumpyDT,
     EncodedDataSegment,
     numpyDTFromMseed3Encoding,
+    BIG_ENDIAN,
+    LITTLE_ENDIAN,
 )
 
 MICRO = 1000000
@@ -25,8 +27,6 @@ EMPTY_SEQ = "      ".encode("UTF-8")
 ENC_SHORT = 1
 ENC_INT = 3
 
-BIG_ENDIAN = 1
-LITTLE_ENDIAN = 0
 
 HEADER_SIZE = 48
 B1000_SIZE = 8

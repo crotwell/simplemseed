@@ -18,6 +18,9 @@ from .steim1 import decodeSteim1
 from .steim2 import decodeSteim2
 
 
+BIG_ENDIAN = 1
+LITTLE_ENDIAN = 0
+
 # ascii
 ASCII: int = 0
 
@@ -65,6 +68,12 @@ def isFloatCompression(compressionType: int) -> bool:
         return True
     return False
 
+def isPrimitiveCompression(compressionType: int) -> bool:
+    """
+    True if the compression is one of the primitive types, short, int
+    float or double.
+    """
+    return compressionType in (SHORT, INTEGER, FLOAT, DOUBLE)
 
 class EncodedDataSegment:
     """
@@ -182,7 +191,7 @@ def encode(data, encoding=None, littleEndian=True):
     Note that currently no actual compression is done, the resulting
     bytes will occupy the same space, just converted for output.
     If encoding is not given, the encoding will be guessed from the array type.
-    If endian is given, defaults to little endian.
+    If endian is not given, defaults to little endian.
     """
     if isinstance(data, (bytearray, bytes)):
         # already byte-like, so ???

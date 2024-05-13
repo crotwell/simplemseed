@@ -38,6 +38,9 @@ from .seedcodec import (
     encode,
     decompress,
     canDecompress,
+    BIG_ENDIAN,
+    LITTLE_ENDIAN,
+    isPrimitiveCompression,
 )
 from .exceptions import (
     CodecException,
@@ -89,4 +92,7 @@ __all__ = [
     "crcAsHex",
     "isoWZ",
     "mseed3merge",
+    "BIG_ENDIAN",
+    "LITTLE_ENDIAN",
+    "isPrimitiveCompression",
 ]
