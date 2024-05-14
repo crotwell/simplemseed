@@ -103,9 +103,7 @@ def mseed2to3(ms2: MiniseedRecord) -> MSeed3Record:
     else:
         ms3ExtrasStr = json.dumps(ms3Extras)
         ms3Header.extraHeadersLength = len(ms3ExtrasStr.encode("UTF-8"))
-    if data.dtype.byteorder == '>' or (data.dtype.byteorder == '=' and sys.byteorder == "big"):
-        # need to swap to little endian
-        data = data.byteswap()
+
     ms3 = MSeed3Record(ms3Header, str(identifier), data, ms3ExtrasStr)
 
     return ms3
