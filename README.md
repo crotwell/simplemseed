@@ -4,7 +4,7 @@
 [![PyPI](https://img.shields.io/pypi/v/simplemseed)](https://pypi.org/project/simplemseed/)
 [![Documentation Status](https://readthedocs.org/projects/simplemseed/badge/?version=latest)](https://simplemseed.readthedocs.io/en/latest/?badge=latest)
 
-[Miniseed3](http://docs.fdsn.org/projects/miniseed3) (and reading 2) in pure python.
+[Miniseed3](http://docs.fdsn.org/projects/miniseed3) (and miniseed2) in pure python.
 
 Read the docs at [readthedocs](https://readthedocs.org/projects/simplemseed/)
 
@@ -42,11 +42,13 @@ dataArray = ms3record.decompress()
 ```
 
 
-Also includes parsing for miniseed2 and
-[miniseed3](http://docs.fdsn.org/projects/miniseed3/en/latest/index.html#) for primitive data arrays and
-for Steim1 and Steim2 decompression, in pure python.
+Also includes compression and decompression
+for primitive data arrays and
+for Steim1 and Steim2, in pure python.
 
-Read miniseed2:
+# Miniseed2:
+
+Read miniseed2 with:
 ```
 with open(ms2filename, "rb") as inms2:
     for ms2rec in simplemseed.readMiniseed2Records(inms2):
@@ -64,8 +66,10 @@ with open(ms3filename, "wb") as outms3:
 # Command line tools:
 
 
-#  mseed3details
-- print details about each miniseed3 record
+##  Miniseed3 Details
+
+Print details about each miniseed3 record
+
 ```
 mseed3details casee.mseed3
           FDSN:CO_CASEE_00_H_H_Z, version 4, 285 bytes (format: 3)
@@ -82,7 +86,7 @@ mseed3details casee.mseed3
 Total 104 samples in 1 records
 ```
 
-# getting and setting extra header values
+## Getting and setting extra header values
 
 ```
 % mseed3details --get "/FDSN/Time" casee_two.ms3
@@ -110,7 +114,7 @@ FDSN:CO_CASEE_00_H_H_Z 2023-06-17T04:53:50.188392Z 2023-06-17T04:53:55.498392Z (
   {"key": "else", "keyb": 4}
 ```
 
-#  mseed3merge
+##  Merge mseed3 records
 - merge contiguous, in order, mseed3 records into larger records. Decompression
 is needed as steim1 and 2 cannot be merged without decompression, primitive
 types are already decompressed.
@@ -118,8 +122,7 @@ types are already decompressed.
 mseed3merge -o merged.ms3 --decomp  bird_jsc.ms3
 ```
 
-#  mseed2to3
-- convert miniseed 2 to miniseed3.
+##  Convert miniseed 2 to miniseed3.
 
 Note most blockettes are ignored, other than 100, 1000, 1001
 
@@ -128,8 +131,9 @@ mseed2to3 --ms2 casee.ms2 --ms3 casee.ms3
 ```
 
 
-# fdsnsourceid
-- parse FDSN sourceids
+## FDSN sourceid
+
+Parse FDSN [sourceids](http://docs.fdsn.org/projects/source-identifiers/en/v1.0/)
 
 Split a FDSN source id:
 ```
@@ -165,6 +169,7 @@ fdsnsourceid --source H N
        Measures displacement/velocity/acceleration along a line defined by the the dip and azimuth.
 ```
 
-# Example
+# Examples
 
-There are more examples in the examples directory.
+There are more examples in the
+[examples](https://github.com/crotwell/simplemseed/tree/main/examples) directory.
