@@ -2,6 +2,7 @@ import pytest
 import json
 import numpy
 import os
+import sys
 import simplemseed
 from datetime import datetime
 from pathlib import Path
@@ -247,6 +248,34 @@ class TestMSeed3:
             simplemseed.seedcodec.mseed3EncodingFromArrayTypecode("d", 8)
             == simplemseed.seedcodec.DOUBLE
         )
+
+    def testCreateFromBigEndian(self):
+        data = numpy.array([1, 256, 8755, -16245, 65000, -65000], dtype=numpy.dtype('<i4'))
+        bigdata = data.newbyteorder('>').byteswap()
+        assert(data.dtype.byteorder == '<'
+               or (data.dtype.byteorder == '=' and sys.byteorder == 'little'))
+        assert(bigdata.dtype.byteorder == '>')
+        for i in range(len(data)):
+            assert(data[i] == bigdata[i])
+
+        header = simplemseed.MSeed3Header()
+        identifier = simplemseed.FDSNSourceId.createUnknown(header.sampleRate)
+        record = simplemseed.MSeed3Record(header, identifier, data)
+        recordBytes = record.pack()
+        bigrecord = simplemseed.MSeed3Record(header, identifier, bigdata)
+        bigrecordBytes = bigrecord.pack()
+        outRecord = simplemseed.unpackMSeed3Record(recordBytes)
+        assert identifier == outRecord.parseIdentifier()
+        decomp_data = outRecord.decompress()
+
+        bigoutRecord = simplemseed.unpackMSeed3Record(bigrecordBytes)
+        assert identifier == bigoutRecord.parseIdentifier()
+        bigdecomp_data = bigoutRecord.decompress()
+        for i in range(len(data)):
+            assert data[i] == decomp_data[i]
+            assert data[i] == bigdecomp_data[i]
+
+
 
 
 if __name__ == "__main__":
