@@ -6,7 +6,7 @@
 
 [Miniseed3](http://docs.fdsn.org/projects/miniseed3) (and miniseed2) in pure python.
 
-Read the docs at [readthedocs](https://readthedocs.org/projects/simplemseed/)
+Read the docs at [readthedocs](https://simplemseed.readthedocs.io/en/latest/)
 
 # Miniseed3
 
