@@ -245,8 +245,7 @@ def decompress(
     # in case of record with no data points, ex detection blockette, which often have compression type
     # set to 0, which messes up the decompresser even though it doesn't matter since there is no data.
     if numSamples == 0:
-        dt = numpy.dtype(numpy.int32)
-        dt = dt.newbyteorder("<")
+        dt = numpy.dtype("<i4")
         return numpy.asarray([], dt)
 
     # switch (compressionType):
