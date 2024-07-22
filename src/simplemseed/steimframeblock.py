@@ -162,8 +162,7 @@ class SteimFrameBlock:
             self.currentFrame += 1
 
         pos = self.currentSteimFrame.pos  # word position
-        self.currentSteimFrame.word[pos] = word.astype(
-            self.currentSteimFrame.word.dtype)  # add word
+        self.currentSteimFrame.word[pos] = word  # add word
         self.addEncodingNibble(nibble)  # add nibble
         self.numSamples += samples
         pos += 1  # increment position in frame

@@ -509,4 +509,4 @@ def steimPackWord(diff: list[int], nbits: int, ndiff: int, bitmask: int, submask
         i += 1
     if submask != 0:
         val |= submask << 30
-    return val
+    return val.astype(numpy.int32)
