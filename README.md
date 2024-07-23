@@ -12,7 +12,7 @@ Read the docs at [readthedocs](https://simplemseed.readthedocs.io/en/latest/)
 
 Write and read mseed3 records like:
 
-```
+```python
 #!/usr/bin/env python3
 
 from simplemseed import MSeed3Header, MSeed3Record, FDSNSourceId, readMSeed3Records
@@ -37,7 +37,7 @@ with open(ms3filename, "rb") as infile:
 ```
 
 Access uncompressed timeseries data as numpy ndarray with:
-```
+```python
 dataArray = ms3record.decompress()
 ```
 
@@ -49,13 +49,13 @@ for Steim1 and Steim2, in pure python.
 # Miniseed2:
 
 Read miniseed2 with:
-```
+```python
 with open(ms2filename, "rb") as inms2:
     for ms2rec in simplemseed.readMiniseed2Records(inms2):
         print(ms2rec.summary())
 ```
 or read and convert to miniseed3:
-```
+```python
 with open(ms3filename, "wb") as outms3:
     with open(ms2filename, "rb") as inms2:
         for ms2rec in simplemseed.readMiniseed2Records(inms2):
