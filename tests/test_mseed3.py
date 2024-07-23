@@ -251,7 +251,7 @@ class TestMSeed3:
 
     def testCreateFromBigEndian(self):
         data = numpy.array([1, 256, 8755, -16245, 65000, -65000], dtype=numpy.dtype('<i4'))
-        bigdata = data.newbyteorder('>').byteswap()
+        bigdata = data.view(data.dtype.newbyteorder('>')).byteswap()
         assert(data.dtype.byteorder == '<'
                or (data.dtype.byteorder == '=' and sys.byteorder == 'little'))
         assert(bigdata.dtype.byteorder == '>')
