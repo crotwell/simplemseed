@@ -8,6 +8,21 @@
 
 Read the docs at [readthedocs](https://simplemseed.readthedocs.io/en/latest/)
 
+# Installation
+
+`simplemseed` can be installed in conda environments from [conda-forge](https://conda-forge.org/docs/user/introduction/#how-can-i-install-packages-from-conda-forge) ..
+
+```
+$ conda install --channel conda-forge simplemseed
+```
+
+.. or from [pypi](https://pypi.org/project/simplemseed/) using `pip`:
+
+
+```
+$ pip install simplemseed
+```
+
 # Miniseed3
 
 Write and read mseed3 records like:
