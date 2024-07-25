@@ -4,7 +4,7 @@
 conda create -n simplemseed python=3.9
 conda activate simplemseed
 python3 -m pip install --upgrade hatch
-pytest
+python3 -m pip install --upgrade pytest
 hatch clean
 hatch build
 pip3 install dist/simplemseed-*-py3-none-any.whl --force-reinstall
