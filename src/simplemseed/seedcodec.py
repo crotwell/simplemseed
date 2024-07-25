@@ -11,7 +11,7 @@ import array
 import struct
 from typing import Union
 
-import numpy
+import numpy as np
 
 from .exceptions import CodecException, UnsupportedCompressionType
 from .steim1 import decodeSteim1
@@ -150,17 +150,17 @@ def mseed3EncodingFromArrayTypecode(typecode: str, itemsize: int) -> int:
     )
 
 
-def mseed3EncodingFromNumpyDT(dt: numpy.dtype) -> int:
+def mseed3EncodingFromNumpyDT(dt: np.dtype) -> int:
     """
     Get the mseed3 encoding for a numpy dtype code
     """
-    if dt.type is numpy.int16:
+    if dt.type is np.int16:
         return SHORT
-    if dt.type is numpy.int32:
+    if dt.type is np.int32:
         return INTEGER
-    if dt.type is numpy.float32:
+    if dt.type is np.float32:
         return FLOAT
-    if dt.type is numpy.float64:
+    if dt.type is np.float64:
         return DOUBLE
     raise UnsupportedCompressionType(
         f"numpy type {dt.type} not mapable to mseed encoding"
@@ -172,13 +172,13 @@ def numpyDTFromMseed3Encoding(encoding: int):
     Get a numpy dtype for a mseed3 encoding
     """
     if encoding == SHORT:
-        return numpy.int16
+        return np.int16
     if encoding == INTEGER:
-        return numpy.int32
+        return np.int32
     if encoding == FLOAT:
-        return numpy.float32
+        return np.float32
     if encoding == DOUBLE:
-        return numpy.float64
+        return np.float64
     raise UnsupportedCompressionType(
         f"mseed encoding {encoding} not mapable to numpy type"
     )
@@ -198,7 +198,7 @@ def encode(data, encoding=None, littleEndian=True):
         raise UnsupportedCompressionType("Unable to encode data, already bytes-like")
     if encoding is None or encoding < 0:
         # try to guess a primitive encoding
-        if isinstance(data, numpy.ndarray):
+        if isinstance(data, np.ndarray):
             encoding = mseed3EncodingFromNumpyDT(data.dtype)
         elif isinstance(data, array.array):
             encoding = mseed3EncodingFromArrayTypecode(data.typecode, data.itemsize)
@@ -225,7 +225,7 @@ def decompress(
     dataBytes: bytearray,
     numSamples: int,
     littleEndian: bool,
-) -> numpy.ndarray:
+) -> np.ndarray:
     """
     Decompress the samples from the provided bytes and
     return an array of the decompressed values.
@@ -245,8 +245,8 @@ def decompress(
     # in case of record with no data points, ex detection blockette, which often have compression type
     # set to 0, which messes up the decompresser even though it doesn't matter since there is no data.
     if numSamples == 0:
-        dt = numpy.dtype("<i4")
-        return numpy.asarray([], dt)
+        dt = np.dtype("<i4")
+        return np.asarray([], dt)
 
     # switch (compressionType):
     if compressionType in (SHORT, DWWSSN):
@@ -255,12 +255,12 @@ def decompress(
             raise CodecException(
                 f"Not enough bytes for {numSamples} 16 bit data points, only {len(dataBytes)} bytes.",
             )
-        dt = numpy.dtype(numpy.int16)
+        dt = np.dtype(np.int16)
         if littleEndian:
             dt = dt.newbyteorder("<")
         else:
             dt = dt.newbyteorder(">")
-        out = numpy.frombuffer(dataBytes, dtype=dt, count=numSamples)
+        out = np.frombuffer(dataBytes, dtype=dt, count=numSamples)
 
     elif compressionType == INTEGER:
         # 32 bit integers
@@ -269,12 +269,12 @@ def decompress(
                 f"Not enough bytes for {numSamples} 32 bit data points, only {len(dataBytes)} bytes.",
             )
 
-        dt = numpy.dtype(numpy.int32)
+        dt = np.dtype(np.int32)
         if littleEndian:
             dt = dt.newbyteorder("<")
         else:
             dt = dt.newbyteorder(">")
-        out = numpy.frombuffer(dataBytes, dtype=dt, count=numSamples)
+        out = np.frombuffer(dataBytes, dtype=dt, count=numSamples)
     elif compressionType == FLOAT:
         # 32 bit floats
         if len(dataBytes) < 4 * numSamples:
@@ -282,12 +282,12 @@ def decompress(
                 f"Not enough bytes for {numSamples} 32 bit data points, only {len(dataBytes)} bytes.",
             )
 
-        dt = numpy.dtype(numpy.float32)
+        dt = np.dtype(np.float32)
         if littleEndian:
             dt = dt.newbyteorder("<")
         else:
             dt = dt.newbyteorder(">")
-        out = numpy.frombuffer(dataBytes, dtype=dt, count=numSamples)
+        out = np.frombuffer(dataBytes, dtype=dt, count=numSamples)
 
     elif compressionType == DOUBLE:
         # 64 bit doubles
@@ -296,12 +296,12 @@ def decompress(
                 f"Not enough bytes for {numSamples} 64 bit data points, only {len(dataBytes)} bytes.",
             )
 
-        dt = numpy.dtype(numpy.float64)
+        dt = np.dtype(np.float64)
         if littleEndian:
             dt = dt.newbyteorder("<")
         else:
             dt = dt.newbyteorder(">")
-        out = numpy.frombuffer(dataBytes, dtype=dt, count=numSamples)
+        out = np.frombuffer(dataBytes, dtype=dt, count=numSamples)
 
     elif compressionType == STEIM1:
         # steim 1
