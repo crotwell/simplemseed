@@ -35,7 +35,9 @@ class SteimFrame:
     """
 
     def __init__(self):
-        self.word = np.zeros(16, dtype=">i4")  # 16 32-byte words
+        dt = np.dtype(np.uint32)
+        dt = dt.newbyteorder(">")
+        self.word = np.zeros(16, dtype=dt)  # 16 32-byte words
         self.pos = 0  # word position in frame (pos: 0 = W0, 1 = W1, etc...)
 
     def isEmpty(self):
