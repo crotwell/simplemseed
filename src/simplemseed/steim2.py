@@ -1,6 +1,6 @@
 
 import struct
-import numpy
+import numpy as np
 
 from .exceptions import (
     CodecException,
@@ -67,8 +67,8 @@ def decodeSteim2(
             f"encoded data length is not multiple of 64 bytes ({len(dataBytes)})",
         )
 
-    dt = numpy.dtype(numpy.int32)
-    samples = numpy.zeros((numSamples,), dt)
+    dt = np.dtype(np.int32)
+    samples = np.zeros((numSamples,), dt)
 
     numFrames = len(dataBytes) // 64
     current = 0
@@ -136,13 +136,13 @@ def extractSteim2Samples(
     dataBytes: bytearray,
     offset: int,
     littleEndian: bool,
-) -> numpy.ndarray:
+) -> np.ndarray:
     # get nibbles
     nibbles = getUint32(dataBytes, offset, False)  # steim always big endian for nibbles
     currNibble = 0
     dnib = 0
-    dt = numpy.dtype(numpy.int32)
-    temp = numpy.zeros((106,), dt)  # max 106 = 7 samples * 15 long words + 1 nibble int
+    dt = np.dtype(np.int32)
+    temp = np.zeros((106,), dt)  # max 106 = 7 samples * 15 long words + 1 nibble int
 
     currNum = 0
     diffCount = 0  # number of differences
@@ -322,10 +322,10 @@ def encodeSteim2FrameBlock(
     # ...reverse integration constant may need to be changed if
     # the frameBlock fills up.
     frameBlock.addEncodedWord(
-        numpy.int32(samples[0]), 0, 0
+        np.int32(samples[0]), 0, 0
     )  # X(0) -- first sample value
     frameBlock.addEncodedWord(
-        numpy.int32(samples[len(samples) - 1]), 0, 0
+        np.int32(samples[len(samples) - 1]), 0, 0
     )  # X(N) -- last sample value
     #
     # now begin looping over differences
@@ -410,7 +410,7 @@ def encodeSteim2FrameBlock(
             # frame block is full (but the value did get added)
             # so modify reverse integration constant to be the very last value added
             # and break out of loop (read no more samples)
-            frameBlock.setXsubN(numpy.int32(samples[sampleIndex + ndiff - 1]))  # X(N)
+            frameBlock.setXsubN(np.int32(samples[sampleIndex + ndiff - 1]))  # X(N)
             break
 
         # increment the sampleIndex by the number of differences
@@ -502,11 +502,11 @@ def steimPackWord(diff: list[int], nbits: int, ndiff: int, bitmask: int, submask
     @param bitmask the bit mask
     @param submask the sub mask or 0 if none
     """
-    val = numpy.uint32(0)
+    val = np.int32(0)
     i = 0
     while i < ndiff:
-        val = (val << nbits) | (numpy.int32(diff[i]) & bitmask)
+        val = np.bitwise_or(np.left_shift(val, np.uint32(nbits)) , np.bitwise_and(np.int32(diff[i]), np.uint32(bitmask)))
         i += 1
     if submask != 0:
-        val |= submask << 30
-    return val.astype(numpy.int32)
+        val = np.bitwise_or(val, np.left_shift(np.uint32(submask), np.uint32(30)))
+    return val

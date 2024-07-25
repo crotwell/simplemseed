@@ -1,7 +1,7 @@
 import struct
 from typing import Union
 
-import numpy
+import numpy as np
 
 
 def getInt16(dataBytes, offset, littleEndian):
@@ -35,7 +35,7 @@ class SteimFrame:
     """
 
     def __init__(self):
-        self.word = numpy.zeros(16, dtype=">i4")  # 16 32-byte words
+        self.word = np.zeros(16, dtype=">i4")  # 16 32-byte words
         self.pos = 0  # word position in frame (pos: 0 = W0, 1 = W1, etc...)
 
     def isEmpty(self):
@@ -144,7 +144,7 @@ class SteimFrameBlock:
     # *** private and protected methods ***
 
     def addEncodedWord(
-        self, word: Union[numpy.int32, numpy.uint32], samples: int, nibble: int
+        self, word: Union[np.int32, np.uint32], samples: int, nibble: int
     ):
         """
         Add a single 32-bit word to current frame.
@@ -178,7 +178,7 @@ class SteimFrameBlock:
 
         return False  # block is not yet full
 
-    def setXsubN(self, word: numpy.int32):
+    def setXsubN(self, word: np.int32):
         """
         Set the reverse integration constant X(N) explicitly to the
         provided word value.
@@ -188,14 +188,14 @@ class SteimFrameBlock:
         """
         self.steimFrameList[0].word[2] = word
 
-    def addEncodingNibble(self, bitFlag: numpy.uint32):
+    def addEncodingNibble(self, bitFlag: np.uint32):
         """
         * Add encoding nibble to W0.
         * @param bitFlag a value 0 to 3 representing an encoding nibble
         """
         offset = self.currentSteimFrame.pos  # W0 nibble offset - determines Cn in W0
         shift = (15 - offset) * 2  # how much to shift bitFlag
-        self.currentSteimFrame.word[0] |= bitFlag << shift
+        self.currentSteimFrame.word[0] |= np.bitwise_or(self.currentSteimFrame.word[0], np.left_shift(bitFlag , shift))
 
     def pack(self):
         out = bytearray()

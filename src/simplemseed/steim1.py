@@ -1,6 +1,6 @@
 
 import struct
-import numpy
+import numpy as np
 
 from .exceptions import (
     CodecException,
@@ -26,6 +26,9 @@ from .steimframeblock import getUint32, getInt32
 #  @throws CodecException - encoded data length is not multiple of 64
 #  bytes.
 
+ONE_BYTE = np.uint32(0xFF)
+TWO_BYTE = np.uint32(0xFFFF)
+TWO_BITS = np.uint32(0x3)
 
 def decodeSteim1(
     dataBytes: bytearray,
@@ -41,13 +44,13 @@ def decodeSteim1(
             f"encoded data length is not multiple of 64 bytes ({len(dataBytes)})",
         )
 
-    dt = numpy.dtype(numpy.int32)
-    samples = numpy.zeros((numSamples,), dt)
+    dt = np.dtype(np.int32)
+    samples = np.zeros((numSamples,), dt)
     numFrames = len(dataBytes) // 64
     current = 0
-    start = 0
-    firstData = 0
-    lastValue = 0
+    start = np.int32(0)
+    firstData = np.int32(0)
+    lastValue = np.int32(0)
 
     for i in range(numFrames):
         tempSamples = extractSteim1Samples(
@@ -111,17 +114,17 @@ def extractSteim1Samples(
 ) -> list:
     # get nibbles
     nibbles = getUint32(dataBytes, offset, False)
-    currNibble = 0
+    currNibble = np.uint32(0)
     temp = []  # 4 samples * 16 longwords, can't be more than 64
 
     currNum = 0
 
     for i in range(16):
         # i is the word number of the frame starting at 0
-        # currNibble = (nibbles >>> (30 - i*2 ) ) & 0x03 # count from top to bottom each nibble in W(0)
-        currNibble = (
-            nibbles >> (30 - i * 2)
-        ) & 0x03  # count from top to bottom each nibble in W(0)
+        shiftBits = np.uint32(30 - i * 2)
+        a=np.right_shift(np.uint32(nibbles), shiftBits)
+        b=np.uint32(np.right_shift(np.uint32(nibbles), shiftBits))
+        currNibble = np.bitwise_and(b, TWO_BITS)  # count from top to bottom each nibble in W(0)
 
         # Rule appears to be:
         # only check for byte-swap on actual value-atoms, so a 32-bit word in of itself
@@ -162,7 +165,7 @@ def extractSteim1Samples(
             raise CodecException(f"unreachable case: {currNibble}")
         #  ("default")
 
-    return temp
+    return np.array(temp, dtype='i4')
 
 
 def encodeSteim1(
@@ -191,7 +194,7 @@ def encodeSteim1(
 
 
 def encodeSteim1FrameBlock(
-    samples: list[int], frames: int = 0, bias: int = 0, offset: int = 0
+    samples: list[int], frames: int = 0, bias: np.int32 = 0, offset: int = 0
 ) -> SteimFrameBlock:
 
     if len(samples) == 0:
@@ -222,15 +225,15 @@ def encodeSteim1FrameBlock(
     # ...reverse integration constant may need to be changed if
     # the frameBlock fills up.
     frameBlock.addEncodedWord(
-        numpy.int32(samples[offset]), 0, 0
+        np.int32(samples[offset]), 0, 0
     )  # X(0) -- first sample value
     frameBlock.addEncodedWord(
-        numpy.int32(samples[len(samples) - 1]), 0, 0
+        np.int32(samples[len(samples) - 1]), 0, 0
     )  # X(N) -- last sample value
     #
     # now begin looping over differences
     sampleIndex = offset  # where we are in the sample array
-    diff = [0, 0, 0, 0]  # store differences here
+    diff = np.array([0, 0, 0, 0], dtype="i4")  # store differences here
     diffCount = 0  # how many sample diffs we put into current word
     maxSize = 0  # the maximum diff value size encountered
     curSize = 0  # size of diff value currently looked at
@@ -246,9 +249,9 @@ def encodeSteim1FrameBlock(
                 # get next difference  X[i] - X[i-1]
                 if sampleIndex == offset and i == 0:
                     # special case for d(0) = x(0) - x(-1).
-                    diff[0] = numpy.int32(samples[offset] - bias)
+                    diff[0] = np.int32(samples[offset]) - np.int32(bias)
                 else:
-                    diff[i] = numpy.int32(
+                    diff[i] = np.int32(
                         samples[sampleIndex + i] - samples[sampleIndex + i - 1]
                     )
 
@@ -286,20 +289,20 @@ def encodeSteim1FrameBlock(
         # end for (0..3)
 
         # generate the encoded word and the nibble value
-        nibble = numpy.uint32(0)
-        word = numpy.uint32(0)
+        nibble = 0
+        word = np.uint32(0)
         if diffCount == 1:
             word = diff[0]
             nibble = 3  # size 4 = 11
         elif diffCount == 2:
-            word = (diff[0] & 0xFFFF) << 16  # clip to 16 bits, then shift
-            word |= diff[1] & 0xFFFF
+            word = np.bitwise_and(diff[0], TWO_BYTE) << 16  # clip to 16 bits, then shift
+            word |= np.bitwise_and(diff[1], TWO_BYTE)
             nibble = 2  # size 2 = 10
         else:  # diffCount == 4
-            word = (diff[0] & 0xFF) << 24  # clip to 8 bits, then shift
-            word |= (diff[1] & 0xFF) << 16
-            word |= (diff[2] & 0xFF) << 8
-            word |= diff[3] & 0xFF
+            word = np.bitwise_and(diff[0], ONE_BYTE) << 24  # clip to 8 bits, then shift
+            word |= np.bitwise_and(diff[1], ONE_BYTE) << 16
+            word |= np.bitwise_and(diff[2], ONE_BYTE) << 8
+            word |= np.bitwise_and(diff[3], ONE_BYTE)
             nibble = 1  # size 1 = 01
 
         # add the encoded word to the frame block
@@ -308,7 +311,7 @@ def encodeSteim1FrameBlock(
             # so modify reverse integration constant to be the very last value added
             # and break out of loop (read no more samples)
             frameBlock.setXsubN(
-                numpy.int32(samples[sampleIndex + diffCount - 1])
+                np.int32(samples[sampleIndex + diffCount - 1])
             )  # X(N)
             break
 
