@@ -103,13 +103,15 @@ class TestMSeed3:
         encodedValues = simplemseed.encodeSteim1(values)
         header.encoding = simplemseed.seedcodec.STEIM1
         header.starttime = "2024-01-02T15:13:55.123456Z"
-        header.sampleRatePeriod = -1
+        header.sampleRatePeriod = -1 # neg is period, so 1 sps
         header.numSamples = len(values)
         identifier = simplemseed.FDSNSourceId.createUnknown(header.sampleRate)
         record = simplemseed.MSeed3Record(header, identifier, encodedValues)
         recordBytes = record.pack()
         outRecord = simplemseed.unpackMSeed3Record(recordBytes)
         assert identifier == outRecord.parseIdentifier()
+        assert header.encoding == outRecord.header.encoding
+        assert simplemseed.seedcodec.STEIM1 == outRecord.header.encoding
         decomp_data = outRecord.decompress()
         assert record.details() == outRecord.details()
         assert len(decomp_data) == len(values)
@@ -124,12 +126,14 @@ class TestMSeed3:
         encodedValues = simplemseed.encodeSteim2(values)
         header.encoding = simplemseed.seedcodec.STEIM2
         header.starttime = "2024-01-02T15:13:55.123456Z"
-        header.sampleRatePeriod = -1
+        header.sampleRatePeriod = -1 # neg is period, so 1 sps
         header.numSamples = len(values)
         identifier = simplemseed.FDSNSourceId.createUnknown(header.sampleRate)
         record = simplemseed.MSeed3Record(header, identifier, encodedValues)
         recordBytes = record.pack()
         outRecord = simplemseed.unpackMSeed3Record(recordBytes)
+        assert header.encoding == outRecord.header.encoding
+        assert simplemseed.seedcodec.STEIM2 == outRecord.header.encoding
         assert identifier == outRecord.parseIdentifier()
         decomp_data = outRecord.decompress()
         assert record.details() == outRecord.details()

@@ -33,7 +33,7 @@ TWO_BITS = np.uint32(0x3)
 def decodeSteim1(
     dataBytes: bytearray,
     numSamples,
-    bias,
+    bias = np.int32(0),
 ):
     # Decode Steim1 compression format from the provided byte array, which contains numSamples number
     # of samples.  bias represents
@@ -169,7 +169,7 @@ def extractSteim1Samples(
 
 
 def encodeSteim1(
-    samples: list[int], frames: int = 0, bias: int = 0, offset: int = 0
+    samples: list[int], frames: int = 0, bias: np.int32 = 0, offset: int = 0
 ) -> bytearray:
     """
     Encode the array of integer values into a Steim 1 * compressed byte frame block.
@@ -210,6 +210,12 @@ def encodeSteim1FrameBlock(
         raise SteimException(
             "Offset bigger than samples array: " + offset + " >= " + len(samples)
         )
+
+    # check if numpy array
+    if isinstance(samples, np.ndarray) and np.issubdtype(samples.dtype, np.floating):
+        raise SteimException(f"Cannot steim1 compress floating point numpy array: {samples.dtype}");
+    elif isinstance(samples[0], float):
+        raise SteimException(f"Cannot steim1 compress floating point list, first sample is float: {samples[0]}");
 
     # all encoding will be contained within a frame block
     # Steim encoding 1

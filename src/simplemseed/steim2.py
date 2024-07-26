@@ -275,7 +275,7 @@ def extractDnibValues(tempInt, headerSize, diffCount, bitSize):
     return out
 
 
-def encodeSteim2(samples: list[int], frames: int = 0, bias: int = 0):
+def encodeSteim2(samples: list[int], frames: int = 0, bias: np.int32 = 0):
     """
 
     Encode the array of integer values into a Steim 2 * compressed byte frame block.
@@ -300,13 +300,19 @@ def encodeSteim2(samples: list[int], frames: int = 0, bias: int = 0):
 
 
 def encodeSteim2FrameBlock(
-    samples: list[int], frames: int = 0, bias: int = 0
+    samples: list[int], frames: int = 0, bias: np.int32 = 0
 ) -> SteimFrameBlock:
     if len(samples) == 0:
         raise SteimException("samples array is zero size")
 
     if frames < 0:
         raise SteimException("number of frames is  a negative value")
+
+    # check if numpy array
+    if isinstance(samples, np.ndarray) and np.issubdtype(samples.dtype, np.floating):
+        raise SteimException(f"Cannot steim2 compress floating point numpy array: {samples.dtype}");
+    elif isinstance(samples[0], float):
+        raise SteimException(f"Cannot steim2 compress floating point list, first sample is float: {samples[0]}");
 
     # all encoding will be contained within a frame block
     # Steim encoding 2
@@ -344,7 +350,7 @@ def encodeSteim2FrameBlock(
                 # get next difference  X[i] - X[i-1]
                 if sampleIndex + i == 0:
                     # special case for d(0) = x(0) - x(-1).
-                    diff[0] = samples[0] - bias
+                    diff[0] = np.int32(samples[0]) - np.int32(bias)
                 else:
                     diff[i] = samples[sampleIndex + i] - samples[sampleIndex + i - 1]
 
