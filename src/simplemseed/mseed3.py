@@ -5,7 +5,7 @@ import json
 import re
 from typing import Union, Optional
 
-import numpy
+import numpy as np
 import crc32c
 
 from .seedcodec import (
@@ -248,13 +248,13 @@ class MSeed3Record:
     header: MSeed3Header
     identifier: Union[FDSNSourceId, str]
     _eh: Union[str, dict, None]
-    _data: Optional[Union[numpy.ndarray, array, list[int], list[float]]]
+    _data: Optional[Union[np.ndarray, array, list[int], list[float]]]
 
     def __init__(
         self,
         header: MSeed3Header,
         identifier: Union[FDSNSourceId, str],
-        data: Union[numpy.ndarray, bytes, bytearray, array, list[int], list[float]],
+        data: Union[np.ndarray, bytes, bytearray, array, list[int], list[float]],
         extraHeaders: Union[str, dict, None] = None,
     ):
         self.header = header
@@ -277,8 +277,18 @@ class MSeed3Record:
             encoding = mseed3EncodingFromArrayTypecode(data.typecode, data.itemsize)
             numSamples = len(data)
             self._data = data
-        elif isinstance(data, numpy.ndarray):
+        elif isinstance(data, np.ndarray):
             # numpy array
+            if len(np.shape(data)) != 1:
+                raise Miniseed3Exception(f"numpy array not one dimensional: {np.shape(data)}")
+            # special case for int64
+            if np.issubdtype(data.dtype, np.integer) and \
+                    not np.can_cast(data.dtype, np.int32, casting="safe"):
+                if abs(np.max(data)) > np.iinfo(np.int32).max:
+                    raise Miniseed3Exception(f"max value of numpy array, {np.max(data)} cannot fit into 32 bit integer")
+                else:
+                    data = data.astype(np.int32)
+
             encoding = mseed3EncodingFromNumpyDT(data.dtype)
             numSamples = len(data)
             self._data = data
@@ -289,7 +299,7 @@ class MSeed3Record:
                 encoding = 4  # default to 32 bit floats?
             else:
                 encoding = self.header.encoding
-            self._data = numpy.array(data, dtype=numpyDTFromMseed3Encoding(encoding))
+            self._data = np.array(data, dtype=numpyDTFromMseed3Encoding(encoding))
             encoding = mseed3EncodingFromNumpyDT(self._data.dtype)
             numSamples = len(self._data)
         else:
@@ -339,17 +349,17 @@ class MSeed3Record:
             return FDSNSourceId.parse(self.identifier)
         raise Miniseed3Exception("Unable to parse identifier as FDSN SourceId")
 
-    def decompress(self) -> numpy.ndarray:
+    def decompress(self) -> np.ndarray:
         data = None
         if self._data is None:
             raise UnsupportedCompressionType("data is missing in record")
 
-        if isinstance(self._data, numpy.ndarray):
+        if isinstance(self._data, np.ndarray):
             # already decompressed
             data = self._data
         elif isinstance(self._data, array):
             # already decompressed
-            data = numpy.array(self._data)
+            data = np.array(self._data)
         elif isinstance(self._data, (bytes, bytearray)):
             # try to decompress bytes-like
             byteOrder = LITTLE_ENDIAN

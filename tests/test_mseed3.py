@@ -283,6 +283,22 @@ class TestMSeed3:
             assert data[i] == decomp_data[i]
             assert data[i] == bigdecomp_data[i]
 
+    def testInt64ToSteim(self):
+        "int64 numpy array, but values small enough to be int32"
+        data = np.array([1, 2, -3, -1], dtype=np.int64)
+        header = simplemseed.MSeed3Header()
+        header.numSamples = len(data)
+        encodedValues = simplemseed.encodeSteim2(data)
+        header.encoding = simplemseed.seedcodec.STEIM2
+        identifier = simplemseed.FDSNSourceId.createUnknown(header.sampleRate)
+        record = simplemseed.MSeed3Record(header, identifier, encodedValues)
+        recordBytes = record.pack()
+        outRecord = simplemseed.unpackMSeed3Record(recordBytes)
+        assert outRecord.header.numSamples == len(data)
+        assert outRecord.header.encoding == simplemseed.seedcodec.STEIM2
+        decomp_data = outRecord.decompress()
+        assert np.array_equal(data.astype(np.int32), decomp_data)
+
 
 
 
