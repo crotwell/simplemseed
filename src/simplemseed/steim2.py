@@ -377,43 +377,43 @@ def encodeSteim2FrameBlock(
 
         # generate the encoded word and the nibble value
         ndiff = 0  # the number of differences
-        bitmask = 0
-        submask = 0
+        bitmask = np.uint32(0)
+        submask = np.uint32(0)
         nibble = 0
         if nbits == 4:
             ndiff = 7
-            bitmask = 0x0000000F
-            submask = 0x02
+            bitmask = np.uint32(0x0000000F)
+            submask = np.uint32(0x02)
             nibble = 3
         elif nbits == 5:
             ndiff = 6
-            bitmask = 0x0000001F
-            submask = 0x01
+            bitmask = np.uint32(0x0000001F)
+            submask = np.uint32(0x01)
             nibble = 3
         elif nbits == 6:
             ndiff = 5
-            bitmask = 0x0000003F
-            submask = 0x00
+            bitmask = np.uint32(0x0000003F)
+            submask = np.uint32(0x00)
             nibble = 3
         elif nbits == 8:
             ndiff = 4
-            bitmask = 0x000000FF
-            submask = 0
+            bitmask = np.uint32(0x000000FF)
+            submask = np.uint32(0)
             nibble = 1
         elif nbits == 10:
             ndiff = 3
-            bitmask = 0x000003FF
-            submask = 0x03
+            bitmask = np.uint32(0x000003FF)
+            submask = np.uint32(0x03)
             nibble = 2
         elif nbits == 15:
             ndiff = 2
-            bitmask = 0x00007FFF
-            submask = 0x02
+            bitmask = np.uint32(0x00007FFF)
+            submask = np.uint32(0x02)
             nibble = 2
         elif nbits == 30:
             ndiff = 1
-            bitmask = 0x3FFFFFFF
-            submask = 0x01
+            bitmask = np.uint32(0x3FFFFFFF)
+            submask = np.uint32(0x01)
             nibble = 2
         else:
             raise SteimException(
@@ -510,7 +510,7 @@ def bitsForPack(minbits: list[int], points_remaining: int):
     return 32
 
 
-def steimPackWord(diff: list[int], nbits: int, ndiff: int, bitmask: int, submask: int):
+def steimPackWord(diff: list[int], nbits: int, ndiff: int, bitmask: np.uint32, submask: np.uint32) -> np.uint32:
     """
     Pack Steim2 compressed word with optional submask.
     @param diff the differences
@@ -519,11 +519,11 @@ def steimPackWord(diff: list[int], nbits: int, ndiff: int, bitmask: int, submask
     @param bitmask the bit mask
     @param submask the sub mask or 0 if none
     """
-    val = np.int32(0)
+    val = np.uint32(0)
     i = 0
     while i < ndiff:
-        val = np.bitwise_or(np.left_shift(val, np.uint32(nbits)) , np.bitwise_and(np.int32(diff[i]), np.uint32(bitmask)))
+        val = np.bitwise_or(np.left_shift(val, np.uint32(nbits)) , np.uint32(np.bitwise_and(np.int32(diff[i]), bitmask)))
         i += 1
     if submask != 0:
-        val = np.bitwise_or(val, np.left_shift(np.uint32(submask), np.uint32(30)))
+        val = np.bitwise_or(val, np.left_shift(submask, np.uint32(30)))
     return val
