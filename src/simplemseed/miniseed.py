@@ -5,7 +5,7 @@ from datetime import datetime, timedelta, timezone
 import math
 import sys
 
-import numpy
+import numpy as np
 
 from .exceptions import (
     CodecException,
@@ -286,7 +286,7 @@ class MiniseedRecord:
             numSamples = len(data)
             byteorder = LITTLE_ENDIAN if sys.byteorder == "little" else BIG_ENDIAN
             self._data = data
-        elif isinstance(data, numpy.ndarray):
+        elif isinstance(data, np.ndarray):
             # numpy array
             encoding = mseed3EncodingFromNumpyDT(data.dtype)
             if data.dtype.byteorder == "<":
@@ -304,7 +304,7 @@ class MiniseedRecord:
                 encoding = 4  # default to 32 bit floats?
             else:
                 encoding = self.header.encoding
-            self._data = numpy.array(data, dtype=numpyDTFromMseed3Encoding(encoding))
+            self._data = np.array(data, dtype=numpyDTFromMseed3Encoding(encoding))
             encoding = mseed3EncodingFromNumpyDT(self._data.dtype)
             numSamples = len(self._data)
             byteorder = LITTLE_ENDIAN if sys.byteorder == "little" else BIG_ENDIAN
