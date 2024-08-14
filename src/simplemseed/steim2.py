@@ -1,7 +1,7 @@
 
 import struct
-import numpy as np
 from typing import Union
+import numpy as np
 
 from .exceptions import (
     CodecException,
@@ -313,17 +313,17 @@ def encodeSteim2FrameBlock(
     # check if numpy array
     if isinstance(samples, np.ndarray):
         if len(np.shape(samples)) != 1:
-            raise Miniseed3Exception(f"numpy array not one dimensional: {np.shape(samples)}")
+            raise SteimException(f"numpy array not one dimensional: {np.shape(samples)}")
         if np.issubdtype(samples.dtype, np.floating):
-            raise SteimException(f"Cannot steim2 compress floating point numpy array: {samples.dtype}");
+            raise SteimException(f"Cannot steim2 compress floating point numpy array: {samples.dtype}")
         if np.issubdtype(samples.dtype, np.integer) and \
                 not np.can_cast(samples.dtype, np.int32, casting="safe"):
             if abs(np.max(samples)) > np.iinfo(np.int32).max:
-                raise Miniseed3Exception(f"max value of numpy array, {np.max(samples)} cannot fit into 32 bit integer")
+                raise SteimException(f"max value of numpy array, {np.max(samples)} cannot fit into 32 bit integer")
             else:
                 samples = samples.astype(np.int32)
     if isinstance(samples[0], float):
-        raise SteimException(f"Cannot steim2 compress floating point list, first sample is float: {samples[0]}");
+        raise SteimException(f"Cannot steim2 compress floating point list, first sample is float: {samples[0]}")
 
     # all encoding will be contained within a frame block
     # Steim encoding 2
