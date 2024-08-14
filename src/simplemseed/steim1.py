@@ -27,9 +27,9 @@ from .steimframeblock import getUint32, getInt32
 #  @throws CodecException - encoded data length is not multiple of 64
 #  bytes.
 
-ONE_BYTE = np.uint32(0xFF)
-TWO_BYTE = np.uint32(0xFFFF)
-TWO_BITS = np.uint32(0x3)
+ONE_BYTE = np.int32(0xFF)
+TWO_BYTE = np.int32(0xFFFF)
+TWO_BITS = np.int32(0x3)
 
 def decodeSteim1(
     dataBytes: bytearray,
@@ -114,17 +114,17 @@ def extractSteim1Samples(
     offset: int,
 ) -> list:
     # get nibbles
-    nibbles = getUint32(dataBytes, offset, False)
-    currNibble = np.uint32(0)
+    nibbles = np.int32(getUint32(dataBytes, offset, False))
+    currNibble = np.int32(0)
     temp = []  # 4 samples * 16 longwords, can't be more than 64
 
     currNum = 0
 
     for i in range(16):
         # i is the word number of the frame starting at 0
-        shiftBits = np.uint32(30 - i * 2)
-        a=np.right_shift(np.uint32(nibbles), shiftBits)
-        b=np.uint32(np.right_shift(np.uint32(nibbles), shiftBits))
+        shiftBits = np.int32(30 - i * 2)
+        a=np.right_shift(nibbles, shiftBits)
+        b=np.right_shift(nibbles, shiftBits)
         currNibble = np.bitwise_and(b, TWO_BITS)  # count from top to bottom each nibble in W(0)
 
         # Rule appears to be:
@@ -249,7 +249,8 @@ def encodeSteim1FrameBlock(
     #
     # now begin looping over differences
     sampleIndex = offset  # where we are in the sample array
-    diff = np.array([0, 0, 0, 0], dtype="i4")  # store differences here
+    dt = np.dtype(np.int32)
+    diff = np.zeros((4,), dtype=dt)  # store differences here
     diffCount = 0  # how many sample diffs we put into current word
     maxSize = 0  # the maximum diff value size encountered
     curSize = 0  # size of diff value currently looked at
@@ -306,18 +307,18 @@ def encodeSteim1FrameBlock(
 
         # generate the encoded word and the nibble value
         nibble = 0
-        word = np.uint32(0)
+        word = np.int32(0)
         if diffCount == 1:
             word = diff[0]
             nibble = 3  # size 4 = 11
         elif diffCount == 2:
-            word = np.bitwise_and(diff[0], TWO_BYTE) << 16  # clip to 16 bits, then shift
+            word = np.left_shift(np.bitwise_and(diff[0], TWO_BYTE), np.int32(16))  # clip to 16 bits, then shift
             word |= np.bitwise_and(diff[1], TWO_BYTE)
             nibble = 2  # size 2 = 10
         else:  # diffCount == 4
-            word = np.bitwise_and(diff[0], ONE_BYTE) << 24  # clip to 8 bits, then shift
-            word |= np.bitwise_and(diff[1], ONE_BYTE) << 16
-            word |= np.bitwise_and(diff[2], ONE_BYTE) << 8
+            word = np.left_shift(np.bitwise_and(diff[0], ONE_BYTE), np.int32(24))  # clip to 8 bits, then shift
+            word |= np.left_shift(np.bitwise_and(diff[1], ONE_BYTE), np.int32(16))
+            word |= np.left_shift(np.bitwise_and(diff[2], ONE_BYTE), np.int32(8))
             word |= np.bitwise_and(diff[3], ONE_BYTE)
             nibble = 1  # size 1 = 01
 

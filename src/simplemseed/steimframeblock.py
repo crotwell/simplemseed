@@ -35,7 +35,7 @@ class SteimFrame:
     """
 
     def __init__(self):
-        dt = np.dtype(np.uint32)
+        dt = np.dtype(np.int32)
         dt = dt.newbyteorder(">")
         self.word = np.zeros(16, dtype=dt)  # 16 32-byte words
         self.pos = 0  # word position in frame (pos: 0 = W0, 1 = W1, etc...)
@@ -146,7 +146,7 @@ class SteimFrameBlock:
     # *** private and protected methods ***
 
     def addEncodedWord(
-        self, word: Union[np.int32, np.uint32], samples: int, nibble: int
+        self, word: np.int32, samples: int, nibble: int
     ):
         """
         Add a single 32-bit word to current frame.
@@ -190,7 +190,7 @@ class SteimFrameBlock:
         """
         self.steimFrameList[0].word[2] = word
 
-    def addEncodingNibble(self, bitFlag: np.uint32):
+    def addEncodingNibble(self, bitFlag: np.int32):
         """
         * Add encoding nibble to W0.
         * @param bitFlag a value 0 to 3 representing an encoding nibble
