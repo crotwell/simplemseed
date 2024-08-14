@@ -429,6 +429,10 @@ def sourceCodeDescribe(
 
 
 class NslcId:
+    """
+    Older style NSLC SEED Id. Consists of 2 char network,
+    5 char station, 2 char location and 3 char channel.
+    """
     networkCode: str
     stationCode: str
     locationCode: str
