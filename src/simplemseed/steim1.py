@@ -123,9 +123,8 @@ def extractSteim1Samples(
     for i in range(16):
         # i is the word number of the frame starting at 0
         shiftBits = np.int32(30 - i * 2)
-        a=np.right_shift(nibbles, shiftBits)
-        b=np.right_shift(nibbles, shiftBits)
-        currNibble = np.bitwise_and(b, TWO_BITS)  # count from top to bottom each nibble in W(0)
+        shiftNibble=np.right_shift(nibbles, shiftBits)
+        currNibble = np.bitwise_and(shiftNibble, TWO_BITS)  # count from top to bottom each nibble in W(0)
 
         # Rule appears to be:
         # only check for byte-swap on actual value-atoms, so a 32-bit word in of itself
@@ -217,7 +216,7 @@ def encodeSteim1FrameBlock(
         if len(np.shape(samples)) != 1:
             raise Miniseed3Exception(f"numpy array not one dimensional: {np.shape(samples)}")
         if np.issubdtype(samples.dtype, np.floating):
-            raise SteimException(f"Cannot steim1 compress floating point numpy array: {samples.dtype}");
+            raise SteimException(f"Cannot steim1 compress floating point numpy array: {samples.dtype}")
         if np.issubdtype(samples.dtype, np.integer) and \
                 not np.can_cast(samples.dtype, np.int32, casting="safe"):
             if abs(np.max(samples)) > np.iinfo(np.int32).max:
@@ -225,7 +224,7 @@ def encodeSteim1FrameBlock(
             else:
                 samples = samples.astype(np.int32)
     elif isinstance(samples[0], float):
-        raise SteimException(f"Cannot steim1 compress floating point list, first sample is float: {samples[0]}");
+        raise SteimException(f"Cannot steim1 compress floating point list, first sample is float: {samples[0]}")
 
     # all encoding will be contained within a frame block
     # Steim encoding 1
