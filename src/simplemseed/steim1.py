@@ -170,7 +170,7 @@ def extractSteim1Samples(
 
 
 def encodeSteim1(
-    samples: list[int], frames: int = 0, bias: np.int32 = 0, offset: int = 0
+    samples: Union[np.ndarray, list[int]], frames: int = 0, bias: np.int32 = 0, offset: int = 0
 ) -> bytearray:
     """
     Encode the array of integer values into a Steim 1 * compressed byte frame block.
@@ -334,5 +334,4 @@ def encodeSteim1FrameBlock(
         # increment the sampleIndex by the diffCount
         sampleIndex += diffCount
     # end while next sample
-
     return frameBlock
