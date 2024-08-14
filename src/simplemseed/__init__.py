@@ -42,6 +42,7 @@ from .seedcodec import (
     LITTLE_ENDIAN,
     isPrimitiveCompression,
     EncodedDataSegment,
+    STEIM1, STEIM2,
 )
 from .exceptions import (
     CodecException,
@@ -96,4 +97,6 @@ __all__ = [
     "BIG_ENDIAN",
     "LITTLE_ENDIAN",
     "isPrimitiveCompression",
+    "STEIM1",
+    "STEIM2",
 ]
