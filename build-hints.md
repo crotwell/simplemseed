@@ -9,6 +9,7 @@ hatch clean
 hatch build
 pip3 install dist/simplemseed-*-py3-none-any.whl --force-reinstall
 pytest
+
 ```
 
 for testing, use code in current directory so updates on edit:
@@ -24,6 +25,7 @@ python3 -m pip install --upgrade hatch
 hatch clean && hatch build
 pytest && pylint src/simplemseed | grep -v snake_case | grep -v docstring | grep -v line-too-long
 
+pip install requests
 cd examples ; ./run_all.sh ; cd ..
 # update release/version in docs/source/conf.py
 cd docs ; make clean && make html && open build/html/index.html ; cd ..
