@@ -19,6 +19,7 @@ from .seedcodec import (
     numpyDTFromMseed3Encoding,
     BIG_ENDIAN,
     LITTLE_ENDIAN,
+    STEIM1, STEIM2,
 )
 
 MICRO = 1000000
@@ -255,8 +256,17 @@ class MiniseedRecord:
     Represents a miniseed2 record
     """
 
-    def __init__(self, header, data, encodedData=None, blockettes=None):
+    def __init__(self, header: MiniseedHeader, data, encodedDataBytes=None, blockettes=None):
+        """
+        Create a new miniseed record.
+        header - miniseed header
+        data - uncompressed data, usually numpy array, or
+            EncodedDataSegment if compressed
+        encodedDataBytes - raw bytes for encoded data
+        blockettes - miniseed blockettes
+        """
         self.header = header
+        self.encodedDataBytes = encodedDataBytes
         if blockettes is not None:
             self.blockettes = blockettes
         else:
@@ -264,19 +274,18 @@ class MiniseedRecord:
         self._data = None
         if data is not None:
             self._internal_set_data(data)
-        else:
-            self._data = None
-        self.encodedData = encodedData
 
     def _internal_set_data(self, data):
         if isinstance(data, EncodedDataSegment):
-            self._data = data.dataBytes
+            self._data = None
+            self.encodedDataBytes = data.dataBytes
             encoding = data.compressionType
             numSamples = data.numSamples
             byteorder = LITTLE_ENDIAN if data.littleEndian else BIG_ENDIAN
         elif isinstance(data, (bytes, bytearray)):
             # bytes, hopefully header.numSamples and byteorder set correctly
-            self._data = data
+            self._data = None
+            self.encodedDataBytes = data
             encoding = self.header.encoding
             numSamples = self.header.numSamples
             byteorder = self.header.byteorder
@@ -329,12 +338,12 @@ class MiniseedRecord:
     def decompressed(self):
         if self._data is not None:
             return self._data
-        if self.encodedData is not None:
+        if self.encodedDataBytes is not None:
             self._data = decompressEncodedData(
                 self.header.encoding,
                 self.header.byteorder,
                 self.header.numSamples,
-                self.encodedData,
+                self.encodedDataBytes,
             )
         return self._data
 
@@ -371,11 +380,11 @@ class MiniseedRecord:
         for b in self.blockettes:
             offset = self.packBlockette(recordBytes, offset, b)
         # set offset to data in header
-        # if offset < 64:
-        #    offset = 64
+        if (self.header.encoding == STEIM1 or self.header.encoding == STEIM2) and offset < 64:
+            offset = 64
         struct.pack_into(self.header.endianChar + "H", recordBytes, 44, offset)
-        if self.encodedData is not None and self._data is None:
-            recordBytes[offset : offset + len(self.encodedData)] = self.encodedData
+        if self.encodedDataBytes is not None and self._data is None:
+            recordBytes[offset : offset + len(self.encodedDataBytes)] = self.encodedDataBytes
         else:
             self.packData(recordBytes, offset, self._data)
         return recordBytes
@@ -650,14 +659,14 @@ def unpackMiniseedRecord(recordBytes):
                 )
                 raise
 
-    encodedData = recordBytes[header.dataOffset :]
+    encodedDataBytes = recordBytes[header.dataOffset :]
     if header.encoding in (ENC_SHORT, ENC_INT):
         data = decompressEncodedData(
-            header.encoding, header.byteorder, header.numSamples, encodedData
+            header.encoding, header.byteorder, header.numSamples, encodedDataBytes
         )
     else:
         data = None
-    return MiniseedRecord(header, data, encodedData=encodedData, blockettes=blockettes)
+    return MiniseedRecord(header, data, encodedDataBytes=encodedDataBytes, blockettes=blockettes)
 
 
 def decompressEncodedData(encoding, byteorder, numSamples, recordBytes):
@@ -713,6 +722,6 @@ def readMiniseed2Records(fileptr):
                 recordBytesSize = 2**b.recLength
         encodedDataBytes = fileptr.read(recordBytesSize - header.dataOffset)
         yield MiniseedRecord(
-            header, data=None, encodedData=encodedDataBytes, blockettes=blockettes
+            header, data=None, encodedDataBytes=encodedDataBytes, blockettes=blockettes
         )
         headBytes = fileptr.read(HEADER_SIZE)

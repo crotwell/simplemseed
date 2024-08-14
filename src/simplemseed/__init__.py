@@ -41,6 +41,7 @@ from .seedcodec import (
     BIG_ENDIAN,
     LITTLE_ENDIAN,
     isPrimitiveCompression,
+    EncodedDataSegment,
 )
 from .exceptions import (
     CodecException,

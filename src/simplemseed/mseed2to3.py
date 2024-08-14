@@ -45,13 +45,13 @@ def mseed2to3(ms2: MiniseedRecord) -> MSeed3Record:
 
     ms3Header.encoding = b1000.encoding
     ms3Header.publicationVersion = UNKNOWN_DATA_VERSION
-    if ms2.encodedData is not None:
+    if ms2.encodedDataBytes is not None:
         if isPrimitiveCompression(b1000.encoding) and ms2H.byteorder == BIG_ENDIAN:
             # need to decompress to byte swap primitive array
             data = ms2.decompressed().byteswap()
         else:
-            ms3Header.dataLength = len(ms2.encodedData)
-            data = ms2.encodedData
+            ms3Header.dataLength = len(ms2.encodedDataBytes)
+            data = ms2.encodedDataBytes
     else:
         data = ms2.decompressed()
     identifier = FDSNSourceId.fromNslc(

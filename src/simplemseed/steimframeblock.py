@@ -124,14 +124,14 @@ class SteimFrameBlock:
         @throws IOException from called method(s)
         """
         # set up a byte array to write int words to
-        encodedData = bytearray(self.getNumFrames() * 64)
+        encodedDataBytes = bytearray(self.getNumFrames() * 64)
         # set up interface to the array for writing the ints
         offset = 0
         for frame in self.steimFrameList:
             # for each frame
-            encodedData[offset : offset + 64] = frame.pack()
+            encodedDataBytes[offset : offset + 64] = frame.pack()
             offset += 64
-        return encodedData
+        return encodedDataBytes
 
     def getNumFrames(self):
         """
