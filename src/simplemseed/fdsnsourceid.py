@@ -190,9 +190,9 @@ class FDSNSourceId:
     def networkSourceId(self) -> "NetworkSourceId":
         return NetworkSourceId(self.networkCode)
 
-    def asNslc(self) -> "NslcId":
+    def shortChannelCode(self) -> str:
         """
-        Convert the source id into an older seed-style nslc.
+        Convert the channel part of the source id into an older seed-style nslc.
         If the source and subsource are single characters, then a 3 char
         channel code will be created, like BHZ. But if any are larger, then
         a longer string with separators will be creates, like B_AA_QW
@@ -205,7 +205,16 @@ class FDSNSourceId:
             chanCode = f"{self.bandCode}{self.sourceCode}{self.subsourceCode}"
         else:
             chanCode = f"{self.bandCode}{SEP}{self.sourceCode}{SEP}{self.subsourceCode}"
+        return chanCode
 
+    def asNslc(self) -> "NslcId":
+        """
+        Convert the source id into an older seed-style nslc.
+        If the source and subsource are single characters, then a 3 char
+        channel code will be created, like BHZ. But if any are larger, then
+        a longer string with separators will be creates, like B_AA_QW
+        """
+        chanCode = self.shortChannelCode()
         return NslcId(self.networkCode, self.stationCode, self.locationCode, chanCode)
 
     def __str__(self) -> str:
