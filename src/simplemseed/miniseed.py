@@ -3,6 +3,7 @@ from array import array
 from collections import namedtuple
 from datetime import datetime, timedelta, timezone
 import math
+import re
 import sys
 
 import numpy as np
@@ -21,6 +22,7 @@ from .seedcodec import (
     LITTLE_ENDIAN,
     STEIM1, STEIM2,
 )
+from .fdsnsourceid import FDSNSourceId
 
 MICRO = 1000000
 
@@ -107,13 +109,18 @@ class MiniseedHeader:
                     self.sampleRate = -1.0 * sampRateMult / sampRateFactor
                 else:
                     self.sampleRate = 1.0 / (sampRateFactor * sampRateMult)
-        if self.sampleRate == 0 and self.encoding != 0:
+        if self.sampleRate == 0 and not (self.encoding == -1  or self.encoding == 0):
             raise MiniseedException(
                 f"Sample rate cannot be 0 for encoding {self.encoding}: {self.sampleRate}, {self.sampRateFactor}, {self.sampRateMult}"
             )
-        self.sampPeriod = timedelta(
-            microseconds=MICRO / self.sampleRate
-        )  # Nominal sample period (Sec) */
+        if self.sampleRate == 0:
+            self.sampPeriod = timedelta(
+                microseconds=0
+            )
+        else:
+            self.sampPeriod = timedelta(
+                microseconds=MICRO / self.sampleRate
+            )  # Nominal sample period (Sec) */
 
         self.actFlag = actFlag
         self.ioFlag = ioFlag
@@ -133,6 +140,12 @@ class MiniseedHeader:
             l=self.location.strip(),
             c=self.channel.strip(),
         )
+    def fdsnSourceId(self):
+        return FDSNSourceId.fromNslc(
+            self.network.strip(),
+            self.station.strip(),
+            self.location.strip(),
+            self.channel.strip())
 
     def pack(self):
         header = bytearray(48)
@@ -646,6 +659,9 @@ def unpackMiniseedRecord(recordBytes):
                 if type(b).__name__ == "Blockette1000":
                     header.encoding = b.encoding
                     header.byteorder = b.byteorder
+                    header.recordLengthExp = b.recLength
+                    header.recordLength = 2**header.recordLengthExp
+
                 elif type(b).__name__ == "Blockette100":
                     header.setSampleRate(b.sampleRate)
                 elif type(b).__name__ == "Blockette1001":
@@ -677,51 +693,77 @@ class MiniseedException(Exception):
     pass
 
 
-def readMiniseed2Records(fileptr):
+def readMiniseed2Records(fileptr, matchsid=None):
+    matchPat = None
+    if matchsid is not None:
+        matchPat = re.compile(matchsid)
     headBytes = fileptr.read(HEADER_SIZE)
+    numRecBytesRead = len(headBytes)
     while len(headBytes) >= HEADER_SIZE:
         header = unpackFixedHeaderGuessByteOrder(headBytes)
         endianChar = "<" if header.byteorder == LITTLE_ENDIAN else ">"
 
         # assume all blocketts between fixed header and start of data
-        blocketteBytes = fileptr.read(header.dataOffset - HEADER_SIZE)
         blockettes = []
+        foundB1000 = None
         if header.numBlockettes > 0:
-            nextBOffset = header.blocketteOffset
-            while nextBOffset > 0:
+            blocketteNextOffset = header.blocketteOffset
+            prevBOffset = blocketteNextOffset
+            while blocketteNextOffset > 0 and len(blockettes) < header.numBlockettes:
                 try:
+                    blocketteFourBytes = fileptr.read(4)
+                    blocketteNum, blocketteNextOffset = struct.unpack(
+                        endianChar + "HH", blocketteFourBytes
+                    )
+                    if foundB1000 is not None and blocketteNextOffset > header.recordLength:
+                        raise MiniseedException(
+                            f"blockette larger than miniseed record: {blocketteNextOffset:d} {header.recordLength:d}"
+                        )
+                    if blocketteNextOffset > prevBOffset+4:
+                        numBytesToRead = blocketteNextOffset-prevBOffset-4
+                    elif header.dataOffset > prevBOffset:
+                        numBytesToRead = header.dataOffset-prevBOffset-4
+                    else:
+                        numBytesToRead = header.recordLength-prevBOffset-4
+                    blocketteBytes = blocketteFourBytes + fileptr.read(numBytesToRead)
                     b = unpackBlockette(
                         blocketteBytes,
-                        nextBOffset - HEADER_SIZE,
+                        0,
                         endianChar,
-                        header.dataOffset,
+                        len(blocketteBytes),
                     )
                     blockettes.append(b)
                     if type(b).__name__ == "Blockette1000":
                         header.encoding = b.encoding
                         header.byteorder = b.byteorder
+                        endianChar = "<" if header.byteorder == LITTLE_ENDIAN else ">"
+                        header.recordLengthExp = b.recLength
+                        header.recordLength = 2**header.recordLengthExp
+                        foundB1000 = b
                     elif type(b).__name__ == "Blockette100":
                         header.setSampleRate(b.sampleRate)
                     elif type(b).__name__ == "Blockette1001":
                         header.setStartTime(
                             header.starttime + timedelta(microseconds=b.microseconds)
                         )
-                    nextBOffset = b.nextOffset
+                    prevBOffset += len(blocketteBytes)
+                    numRecBytesRead += len(blocketteBytes)
                 except struct.error as e:
                     print(
                         f"Unable to unpack blockette, fail codes: {header.codes()} start: {header.starttime} {e}"
                     )
                     raise
-        recordBytesSize = 512
-        for b in blockettes:
-            if b.blocketteNum == 1000:
-                if b.recLength < 8 or b.recLength > 12:
-                    raise MiniseedException(
-                        f"record length {b.recLength} from B1000 is not valid, 8-12 for 512 to 4096"
-                    )
-                recordBytesSize = 2**b.recLength
-        encodedDataBytes = fileptr.read(recordBytesSize - header.dataOffset)
-        yield MiniseedRecord(
-            header, data=None, encodedDataBytes=encodedDataBytes, blockettes=blockettes
-        )
+        encodedDataBytes = None
+        if header.dataOffset > 0:
+            numBytesToRead = header.recordLength - numRecBytesRead
+            skipBytes = fileptr.read(numBytesToRead)
+            encodedDataBytes = fileptr.read(header.recordLength - header.dataOffset)
+        else:
+            numBytesToRead = header.recordLength - numRecBytesRead
+            skipBytes = fileptr.read(numBytesToRead)
+        identifier = str(header.fdsnSourceId())
+        if matchPat is None or matchPat.search(identifier) is not None:
+            yield MiniseedRecord(
+                header, data=None, encodedDataBytes=encodedDataBytes, blockettes=blockettes
+            )
         headBytes = fileptr.read(HEADER_SIZE)
