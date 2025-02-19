@@ -9,7 +9,7 @@ from .mseed3 import readMSeed3Records
 
 def do_parseargs():
     parser = argparse.ArgumentParser(
-        description="Simple conversion of miniseed 2 to 3."
+        description="Simple details of miniseed 3."
     )
     parser.add_argument(
         "-v", "--verbose", help="increase output verbosity", action="store_true"
