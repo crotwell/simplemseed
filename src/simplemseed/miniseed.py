@@ -793,6 +793,10 @@ def readMiniseed2Records(fileptr, matchsid=None):
                     raise
         encodedDataBytes = None
         if header.dataOffset > 0:
+            if header.dataOffset < numRecBytesRead:
+                raise MiniseedException(
+                    f"dataOffset before last blockette ends: {header.dataOffset} < {numRecBytesRead:d} rec len: {header.recordLength:d}"
+                )
             numBytesToRead = header.dataOffset - numRecBytesRead
             skipBytes = fileptr.read(numBytesToRead)
             encodedDataBytes = fileptr.read(header.recordLength - header.dataOffset)
