@@ -58,6 +58,28 @@ SRO: int = 30
 DWWSSN: int = 32
 
 
+def encodingName(encoding):
+    encode_name = f"unknown ({encoding})"
+    if encoding == 0:
+        encode_name = "Text"
+    elif encoding == 1:
+        encode_name = "16-bit integer"
+    elif encoding == 3:
+        encode_name = "32-bit integer"
+    elif encoding == 4:
+        encode_name = "32-bit floats"
+    elif encoding == 5:
+        encode_name = "64-bit floats"
+    elif encoding == 11:
+        encode_name = "STEIM-2 integer compression"
+    elif encoding == 10:
+        encode_name = "STEIM-1 integer compression"
+    elif encoding == 19:
+        encode_name = "STEIM-3 integer compression"
+    elif encoding == 100:
+        encode_name = "Opaque data"
+    return encode_name
+
 
 def isFloatCompression(compressionType: int) -> bool:
     """

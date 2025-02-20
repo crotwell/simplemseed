@@ -21,8 +21,10 @@ from .seedcodec import (
     BIG_ENDIAN,
     LITTLE_ENDIAN,
     STEIM1, STEIM2,
+    encodingName,
 )
 from .fdsnsourceid import FDSNSourceId
+from .util import isoWZ
 
 MICRO = 1000000
 
@@ -363,6 +365,10 @@ class MiniseedRecord:
     def codes(self, sep="."):
         return self.header.codes(sep=sep)
 
+    @property
+    def identifier(self):
+        return self.header.fdsnSourceId()
+
     def starttime(self):
         return self.header.starttime
 
@@ -503,6 +509,22 @@ class MiniseedRecord:
     def summary(self):
         return f"{self.codes()} {self.starttime()} {self.endtime()} ({self.header.numSamples} pts)"
 
+    def details(self, showData=False):
+        actFlagStr=""
+        ioFlagStr=""
+        qualFlagStr=""
+        out = f"""\
+          {self.identifier}, quality {self.header.dataquality}, {self.header.recordLength} bytes (format: 2)
+                       start time: {isoWZ(self.starttime())} ({self.header.btime.yday:03})
+                number of samples: {self.header.numSamples}
+                 sample rate (Hz): {self.header.sampleRate}
+                            flags: [{self.header.actFlag:>08b}] 8 bits{actFlagStr}
+                            flags: [{self.header.ioFlag:>08b}] 8 bits{ioFlagStr}
+                            flags: [{self.header.qualFlag:>08b}] 8 bits{qualFlagStr}
+                 payload encoding: {encodingName(self.header.encoding)} (val: {self.header.encoding})\n"""
+        for b in self.blockettes:
+            out += f"    {b}\n"
+        return out
 
 def unpackMiniseedHeader(recordBytes, endianChar=">"):
     if len(recordBytes) < 48:

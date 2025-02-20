@@ -34,6 +34,7 @@ Issues = "https://github.com/crotwell/simplemseed/issues"
 
 [project.scripts]
   fdsnsourceid = "simplemseed.fdsnsourceid:main"
+  mseed2details = "simplemseed.mseed2details:main"
   mseed3details = "simplemseed.mseed3details:main"
   mseed3merge = "simplemseed.mseed3merge:main"
   mseed2to3 = "simplemseed.mseed2to3:main"

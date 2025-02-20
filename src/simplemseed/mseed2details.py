@@ -1,0 +1,75 @@
+import argparse
+from datetime import datetime
+import json
+import os
+import sys
+from jsonpointer import set_pointer, JsonPointer, JsonPointerException
+from .miniseed import readMiniseed2Records
+
+
+def do_parseargs():
+    parser = argparse.ArgumentParser(
+        description="Simple details of miniseed 2."
+    )
+    parser.add_argument(
+        "-v", "--verbose", help="increase output verbosity", action="store_true"
+    )
+    parser.add_argument(
+        "--summary", help="one line summary per record", action="store_true"
+    )
+    parser.add_argument("--data", help="print timeseries data", action="store_true")
+    parser.add_argument(
+        "--match",
+        help="regular expression to match the identifier",
+    )
+    parser.add_argument(
+        "-o",
+        "--outfile",
+        type=argparse.FileType("w", encoding="UTF-8"),
+        help="""output to file. For get, the output will be json, but for
+        getall it will be jsonl, with a separate json object on each line.
+        If a record does not have extra headers, a blank line will be output.
+        """,
+    )
+    parser.add_argument(
+        "ms2files", metavar="ms2file", nargs="+", help="mseed2 files to print"
+    )
+    return parser.parse_args()
+
+
+def do_details():
+    args = do_parseargs()
+    totSamples = 0
+    numRecords = 0
+    if args.outfile is not None:
+        outfile = args.outfile
+    else:
+        outfile = sys.stdout
+
+    for ms2file in args.ms2files:
+        with open(ms2file, "rb") as inms2file:
+            for ms2 in readMiniseed2Records(inms2file, matchsid=args.match):
+                numRecords += 1
+                totSamples += ms2.header.numSamples
+                if args.summary:
+                    print(ms2.summary())
+                else:
+                    print(ms2.details(showData=args.data))
+
+    print(f"Total {totSamples} samples in {numRecords} records")
+
+
+def main():
+    try:
+        do_details()
+        sys.stdout.flush()
+    except BrokenPipeError:
+        # Python flushes standard streams on exit; redirect remaining output
+        # to devnull to avoid another BrokenPipeError at shutdown
+        devnull = os.open(os.devnull, os.O_WRONLY)
+        os.dup2(devnull, sys.stdout.fileno())
+        sys.exit(1)  # Python exits with error code 1 on EPIPE
+
+
+if __name__ == "__main__":
+    main()

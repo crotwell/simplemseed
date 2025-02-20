@@ -11,7 +11,6 @@ from .mseed3 import (
     FIXED_HEADER_SIZE,
     mseed3merge,
     crcAsHex,
-    isoWZ,
 )
 
 from .miniseed import (
@@ -43,6 +42,7 @@ from .seedcodec import (
     isPrimitiveCompression,
     EncodedDataSegment,
     STEIM1, STEIM2,
+    encodingName,
 )
 from .exceptions import (
     CodecException,
@@ -52,6 +52,7 @@ from .steim1 import decodeSteim1, encodeSteim1, encodeSteim1FrameBlock
 from .steim2 import decodeSteim2, encodeSteim2, encodeSteim2FrameBlock
 from .steimframeblock import SteimFrameBlock
 from .mseed2to3 import mseed2to3
+from .util import isoWZ
 
 __all__ = [
     "MiniseedHeader",
@@ -81,6 +82,7 @@ __all__ = [
     "canDecompress",
     "encode",
     "decompress",
+    "encodingName",
     "CodecException",
     "UnsupportedCompressionType",
     "decodeSteim1",

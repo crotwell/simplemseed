@@ -22,9 +22,10 @@ from .seedcodec import (
     UnsupportedCompressionType,
     BIG_ENDIAN,
     LITTLE_ENDIAN,
+    encodingName,
 )
 from .fdsnsourceid import FDSNSourceId
-
+from .util import isoWZ
 
 MINISEED_THREE_MIME = "application/vnd.fdsn.mseed3"
 
@@ -497,26 +498,7 @@ class MSeed3Record:
         return f"{self.identifier} {isoWZ(self.header.starttime)} {isoWZ(self.header.endtime)} ({self.header.numSamples} pts)"
 
     def encodingName(self):
-        encode_name = f"unknown ({self.header.encoding})"
-        if self.header.encoding == 0:
-            encode_name = "Text"
-        elif self.header.encoding == 1:
-            encode_name = "16-bit integer"
-        elif self.header.encoding == 3:
-            encode_name = "32-bit integer"
-        elif self.header.encoding == 4:
-            encode_name = "32-bit floats"
-        elif self.header.encoding == 5:
-            encode_name = "64-bit floats"
-        elif self.header.encoding == 11:
-            encode_name = "STEIM-2 integer compression"
-        elif self.header.encoding == 10:
-            encode_name = "STEIM-1 integer compression"
-        elif self.header.encoding == 19:
-            encode_name = "STEIM-3 integer compression"
-        elif self.header.encoding == 100:
-            encode_name = "Opaque data"
-        return encode_name
+        return encodingName(self.header.encoding)
 
     def details(self, showExtraHeaders=True, showData=False):
 
@@ -764,10 +746,6 @@ def mseed3merge(ms3a: MSeed3Record, ms3b: MSeed3Record) -> list[MSeed3Record]:
 
 def crcAsHex(crc):
     return f"0x{crc:08X}"
-
-
-def isoWZ(time) -> str:
-    return time.isoformat().replace("+00:00", "Z")
 
 
 class Miniseed3Exception(Exception):
