@@ -276,7 +276,7 @@ class MiniseedRecord:
         Create a new miniseed record.
         header - miniseed header
         data - uncompressed data, usually numpy array, or
-            EncodedDataSegment if compressed
+        EncodedDataSegment if compressed
         encodedDataBytes - raw bytes for encoded data
         blockettes - miniseed blockettes
         """
