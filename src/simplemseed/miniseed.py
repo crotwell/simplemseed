@@ -351,6 +351,10 @@ class MiniseedRecord:
             )
 
     def decompressed(self):
+        return self.decompress()
+
+    def decompress(self):
+        print(f"decompress {len(self.encodedDataBytes)}")
         if self._data is not None:
             return self._data
         if self.encodedDataBytes is not None:
@@ -524,6 +528,18 @@ class MiniseedRecord:
                  payload encoding: {encodingName(self.header.encoding)} (val: {self.header.encoding})\n"""
         for b in self.blockettes:
             out += f"    {b}\n"
+        if showData:
+            out = out + "data: \n"
+            line = ""
+            data = self.decompress()
+            for i in range(self.header.numSamples):
+                line += f" {data[i]:<8}"
+                if i % 10 == 9:
+                    line += "\n"
+                    out += line
+                    line = ""
+            if len(line) > 0:
+                out += line
         return out
 
 def unpackMiniseedHeader(recordBytes, endianChar=">"):
@@ -777,7 +793,7 @@ def readMiniseed2Records(fileptr, matchsid=None):
                     raise
         encodedDataBytes = None
         if header.dataOffset > 0:
-            numBytesToRead = header.recordLength - numRecBytesRead
+            numBytesToRead = header.dataOffset - numRecBytesRead
             skipBytes = fileptr.read(numBytesToRead)
             encodedDataBytes = fileptr.read(header.recordLength - header.dataOffset)
         else:
