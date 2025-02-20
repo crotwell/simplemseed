@@ -809,3 +809,4 @@ def readMiniseed2Records(fileptr, matchsid=None):
                 header, data=None, encodedDataBytes=encodedDataBytes, blockettes=blockettes
             )
         headBytes = fileptr.read(HEADER_SIZE)
+        numRecBytesRead = len(headBytes)
