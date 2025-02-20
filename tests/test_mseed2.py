@@ -62,6 +62,12 @@ class TestMseed2:
             for i in range(len(msi_data)):
                 assert msi_data[i] == data[i]
 
+    def test_read_dataless(self):
+        filename = TEST_DIR / "IU_PET_00_A_C_E.mseed2"
+        with open(filename, "rb") as infile:
+            for msr in simplemseed.miniseed.readMiniseed2Records(infile):
+                assert 0 == msr.header.numSamples
+
     def test_create(self):
         data = numpy.fromfunction(lambda i: (i % 99 - 49), (100,), dtype=numpy.int16)
         network = "XX"
