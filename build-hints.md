@@ -31,7 +31,7 @@ cd examples ; ./run_all.sh ; cd ..
 # pip install sphinx-autodoc2
 cd docs ; make clean && make html && open build/html/index.html ; cd ..
 git status
-git tag -a -m "version to 0.4.1" v0.4.1
+git tag -a -m "version to 0.4.2" v0.4.2
 git push
 hatch publish
 ```

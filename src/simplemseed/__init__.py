@@ -1,4 +1,4 @@
-__version__ = "0.4.2dev"
+__version__ = "0.4.2"
 
 from .mseed3 import (
     unpackMSeed3Record,
