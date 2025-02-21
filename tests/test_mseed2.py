@@ -77,6 +77,15 @@ class TestMseed2:
             for i in range(len(casee_msi_data)):
                 assert casee_msi_data[i] == data[i]
 
+    def test_match(self):
+        filename = f"{TEST_DIR}/bird_jsc.ms2"
+        with open(filename, "rb") as infile:
+            p = None
+            recList = []
+            for rec in simplemseed.readMiniseed2Records(infile, matchsid="BIRD_.*_H_H_Z"):
+                recList.append(rec)
+        assert len(recList) == 13
+
     def test_read_dataless(self):
         filename = TEST_DIR / "IU_PET_00_A_C_E.mseed2"
         with open(filename, "rb") as infile:
