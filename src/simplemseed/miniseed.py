@@ -497,9 +497,12 @@ class MiniseedRecord:
         )
 
     def packData(self, recordBytes, offset, data):
-        dataBytes = encode(
-            data, self.header.encoding, self.header.byteorder == LITTLE_ENDIAN
-        ).dataBytes
+        if data is None or len(data) == 0:
+            dataBytes = bytes(0)
+        else:
+            dataBytes = encode(
+                data, self.header.encoding, self.header.byteorder == LITTLE_ENDIAN
+            ).dataBytes
         if len(recordBytes) < offset + len(dataBytes):
             raise MiniseedException(
                 f"not enough bytes in record to fit data: byte:{len(recordBytes):d} offset: {offset:d} len(data): {len(data):d}  enc:{self.header.encoding:d}"
@@ -711,14 +714,14 @@ def unpackMiniseedRecord(recordBytes):
                     f"Unable to unpack blockette, fail codes: {header.codes()} start: {header.starttime} {e}"
                 )
                 raise
-
-    encodedDataBytes = recordBytes[header.dataOffset :]
-    if header.encoding in (ENC_SHORT, ENC_INT):
-        data = decompressEncodedData(
-            header.encoding, header.byteorder, header.numSamples, encodedDataBytes
-        )
-    else:
-        data = None
+    encodedDataBytes=None
+    data=None
+    if header.dataOffset > 0:
+        encodedDataBytes = recordBytes[header.dataOffset :]
+        if header.encoding in (ENC_SHORT, ENC_INT):
+            data = decompressEncodedData(
+                header.encoding, header.byteorder, header.numSamples, encodedDataBytes
+            )
     return MiniseedRecord(header, data, encodedDataBytes=encodedDataBytes, blockettes=blockettes)
 
 

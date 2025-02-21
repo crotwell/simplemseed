@@ -27,12 +27,15 @@ def mseed2to3(ms2: MiniseedRecord) -> MSeed3Record:
     ms3Header.minute = ms2H.btime.minute
     ms3Header.second = ms2H.btime.second
     ms3Header.nanosecond = ms2H.btime.tenthMilli * 100000
-    # maybe can do better from factor and multiplier?
-    ms3Header.sampleRatePeriod = (
-        ms2.header.sampleRate
-        if ms2.header.sampleRate >= 1
-        else (-1.0 / ms2.header.sampleRate)
-    )
+    if ms2.header.sampleRate == 0:
+        ms3Header.sampleRatePeriod = 0
+    else:
+        # maybe can do better from factor and multiplier?
+        ms3Header.sampleRatePeriod = (
+            ms2.header.sampleRate
+            if ms2.header.sampleRate >= 1
+            else (-1.0 / ms2.header.sampleRate)
+        )
     ms3Header.numSamples = ms2H.numSamples
     ms3Header.crc = 0
 

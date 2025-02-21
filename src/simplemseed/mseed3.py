@@ -264,7 +264,11 @@ class MSeed3Record:
         self._internal_set_data(data)
 
     def _internal_set_data(self, data):
-        if isinstance(data, EncodedDataSegment):
+        if data is None:
+            self._data = None
+            encoding = 0
+            numSamples = 0
+        elif isinstance(data, EncodedDataSegment):
             self._data = data.dataBytes
             encoding = data.compressionType
             numSamples = data.numSamples
@@ -455,7 +459,9 @@ class MSeed3Record:
             extraHeadersStr = ""
         extraHeadersBytes = extraHeadersStr.encode("UTF-8")
         self.header.extraHeadersLength = len(extraHeadersBytes)
-        if isinstance(self._data, (bytearray, bytes)):
+        if self._data is None:
+            dataBytes = bytes(0)
+        elif isinstance(self._data, (bytearray, bytes)):
             # already byte-like, so just use
             dataBytes = self._data
         else:
