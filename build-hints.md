@@ -21,7 +21,7 @@ https://packaging.python.org/en/latest/tutorials/packaging-projects/
 
 ```
 python3 -m pip install --upgrade hatch
-hatch clean && hatch build
+hatch clean && hatch build && pip install dist/simplemseed*.whl
 pytest && pylint src/simplemseed | grep -v snake_case | grep -v docstring | grep -v line-too-long
 
 pip install requests
@@ -33,5 +33,7 @@ cd docs ; make clean && make html && open build/html/index.html ; cd ..
 git status
 git tag -a -m "version to 0.4.2" v0.4.2
 git push
+# first time
+# hatch publish -u __token__
 hatch publish
 ```
