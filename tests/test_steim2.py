@@ -3,8 +3,6 @@ import simplemseed
 import math
 
 import numpy as np
-# 1.2 to 2.0 errors
-np._set_promotion_state("weak_and_warn")
 
 class TestSteim2:
 

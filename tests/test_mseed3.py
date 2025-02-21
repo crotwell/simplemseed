@@ -8,8 +8,6 @@ from datetime import datetime
 from pathlib import Path
 
 import numpy as np
-# 1.2 to 2.0 errors
-np._set_promotion_state("weak_and_warn")
 
 TEST_DIR = Path(__file__).parent
 
