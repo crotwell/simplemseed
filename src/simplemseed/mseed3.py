@@ -234,7 +234,7 @@ class MSeed3Header:
         out = out and self.year >= 0 and self.year < 3000
         out = out and self.dayOfYear >= 1 and self.dayOfYear <= 366
         out = out and self.hour >= 0 and self.hour < 24
-        out = out and self.minute >= 0 and self.minute <= 60
+        out = out and self.minute >= 0 and self.minute < 60
         out = out and self.second >= 0 and self.second <= 60
         return out
 
