@@ -354,7 +354,6 @@ class MiniseedRecord:
         return self.decompress()
 
     def decompress(self):
-        print(f"decompress {len(self.encodedDataBytes)}")
         if self._data is not None:
             return self._data
         if self.encodedDataBytes is not None:
