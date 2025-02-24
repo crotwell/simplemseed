@@ -2,6 +2,7 @@ import struct
 from array import array
 from collections import namedtuple
 from datetime import datetime, timedelta, timezone
+import io
 import math
 import re
 import sys
@@ -683,46 +684,9 @@ def unpackFixedHeaderGuessByteOrder(recordBytes):
 
 
 def unpackMiniseedRecord(recordBytes):
-    header = unpackFixedHeaderGuessByteOrder(recordBytes)
-    endianChar = "<" if header.byteorder == LITTLE_ENDIAN else ">"
-
-    blockettes = []
-    if header.numBlockettes > 0:
-        nextBOffset = header.blocketteOffset
-        # print("Next Byte Offset",nextBOffset)
-        while nextBOffset > 0:
-            try:
-                b = unpackBlockette(
-                    recordBytes, nextBOffset, endianChar, header.dataOffset
-                )
-                blockettes.append(b)
-                if type(b).__name__ == "Blockette1000":
-                    header.encoding = b.encoding
-                    header.byteorder = b.byteorder
-                    header.recordLengthExp = b.recLength
-                    header.recordLength = 2**header.recordLengthExp
-
-                elif type(b).__name__ == "Blockette100":
-                    header.setSampleRate(b.sampleRate)
-                elif type(b).__name__ == "Blockette1001":
-                    header.setStartTime(
-                        header.starttime + timedelta(microseconds=b.microseconds)
-                    )
-                nextBOffset = b.nextOffset
-            except struct.error as e:
-                print(
-                    f"Unable to unpack blockette, fail codes: {header.codes()} start: {header.starttime} {e}"
-                )
-                raise
-    encodedDataBytes=None
-    data=None
-    if header.dataOffset > 0:
-        encodedDataBytes = recordBytes[header.dataOffset :]
-        if header.encoding in (ENC_SHORT, ENC_INT):
-            data = decompressEncodedData(
-                header.encoding, header.byteorder, header.numSamples, encodedDataBytes
-            )
-    return MiniseedRecord(header, data, encodedDataBytes=encodedDataBytes, blockettes=blockettes)
+    f = io.BytesIO(recordBytes)
+    # just send first msr
+    return next(readMiniseed2Records(f))
 
 
 def decompressEncodedData(encoding, byteorder, numSamples, recordBytes):
