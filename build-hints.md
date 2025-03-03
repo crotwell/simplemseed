@@ -45,3 +45,5 @@ hatch publish
 conda deactivate
 conda env remove -n do_release -y
 ```
+
+Then release simplemseed obspy plugin.
