@@ -222,8 +222,7 @@ def encodeSteim1FrameBlock(
                 not np.can_cast(samples.dtype, np.int32, casting="safe"):
             if abs(np.max(samples)) > np.iinfo(np.int32).max:
                 raise SteimException(f"max value of numpy array, {np.max(samples)} cannot fit into 32 bit integer")
-            else:
-                samples = samples.astype(np.int32)
+            samples = samples.astype(np.int32)
     elif isinstance(samples[0], float):
         raise SteimException(f"Cannot steim1 compress floating point list, first sample is float: {samples[0]}")
 
@@ -284,8 +283,8 @@ def encodeSteim1FrameBlock(
             else:
                 curSize = 4
             # get the maximum size
-            if curSize > maxSize:
-                maxSize = curSize
+            maxSize = max(maxSize, curSize)
+
             # now we multiply the maximum size encountered so far
             # by the number of differences examined so far
             # if the number is less than 4, we move on to the next diff

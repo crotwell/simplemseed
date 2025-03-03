@@ -320,8 +320,7 @@ def encodeSteim2FrameBlock(
                 not np.can_cast(samples.dtype, np.int32, casting="safe"):
             if abs(np.max(samples)) > np.iinfo(np.int32).max:
                 raise SteimException(f"max value of numpy array, {np.max(samples)} cannot fit into 32 bit integer")
-            else:
-                samples = samples.astype(np.int32)
+            samples = samples.astype(np.int32)
     if isinstance(samples[0], float):
         raise SteimException(f"Cannot steim2 compress floating point list, first sample is float: {samples[0]}")
 

@@ -195,8 +195,7 @@ class MiniseedHeader:
             # don't get too close to the max for a short, use ceil as neg
             divisor = math.ceil((SHORT_MIN_VALUE + 2) / self.sampleRate)
             # don't get too close to the max for a short
-            if divisor < SHORT_MIN_VALUE + 2:
-                divisor = SHORT_MIN_VALUE + 2
+            divisor = max(divisor, SHORT_MIN_VALUE + 2)
             factor = round(-1 * self.sampleRate * divisor)
         else:
             # don't get too close to the max for a short, use ceil as neg
@@ -205,8 +204,7 @@ class MiniseedHeader:
                 / self.sampleRate
             )
             # don't get too close to the max for a short
-            if factor > SHORT_MAX_VALUE - 2:
-                factor = SHORT_MAX_VALUE - 2
+            factor = min(factor, SHORT_MAX_VALUE - 2)
             divisor = round(-1 * factor * self.sampleRate)
         return factor, divisor
 
@@ -403,7 +401,7 @@ class MiniseedRecord:
         for b in self.blockettes:
             offset = self.packBlockette(recordBytes, offset, b)
         # set offset to data in header
-        if (self.header.encoding == STEIM1 or self.header.encoding == STEIM2) and offset < 64:
+        if self.header.encoding in (STEIM1, STEIM2) and offset < 64:
             offset = 64
         struct.pack_into(self.header.endianChar + "H", recordBytes, 44, offset)
         if self.encodedDataBytes is not None and self._data is None:
@@ -716,7 +714,7 @@ def readMiniseed2Records(fileptr, matchsid=None):
             while blocketteNextOffset > 0 and len(blockettes) < header.numBlockettes:
                 try:
                     blocketteFourBytes = fileptr.read(4)
-                    blocketteNum, blocketteNextOffset = struct.unpack(
+                    _blocketteNum, blocketteNextOffset = struct.unpack(
                         endianChar + "HH", blocketteFourBytes
                     )
                     if foundB1000 is not None and blocketteNextOffset > header.recordLength:
@@ -764,11 +762,11 @@ def readMiniseed2Records(fileptr, matchsid=None):
                     f"dataOffset before last blockette ends: {header.dataOffset} < {numRecBytesRead:d} rec len: {header.recordLength:d}"
                 )
             numBytesToRead = header.dataOffset - numRecBytesRead
-            skipBytes = fileptr.read(numBytesToRead)
+            _skipBytes = fileptr.read(numBytesToRead)
             encodedDataBytes = fileptr.read(header.recordLength - header.dataOffset)
         else:
             numBytesToRead = header.recordLength - numRecBytesRead
-            skipBytes = fileptr.read(numBytesToRead)
+            _skipBytes = fileptr.read(numBytesToRead)
         identifier = str(header.fdsnSourceId())
         if matchPat is None or matchPat.search(identifier) is not None:
             yield MiniseedRecord(

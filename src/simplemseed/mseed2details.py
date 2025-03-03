@@ -1,9 +1,6 @@
 import argparse
-from datetime import datetime
-import json
 import os
 import sys
-from jsonpointer import set_pointer, JsonPointer, JsonPointerException
 from .miniseed import readMiniseed2Records
 
 
@@ -23,15 +20,6 @@ def do_parseargs():
         help="regular expression to match the identifier",
     )
     parser.add_argument(
-        "-o",
-        "--outfile",
-        type=argparse.FileType("w", encoding="UTF-8"),
-        help="""output to file. For get, the output will be json, but for
-        getall it will be jsonl, with a separate json object on each line.
-        If a record does not have extra headers, a blank line will be output.
-        """,
-    )
-    parser.add_argument(
         "ms2files", metavar="ms2file", nargs="+", help="mseed2 files to print"
     )
     return parser.parse_args()
@@ -41,10 +29,6 @@ def do_details():
     args = do_parseargs()
     totSamples = 0
     numRecords = 0
-    if args.outfile is not None:
-        outfile = args.outfile
-    else:
-        outfile = sys.stdout
 
     for ms2file in args.ms2files:
         with open(ms2file, "rb") as inms2file:

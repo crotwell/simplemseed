@@ -291,8 +291,7 @@ class MSeed3Record:
                     not np.can_cast(data.dtype, np.int32, casting="safe"):
                 if abs(np.max(data)) > np.iinfo(np.int32).max:
                     raise Miniseed3Exception(f"max value of numpy array, {np.max(data)} cannot fit into 32 bit integer")
-                else:
-                    data = data.astype(np.int32)
+                data = data.astype(np.int32)
 
             encoding = mseed3EncodingFromNumpyDT(data.dtype)
             numSamples = len(data)
