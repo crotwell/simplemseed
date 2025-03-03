@@ -122,3 +122,12 @@ class TestSourceId:
         assert unknown_netsta.sourceCode == "H"
         assert unknown_netsta.subsourceCode == "X"
         assert unknown_netsta.bandCode == "E"
+
+    def test_band_code(self):
+        assert simplemseed.bandCodeForRate(None) == 'I'
+        assert simplemseed.bandCodeForRate(0) == 'I'
+        assert simplemseed.bandCodeForRate(20 ) == 'S'
+        assert simplemseed.bandCodeForRate(20, -100) == 'B'
+        assert simplemseed.bandCodeForRate(20, 0.5) == 'S'
+        assert simplemseed.bandCodeForRate(1.0 ) == 'L'
+        assert simplemseed.bandCodeForRate(-10.0 ) == 'V'

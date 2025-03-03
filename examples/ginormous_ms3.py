@@ -3,7 +3,7 @@
 import array
 import numpy
 import json
-from simplemseed import MSeed3Header, MSeed3Record
+from simplemseed import MSeed3Header, MSeed3Record, fdsnsourceid
 import simplemseed
 import struct
 
@@ -25,8 +25,8 @@ eh = {
 
 header = simplemseed.MSeed3Header()
 header.starttime = "2024-01-01T15:13:55.123456Z"
-identifier = "FDSN:XX_FAKE__H_H_Z"
 header.sampleRatePeriod = 40
+identifier = fdsnsourceid.FDSNSourceId.createUnknown(header.sampleRate)
 data = numpy.fromfunction(
     lambda i: (i % 99 - 49), (86400 * header.sampleRate,), dtype=numpy.float32
 )

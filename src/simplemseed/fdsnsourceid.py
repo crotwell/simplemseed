@@ -331,36 +331,42 @@ class LocationSourceId:
 
 
 def bandCodeForRate(
-    sampRate: Optional[Union[float, int]] = None,
+    sampRatePeriod: Optional[Union[float, int]] = None,
     response_lb: Optional[Union[float, int]] = None,
 ) -> str:
     """
-    Calculates the band code for the given sample rate. Optionally taking into
+    Calculates the band code for the given sample rate/period. Optionally taking into
     account the lower bound of the response, response_lb, to distinguish
     broadband from short period in the higher sample rates, where
     0.1 hertz is the boundary.
 
+    If sampRatePeriod is negative, then interpreted as a period instead of a rate.
+    So 0.1 and -10 both mean one sample every 10 seconds. Similar for response_lb.
+
     See http://docs.fdsn.org/projects/source-identifiers/en/v1.0/channel-codes.html#band-code
     """
-    if sampRate is None:
+    if sampRatePeriod is None or sampRatePeriod == 0:
         return "I"
+
+    sampRate = sampRatePeriod if sampRatePeriod > 0 else -1.0/sampRatePeriod
+    respHz = response_lb if response_lb is None or response_lb >= 0 else -1.0/response_lb
 
     if sampRate >= 5000:
         return "J"
     if 1000 <= sampRate < 5000:
-        if response_lb is not None and response_lb < 0.1:
+        if respHz is not None and respHz < 0.1:
             return "F"
         return "G"
     if 250 <= sampRate < 1000:
-        if response_lb is not None and response_lb < 0.1:
+        if respHz is not None and respHz < 0.1:
             return "C"
         return "D"
     if 80 <= sampRate < 250:
-        if response_lb is not None and response_lb < 0.1:
+        if respHz is not None and respHz < 0.1:
             return "H"
         return "E"
     if 10 <= sampRate < 80:
-        if response_lb is not None and response_lb < 0.1:
+        if respHz is not None and respHz < 0.1:
             return "B"
         return "S"
     if 1 < sampRate < 10:
@@ -383,7 +389,7 @@ def bandCodeForRate(
     if sampRate < 0.000001:
         return "Q"
     raise FDSNSourceIdException(
-        f"Unable to calc band code for: {sampRate} {response_lb}"
+        f"Unable to calc band code for rate: {sampRatePeriod}, low corner: {response_lb}"
     )
 
 
