@@ -24,32 +24,23 @@ from .seedcodec import (
     LITTLE_ENDIAN,
     encodingName,
 )
-from .fdsnsourceid import FDSNSourceId
+from .fdsnsourceid import FDSNSourceId, FDSN_PREFIX
 from .util import isoWZ
 
 MINISEED_THREE_MIME = "application/vnd.fdsn.mseed3"
+""" MIME type for miniseed3, 'application/vnd.fdsn.mseed3'. """
 
-# const for unknown data version, 0 */
 UNKNOWN_DATA_VERSION = 0
+"""const for unknown data version, 0 """
 
-# const for offset to crc in record, 28 */
 CRC_OFFSET = 28
+"""const for offset to crc in record, 28"""
 
-# const for size of fixed header part of record, 40 */
 FIXED_HEADER_SIZE = 40
-
-# const for fdsn prefix for extra headers, FDSN */
-FDSN_PREFIX = "FDSN"
-
-# const for little endian, true */
-# LITTLE_ENDIAN = True
-ENDIAN = "<"
-
-# const for big endian, false */
-# BIG_ENDIAN = False;
-
+"""const for size of fixed header part of record, 40"""
 
 HEADER_PACK_FORMAT = "<ccBBIHHBBBBdIIBBHI"
+"""const python struct pack format for fixed header."""
 
 
 class MSeed3Header:
@@ -57,28 +48,91 @@ class MSeed3Header:
     Represents the fixed header section of a mseed3 record.
 
     See the [specification](http://docs.fdsn.org/projects/miniseed3/en/latest/).
+
+    Fixed header is defined as:
+
+    +--------------------+--------------------------+-------+------+------+---------------------+
+    |Field               |Description               |Type   |Length|Offset|Content              |
+    +====================+==========================+=======+======+======+=====================+
+    |1                   |Record header indicator   |CHAR   |2     |0     |ASCII 'MS'           |
+    +--------------------+--------------------------+-------+------+------+---------------------+
+    |2                   |Format version            |UINT8  |1     |2     |Value of 3           |
+    +--------------------+--------------------------+-------+------+------+---------------------+
+    |3                   |Flags                     |UINT8  |1     |3     |                     |
+    +--------------------+--------------------------+-------+------+------+---------------------+
+    |                    |Record start time         |       |      |      |                     |
+    +--------------------+--------------------------+-------+------+------+---------------------+
+    |4a                  |Nanosecond (0 - 999999999)|UINT32 |4     |4     |                     |
+    +--------------------+--------------------------+-------+------+------+---------------------+
+    |4b                  |Year (0-65535)            |UINT16 |2     |8     |                     |
+    +--------------------+--------------------------+-------+------+------+---------------------+
+    |4c                  |Day-of-year  (1 - 366)    |UINT16 |2     |10    |                     |
+    +--------------------+--------------------------+-------+------+------+---------------------+
+    |4d                  |Hour (0 - 23)             |UINT8  |1     |12    |                     |
+    +--------------------+--------------------------+-------+------+------+---------------------+
+    |4e                  |Minute (0 - 59)           |UINT8  |1     |13    |                     |
+    +--------------------+--------------------------+-------+------+------+---------------------+
+    |4f                  |Second (0 - 60)           |UINT8  |1     |14    |                     |
+    +--------------------+--------------------------+-------+------+------+---------------------+
+    |5                   |Data payload encoding     |UINT8  |1     |15    |:ref:`data-encodings`|
+    +--------------------+--------------------------+-------+------+------+---------------------+
+    |6                   |Sample rate/period        |FLOAT64|8     |16    |                     |
+    +--------------------+--------------------------+-------+------+------+---------------------+
+    |7                   |Number of samples         |UINT32 |4     |24    |                     |
+    +--------------------+--------------------------+-------+------+------+---------------------+
+    |8                   |CRC of the record         |UINT32 |4     |28    |                     |
+    +--------------------+--------------------------+-------+------+------+---------------------+
+    |9                   |Data publication version  |UINT8  |1     |32    |                     |
+    +--------------------+--------------------------+-------+------+------+---------------------+
+    |10                  |Length of identifier      |UINT8  |1     |33    |                     |
+    +--------------------+--------------------------+-------+------+------+---------------------+
+    |11                  |Length of extra headers   |UINT16 |2     |34    |                     |
+    +--------------------+--------------------------+-------+------+------+---------------------+
+    |12                  |Length of data payload    |UINT32 |4     |36    |                     |
+    +--------------------+--------------------------+-------+------+------+---------------------+
     """
 
     recordIndicator: str
+    """ Record header indicator, 'MS'. """
     formatVersion: int
+    """ Format version, 3. """
     flags: int
+    """ Flags. """
     nanosecond: int
+    """ Start time nanoseconds. """
     year: int
+    """ Start time year. """
     dayOfYear: int
+    """ Start time day of year. """
     hour: int
+    """ Start time hours. """
     minute: int
+    """ Start time minutes. """
     second: int
+    """ Start time seconds. """
     encoding: int
+    """ Data payload encoding."""
     sampleRatePeriod: float
+    """ Sample rate/period."""
     numSamples: int
+    """ Number of samples."""
     crc: int
+    """ CRC of the record."""
     publicationVersion: int
+    """ Data publication version."""
     identifierLength: int
+    """ Length of identifier."""
     extraHeadersLength: int
+    """ Length of extra headers."""
     dataLength: int
+    """ Length of data payload."""
 
     def __init__(self):
-        # empty construction
+        """
+        Create a valid but empty fixed header.
+
+        See unpackMSeed3FixedHeader() to parse form bytes.
+        """
         self.recordIndicator = "MS"
         self.formatVersion = 3
         self.flags = 0
@@ -101,10 +155,12 @@ class MSeed3Header:
         self.dataLength = 0
 
     def crcAsHex(self):
+        """ String representation of CRC for record."""
         return f"0x{self.crc:08X}"
 
     @property
     def sampleRate(self):
+        """ Sampling as a rate, number of samples per second."""
         return (
             self.sampleRatePeriod
             if self.sampleRatePeriod >= 0
@@ -117,6 +173,7 @@ class MSeed3Header:
 
     @property
     def samplePeriod(self):
+        """ Sampling as a period, number of seconds between samples."""
         return (
             -1 * self.sampleRatePeriod
             if self.sampleRatePeriod < 0
@@ -128,6 +185,7 @@ class MSeed3Header:
         self.sampleRatePeriod = -1 * val
 
     def pack(self):
+        """ Pack into byte array."""
         header = bytearray(FIXED_HEADER_SIZE)
         OFFSET = 0
         struct.pack_into(
@@ -156,6 +214,7 @@ class MSeed3Header:
         return header
 
     def recordSize(self):
+        """ Total record size in bytes."""
         return (
             FIXED_HEADER_SIZE
             + self.identifierLength
@@ -165,6 +224,7 @@ class MSeed3Header:
 
     @property
     def starttime(self):
+        """ Start time of record, time of first sample. """
         st = datetime(
             self.year,
             1,
@@ -206,6 +266,7 @@ class MSeed3Header:
 
     @property
     def endtime(self):
+        """ End time of record, time of last sample. """
         return self.starttime + timedelta(
             seconds=self.samplePeriod * (self.numSamples - 1)
         )
@@ -230,6 +291,7 @@ class MSeed3Header:
         return ms3header
 
     def sanityCheck(self):
+        """ Validation checks. """
         out = True
         out = out and self.year >= 0 and self.year < 3000
         out = out and self.dayOfYear >= 1 and self.dayOfYear <= 366
@@ -264,6 +326,11 @@ class MSeed3Record:
         self._internal_set_data(data)
 
     def _internal_set_data(self, data):
+        """
+        Set data based on type.
+
+        Checks and sets header values for encoding and numSamples.
+        """
         if data is None:
             self._data = None
             encoding = 0
@@ -325,6 +392,7 @@ class MSeed3Record:
 
     @property
     def eh(self):
+        """ Extra headers, from json."""
         if self._eh is not None and isinstance(self._eh, str):
             if len(self._eh) > 0:
                 self._eh = json.loads(self._eh)
@@ -346,6 +414,11 @@ class MSeed3Record:
         self.header.extraHeadersLength = 0
 
     def parseIdentifier(self) -> FDSNSourceId:
+        """
+        Parse identifier as an FDSNSOurceId.
+
+        Identifier must start with 'FDSN:' to be parsed.
+        """
         if isinstance(self.identifier, FDSNSourceId):
             return self.identifier
         # assume string
@@ -354,6 +427,7 @@ class MSeed3Record:
         raise Miniseed3Exception("Unable to parse identifier as FDSN SourceId")
 
     def decompress(self) -> np.ndarray:
+        """ Decompress data to an numpy ndarray."""
         data = None
         if self._data is None:
             raise UnsupportedCompressionType("data is missing in record")
@@ -395,13 +469,16 @@ class MSeed3Record:
 
     @property
     def starttime(self):
+        """ Start time of record, time of first sample."""
         return self.header.starttime
 
     @property
     def endtime(self):
+        """  End time of record, time of last sample."""
         return self.header.endtime
 
     def hasExtraHeaders(self):
+        """ True if record contains extra headers, ie json is not empty."""
         if self._eh is None:
             return False
         if isinstance(self._eh, dict) and len(self._eh) > 0:
@@ -415,7 +492,9 @@ class MSeed3Record:
 
     def getSize(self):
         """
-        Calculates the size of the record. Returns None if any of the
+        Calculates the size of the record.
+
+        Returns None if any of the
         identifier, extra headers or data lengths are not yet calculated.
         """
         if (
@@ -432,13 +511,16 @@ class MSeed3Record:
         return None
 
     def encodedDataBytes(self):
+        """ Encodes data into bytes."""
         if isinstance(self._data, (bytearray, bytes)):
             return self._data
         return encode(self._data, self.header.encoding, littleEndian = True).dataBytes
 
     def pack(self):
         """
-        Pack the record contents into a bytearray. Header values for the lengths
+        Pack the record contents into a bytearray.
+
+        Header values for the lengths and CRC
         are updated, so the record header represents the output bytes after
         packing.
         """
@@ -500,13 +582,15 @@ class MSeed3Record:
         return self.summary()
 
     def summary(self):
+        """ One line summary of the record."""
         return f"{self.identifier} {isoWZ(self.header.starttime)} {isoWZ(self.header.endtime)} ({self.header.numSamples} pts)"
 
     def encodingName(self):
+        """ Name of encoding, for display."""
         return encodingName(self.header.encoding)
 
     def details(self, showExtraHeaders=True, showData=False):
-
+        """ More detailed description of record."""
         encode_name = self.encodingName()
 
         bitFlagStr = ""
@@ -566,6 +650,11 @@ class MSeed3Record:
 
 
 def unpackMSeed3FixedHeader(recordBytes):
+    """
+    Unpacks a fixed header from bytes.
+
+    Returns a MSeed3Header object.
+    """
     if len(recordBytes) < FIXED_HEADER_SIZE:
         raise Miniseed3Exception(
             f"Not enough bytes for header: {len(recordBytes)}"
@@ -604,6 +693,11 @@ def unpackMSeed3FixedHeader(recordBytes):
 
 
 def unpackMSeed3Record(recordBytes, check_crc=True):
+    """
+    Unpack a miniseed3 record from bytes, optionally verifying the CRC.
+
+    Returns a MSeed3Record object.
+    """
     crc = 0
     ms3header = unpackMSeed3FixedHeader(recordBytes)
     if check_crc:
@@ -637,6 +731,19 @@ def unpackMSeed3Record(recordBytes, check_crc=True):
 def readMSeed3Records(
     fileptr, check_crc=True, matchsid=None, merge=False, verbose=False
 ):
+    """
+    Generator to read miniseed3 records from a file-like object.
+
+    Optionally filter on matchsid regular expression.
+    Also optionally merge contiguous records.
+
+    Example:
+    .. code-block:: python
+
+        for msr in simplemseed.readMSeed3Records(infile):
+            # do something...
+            pass
+    """
     matchPat = None
     prev = None
     if matchsid is not None:
@@ -696,6 +803,12 @@ def readMSeed3Records(
 
 
 def areCompatible(ms3a: MSeed3Record, ms3b: MSeed3Record, timeTolFactor=0.5) -> bool:
+    """
+    Check if two miniseed3 records are mergable.
+
+    This requires same identifier, sample rate, data encoding and publication
+    version, and that the record times are adjacent.
+    """
     out = True
     out = out and ms3a.identifier == ms3b.identifier
     out = out and ms3b.header.sampleRatePeriod == ms3b.header.sampleRatePeriod
@@ -716,7 +829,9 @@ def areCompatible(ms3a: MSeed3Record, ms3b: MSeed3Record, timeTolFactor=0.5) -> 
 
 def mseed3merge(ms3a: MSeed3Record, ms3b: MSeed3Record) -> list[MSeed3Record]:
     """
-    Merges two MSeed3Records if possible. Returned list will have either
+    Merges two MSeed3Records if possible.
+
+    Returned list will have either
     both original records if merge is not possible, or a single new
     record if merge was.
     Note extra headers are taken from the first record and any headers in the
@@ -750,8 +865,10 @@ def mseed3merge(ms3a: MSeed3Record, ms3b: MSeed3Record) -> list[MSeed3Record]:
 
 
 def crcAsHex(crc):
+    """ CRC as printable string."""
     return f"0x{crc:08X}"
 
 
 class Miniseed3Exception(Exception):
+    """ Exception in parsing a miniseed3 record from bytes-like."""
     pass

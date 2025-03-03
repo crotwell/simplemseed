@@ -11,10 +11,14 @@ import re
 from importlib import resources as importlib_resources
 
 FDSN_PREFIX = "FDSN:"
+"""const for fdsn prefix for extra headers, 'FDSN:'. Note includes colon."""
 
 SEP = "_"
+"""const default separator. """
 
 BAND_CODE_JSON = {}
+""" Band codes, description, and rates."""
+
 bandcodes_file = importlib_resources.files(__package__) / "bandcode.json"
 
 def loadBandCodes():
@@ -27,6 +31,8 @@ def loadBandCodes():
 loadBandCodes()
 
 SOURCE_CODE_JSON = {}
+""" Source codes and descriptions."""
+
 sourcecodes_file = importlib_resources.files(__package__) / "sourcecode.json"
 def loadSourceCodes():
     with sourcecodes_file.open("rb") as f:
@@ -78,7 +84,9 @@ class FDSNSourceId:
         subsourceCode: str = "U",
     ) -> "FDSNSourceId":
         """
-        Creates a Source Id for non-real data. This will have network code XX
+        Creates a Source Id for non-real data.
+
+        This will have network code XX,
         which is defined to be a "do not use" network. The band code can be
         calculated based on the optional sample rate and response lower bound.
         See bandCodeForRate() for details.
@@ -103,8 +111,8 @@ class FDSNSourceId:
         "FDSNSourceId", "NetworkSourceId", "StationSourceId", "LocationSourceId"
     ]:
         """
-        Parse a FDSN Source Id string, like
-        FDSN:CO_BIRD_00_H_H_Z into its constituant parts.
+        Parse a FDSN Source Id string, like FDSN:CO_BIRD_00_H_H_Z into its constituant parts.
+
         Also will handle parsing abbreviated codes for
         network, FDSN:CO
         station, FDSN:CO_BIRD
@@ -168,7 +176,7 @@ class FDSNSourceId:
 
     def validate(self) -> (bool, Union[str, None]):
         """
-        Validates a source id, primarily for lenth limitations.
+        Validates a source id, primarily for length limitations.
 
         Returns a tuple of either (True, None) or (False, <reason>)
         """
@@ -182,17 +190,21 @@ class FDSNSourceId:
         return (True, "")
 
     def locationSourceId(self) -> "LocationSourceId":
+        """The location sourceid containing this channel. """
         return LocationSourceId(self.networkCode, self.stationCode, self.locationCode)
 
     def stationSourceId(self) -> "StationSourceId":
+        """The station sourceid containing this channel. """
         return StationSourceId(self.networkCode, self.stationCode)
 
     def networkSourceId(self) -> "NetworkSourceId":
+        """The network sourceid containing this channel. """
         return NetworkSourceId(self.networkCode)
 
     def shortChannelCode(self) -> str:
         """
         Convert the channel part of the source id into an older seed-style nslc.
+
         If the source and subsource are single characters, then a 3 char
         channel code will be created, like BHZ. But if any are larger, then
         a longer string with separators will be creates, like B_AA_QW
@@ -210,6 +222,7 @@ class FDSNSourceId:
     def asNslc(self) -> "NslcId":
         """
         Convert the source id into an older seed-style nslc.
+
         If the source and subsource are single characters, then a 3 char
         channel code will be created, like BHZ. But if any are larger, then
         a longer string with separators will be creates, like B_AA_QW
@@ -238,6 +251,7 @@ class NetworkSourceId:
         self.networkCode = networkCode
 
     def validate(self) -> (bool, Union[str, None]):
+        """Validation checks."""
         if len(self.networkCode) == 0:
             return (False, "Network code empty")
         if len(self.networkCode) > 8:
@@ -266,6 +280,7 @@ class StationSourceId:
         self.stationCode = stationCode
 
     def validate(self) -> (bool, Union[str, None]):
+        """Validation checks."""
         (valid, reason) = self.networkSourceId().validate()
         if not valid:
             return (valid, reason)
@@ -306,6 +321,7 @@ class LocationSourceId:
         self.locationCode = locationCode
 
     def validate(self) -> (bool, Union[str, None]):
+        """Validation checks."""
         (valid, reason) = self.stationSourceId().validate()
         if not valid:
             return (valid, reason)
@@ -335,7 +351,9 @@ def bandCodeForRate(
     response_lb: Optional[Union[float, int]] = None,
 ) -> str:
     """
-    Calculates the band code for the given sample rate/period. Optionally taking into
+    Calculates the band code for the given sample rate/period.
+
+    Optionally taking into
     account the lower bound of the response, response_lb, to distinguish
     broadband from short period in the higher sample rates, where
     0.1 hertz is the boundary.
