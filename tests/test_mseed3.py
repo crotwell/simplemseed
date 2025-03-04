@@ -179,6 +179,21 @@ class TestMSeed3:
         outRecord = simplemseed.unpackMSeed3Record(recordBytes)
         assert identifier == outRecord.identifier
 
+
+    def test_long_non_fdsn_sourceid(self):
+        values = [3, 1, -1, 2000]
+        header = simplemseed.MSeed3Header()
+        header.encoding = simplemseed.seedcodec.INTEGER
+        header.starttime = "2024-01-02T15:13:55.123456Z"
+        header.sampleRatePeriod = -1
+        header.numSamples = len(values)
+        identifier = "ELSE:something_something"
+        record = simplemseed.MSeed3Record(header, identifier, values)
+        recordBytes = record.pack()
+        outRecord = simplemseed.unpackMSeed3Record(recordBytes)
+        assert identifier == outRecord.identifier
+
+
     def test_merge(self):
         filename = f"{TEST_DIR}/casee_two.ms3"
         with open(filename, "rb") as infile:
