@@ -146,7 +146,7 @@ class FDSNSourceId:
             source = channelCode[1]
             subsource = channelCode[2]
         else:
-            b_s_ss = r"(\w)_(\w+)_(\w+)"
+            b_s_ss = r"(\w)_(\w+)_(\w*)"
             match = re.match(b_s_ss, channelCode)
             if match:
                 band = match[1]
@@ -154,7 +154,7 @@ class FDSNSourceId:
                 subsource = match[3]
             else:
                 raise FDSNSourceIdException(
-                    f"channel code must be length 3 or have 3 items separated by '{SEP}': {channelCode}"
+                    f"channel code must be length 3 or have 3 items separated by '{SEP}', first len 1, last may be missing: {channelCode}"
                 )
 
         return FDSNSourceId(net, sta, loc, band, source, subsource)

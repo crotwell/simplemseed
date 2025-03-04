@@ -141,6 +141,32 @@ class TestSourceId:
         assert sid.sourceCode == s
         assert sid.subsourceCode == subs
 
+    def test_sid_empty_loc_subs(self):
+        net = "XX2025"
+        sta = "BIGGYBIG"
+        loc = ""
+        band = "L"
+        s = "RQQ"
+        subs = ""
+        chanSourceId = f"FDSN:{net}_{sta}_{loc}_{band}_{s}_{subs}"
+        sid = simplemseed.FDSNSourceId.parse(chanSourceId)
+        assert sid.validate()[0] == True
+        assert sid.networkCode == net
+        assert sid.stationCode == sta
+        assert sid.locationCode == loc
+        assert sid.bandCode == band
+        assert sid.sourceCode == s
+        assert sid.subsourceCode == subs
+
+        sid = simplemseed.FDSNSourceId.fromNslc(net, sta, loc, f"{band}_{s}_{subs}")
+        assert sid.validate()[0] == True
+        assert sid.networkCode == net
+        assert sid.stationCode == sta
+        assert sid.locationCode == loc
+        assert sid.bandCode == band
+        assert sid.sourceCode == s
+        assert sid.subsourceCode == subs
+
     def test_band_code(self):
         assert simplemseed.bandCodeForRate(None) == 'I'
         assert simplemseed.bandCodeForRate(0) == 'I'
