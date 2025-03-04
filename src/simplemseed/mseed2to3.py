@@ -2,7 +2,7 @@
 import argparse
 import json
 
-from .mseed3 import MSeed3Record, MSeed3Header, UNKNOWN_DATA_VERSION
+from .mseed3 import MSeed3Record, MSeed3Header, UNKNOWN_PUBLICATION_VERSION
 from .miniseed import MiniseedRecord, MiniseedException, readMiniseed2Records
 from .fdsnsourceid import FDSNSourceId
 from .seedcodec import isPrimitiveCompression, BIG_ENDIAN
@@ -47,7 +47,7 @@ def mseed2to3(ms2: MiniseedRecord) -> MSeed3Record:
         raise MiniseedException("Missing blockette 1000")
 
     ms3Header.encoding = b1000.encoding
-    ms3Header.publicationVersion = UNKNOWN_DATA_VERSION
+    ms3Header.publicationVersion = UNKNOWN_PUBLICATION_VERSION
     if ms2.encodedDataBytes is not None:
         if isPrimitiveCompression(b1000.encoding) and ms2H.byteorder == BIG_ENDIAN:
             # need to decompress to byte swap primitive array

@@ -30,7 +30,13 @@ from .util import isoWZ
 MINISEED_THREE_MIME = "application/vnd.fdsn.mseed3"
 """ MIME type for miniseed3, 'application/vnd.fdsn.mseed3'. """
 
-UNKNOWN_DATA_VERSION = 0
+MS_RECORD_INDICATOR = "MS"
+""" Record header indicator, ASCII 'MS'"""
+
+MS_FORMAT_VERSION_3 = 3
+""" Format version, Value of 3"""
+
+UNKNOWN_PUBLICATION_VERSION = 0
 """const for unknown data version, 0 """
 
 CRC_OFFSET = 28
@@ -133,8 +139,8 @@ class MSeed3Header:
 
         See unpackMSeed3FixedHeader() to parse form bytes.
         """
-        self.recordIndicator = "MS"
-        self.formatVersion = 3
+        self.recordIndicator = MS_RECORD_INDICATOR
+        self.formatVersion = MS_FORMAT_VERSION_3
         self.flags = 0
         self.nanosecond = 0
         self.year = 1970
@@ -147,7 +153,7 @@ class MSeed3Header:
         self.sampleRatePeriod = 1
         self.numSamples = 0
         self.crc = 0
-        self.publicationVersion = UNKNOWN_DATA_VERSION
+        self.publicationVersion = UNKNOWN_PUBLICATION_VERSION
         self.identifierLength = 0
         self.extraHeadersLength = 0
         self.identifier = ""

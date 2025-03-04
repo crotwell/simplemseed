@@ -7,10 +7,14 @@ from .mseed3 import (
     MSeed3Header,
     MSeed3Record,
     Miniseed3Exception,
+    MS_RECORD_INDICATOR,
+    MS_FORMAT_VERSION_3,
     CRC_OFFSET,
     FIXED_HEADER_SIZE,
+    UNKNOWN_PUBLICATION_VERSION,
     mseed3merge,
     crcAsHex,
+    MINISEED_THREE_MIME,
 )
 
 from .miniseed import (
