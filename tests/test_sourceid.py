@@ -123,6 +123,24 @@ class TestSourceId:
         assert unknown_netsta.subsourceCode == "X"
         assert unknown_netsta.bandCode == "E"
 
+
+    def test_long_sid(self):
+        net = "XX2025"
+        sta = "BIGGYBIG"
+        loc = "01234567"
+        band = "L"
+        s = "RQQ"
+        subs = "Z"
+        chanSourceId = f"FDSN:{net}_{sta}_{loc}_{band}_{s}_{subs}"
+        sid = simplemseed.FDSNSourceId.parse(chanSourceId)
+        assert sid.validate()[0] == True
+        assert sid.networkCode == net
+        assert sid.stationCode == sta
+        assert sid.locationCode == loc
+        assert sid.bandCode == band
+        assert sid.sourceCode == s
+        assert sid.subsourceCode == subs
+
     def test_band_code(self):
         assert simplemseed.bandCodeForRate(None) == 'I'
         assert simplemseed.bandCodeForRate(0) == 'I'
