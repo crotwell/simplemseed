@@ -691,9 +691,9 @@ def unpackMSeed3FixedHeader(recordBytes):
         raise Miniseed3Exception(
             f"expected record start to be MS but was {recordIndicatorM}{recordIndicatorS}"
         )
-    if formatVersion != 3:
+    if formatVersion != MS_FORMAT_VERSION_3:
         raise Miniseed3Exception(
-            f"expected format version to be 3 but was {formatVersion}"
+            f"expected format version to be ${MS_FORMAT_VERSION_3} but was {formatVersion}"
         )
     return ms3header
 
