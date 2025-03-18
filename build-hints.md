@@ -33,7 +33,7 @@ cd examples ; ./run_all.sh ; cd ..
 # sphinx and
 # pip install sphinx-autodoc2
 conda activate sphinx
-cd docs ; make clean && make html && open build/html/index.html ; cd ..
+cd docs ; make clean && make html && open build/html/index.html && cd ..
 conda activate do_release
 git status
 git tag -a -m "version to 0.4.4" v0.4.4
