@@ -502,7 +502,7 @@ def do_parseargs():
         "-s", "--source", nargs="+", required=False, help="describe source code"
     )
     parser.add_argument(
-        "--sps", required=False, type=float, help="band code for sample rate"
+        "--sps", required=False, type=float, help="band code for sample rate, negative for period"
     )
     parser.add_argument("sid", nargs="*", help="source id to print")
     return parser.parse_args()
