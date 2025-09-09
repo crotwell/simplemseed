@@ -167,6 +167,56 @@ class TestSourceId:
         assert sid.sourceCode == s
         assert sid.subsourceCode == subs
 
+    def test_dash_sid(self):
+        net = "XX2025"
+        sta = "BIGGYBIG"
+        loc = "01234567"
+        band = "L"
+        s = "RQQ"
+        subs = "Z"
+
+        netDash = "XX-2025"
+        chanSourceId = f"FDSN:{netDash}_{sta}_{loc}_{band}_{s}_{subs}"
+        sid = simplemseed.FDSNSourceId.parse(chanSourceId)
+        assert sid.validate()[0] == False
+        staDash = "BIG-BIG"
+        chanSourceId = f"FDSN:{net}_{staDash}_{loc}_{band}_{s}_{subs}"
+        sid = simplemseed.FDSNSourceId.parse(chanSourceId)
+        assert sid.validate()[0] == True
+        locDash = "012-3456"
+        chanSourceId = f"FDSN:{net}_{sta}_{locDash}_{band}_{s}_{subs}"
+        sid = simplemseed.FDSNSourceId.parse(chanSourceId)
+        assert sid.validate()[0] == True
+        sDash = "R-Q"
+        chanSourceId = f"FDSN:{net}_{sta}_{loc}_{band}_{sDash}_{subs}"
+        sid = simplemseed.FDSNSourceId.parse(chanSourceId)
+        assert sid.validate()[0] == False
+        subsDash = "A-Z"
+        chanSourceId = f"FDSN:{net}_{sta}_{loc}_{band}_{s}_{subsDash}"
+        sid = simplemseed.FDSNSourceId.parse(chanSourceId)
+        assert sid.validate()[0] == False
+
+    def test_temp_net(self):
+
+        net = "FDSN:XD1994"
+        sid = simplemseed.FDSNSourceId.parse(net)
+        assert sid.validate()[0] == True
+        assert isinstance(sid,  simplemseed.NetworkSourceId)
+        assert sid.isTempNetConvention() == True
+        assert sid.isSeedTempNet() == False
+        net = "FDSN:XD"
+        sid = simplemseed.FDSNSourceId.parse(net)
+        assert sid.validate()[0] == True
+        assert isinstance(sid,  simplemseed.NetworkSourceId)
+        assert sid.isTempNetConvention() == False
+        assert sid.isSeedTempNet() == True
+        net = "FDSN:CO"
+        sid = simplemseed.FDSNSourceId.parse(net)
+        assert sid.validate()[0] == True
+        assert isinstance(sid,  simplemseed.NetworkSourceId)
+        assert sid.isTempNetConvention() == False
+        assert sid.isSeedTempNet() == False
+
     def test_band_code(self):
         assert simplemseed.bandCodeForRate(None) == 'I'
         assert simplemseed.bandCodeForRate(0) == 'I'

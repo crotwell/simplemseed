@@ -10,6 +10,15 @@ import json
 import re
 from importlib import resources as importlib_resources
 
+
+
+TEMP_NET_SEED = re.compile(r"[\dXYZ][A-Z\d]")
+TEMP_NET_CONVENTION = re.compile(r"[\dXYZ][A-Z\d]\d{4}")
+TEMP_NET = re.compile(r"[A-Z\d]{1,3}\d{4}")
+NET_VALID = re.compile(r"[A-Z\d]{1,8}")
+STATION_LOC_VALID = re.compile(r"[A-Z\d-]{1,8}")
+SOURCE_SUBSOURCE_VALID = re.compile(r"[A-Z\d]+") # current spec has no length restrictions
+
 FDSN_PREFIX = "FDSN:"
 """const for fdsn prefix for extra headers, 'FDSN:'. Note includes colon."""
 
@@ -186,7 +195,11 @@ class FDSNSourceId:
         # band code allowed to be empty
         if len(self.sourceCode) == 0:
             return (False, "Source code empty")
+        if not SOURCE_SUBSOURCE_VALID.fullmatch(self.sourceCode):
+            return (False, f"SourceCode code allowed chars only A-Z and 0-9, {self.sourceCode}")
         # Subsource code allowed to be empty
+        if len(self.subsourceCode)>0 and not SOURCE_SUBSOURCE_VALID.fullmatch(self.subsourceCode):
+            return (False, f"SubsourceCode code allowed chars only A-Z and 0-9, {self.subsourceCode}")
         return (True, "")
 
     def locationSourceId(self) -> "LocationSourceId":
@@ -239,10 +252,9 @@ class FDSNSourceId:
         # both FDSNSourceId, so compare as strings is easy
         return str(self) == str(other)
 
-
 class NetworkSourceId:
     """
-    An abbreviated source id representing a network, like FDSN:CO
+    An abbreviated source id representing a network, like FDSN:CO or FDSN:XD1994
     """
 
     networkCode: str
@@ -250,12 +262,32 @@ class NetworkSourceId:
     def __init__(self, networkCode: str):
         self.networkCode = networkCode
 
+    def isTempNetConvention(self) -> bool:
+        """
+        True if the network code follows the FDSN SourceId temporary network
+        convention for historical temporary networks. This starts with a digit
+        or one of X,Y,Z, followed by another digit or letter and then the
+        4 digit starting year of the network. For example XD1994 is the
+        temporary network assigned the SEED code XD that started in 1994.
+        """
+        return TEMP_NET_CONVENTION.fullmatch(self.networkCode) is not None
+
+    def isSeedTempNet(self) -> bool:
+        """
+        True if the network code is a 2 digit SEED-style temporary network
+        code. This starts with a digit
+        or one of X,Y,Z, followed by another digit or letter.
+        """
+        return TEMP_NET_SEED.fullmatch(self.networkCode) is not None
+
     def validate(self) -> (bool, Union[str, None]):
         """Validation checks."""
         if len(self.networkCode) == 0:
             return (False, "Network code empty")
         if len(self.networkCode) > 8:
             return (False, f"Network code > 8 chars, len({self.networkCode})>8")
+        if not NET_VALID.fullmatch(self.networkCode):
+            return (False, f"Network code allowed chars only A-Z and 0-9, {self.networkCode}")
         return (True, "")
 
     def __str__(self) -> str:
@@ -288,6 +320,8 @@ class StationSourceId:
             return (False, "Station code empty")
         if len(self.stationCode) > 8:
             return (False, f"Station code > 8 chars, len({self.stationCode})>8")
+        if not STATION_LOC_VALID.fullmatch(self.stationCode):
+            return (False, f"Station code allowed chars only A-Z, 0-9 and dash (-), {self.stationCode}")
         return (True, "")
 
     def __str__(self) -> str:
@@ -329,6 +363,8 @@ class LocationSourceId:
             return (False, "Location code cannot be '--'")
         if len(self.locationCode) > 8:
             return (False, f"Location code > 8 chars, len({self.locationCode})>8")
+        if len(self.locationCode)>0 and not STATION_LOC_VALID.fullmatch(self.locationCode):
+            return (False, f"LocationCode code allowed chars only A-Z, 0-9 and dash (-), {self.locationCode}")
         return (True, "")
 
     def stationSourceId(self) -> "StationSourceId":
