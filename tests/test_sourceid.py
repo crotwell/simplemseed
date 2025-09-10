@@ -198,30 +198,46 @@ class TestSourceId:
 
     def test_temp_net(self):
 
+        net = "FDSN:ABCD2025"
+        sid = simplemseed.FDSNSourceId.parse(net)
+        assert sid.validate()[0] == True
+        assert isinstance(sid,  simplemseed.NetworkSourceId)
+        assert sid.isTempNetConvention() == True
+        assert sid.isTempNetHistorical() == False
+        assert sid.isSeedTempNet() == False
+        assert sid.isTemporary() == True
         net = "FDSN:XD1994"
         sid = simplemseed.FDSNSourceId.parse(net)
         assert sid.validate()[0] == True
         assert isinstance(sid,  simplemseed.NetworkSourceId)
         assert sid.isTempNetConvention() == True
+        assert sid.isTempNetHistorical() == True
         assert sid.isSeedTempNet() == False
+        assert sid.isTemporary() == True
         net = "FDSN:XD"
         sid = simplemseed.FDSNSourceId.parse(net)
         assert sid.validate()[0] == True
         assert isinstance(sid,  simplemseed.NetworkSourceId)
         assert sid.isTempNetConvention() == False
+        assert sid.isTempNetHistorical() == False
         assert sid.isSeedTempNet() == True
+        assert sid.isTemporary() == True
         net = "FDSN:CO"
         sid = simplemseed.FDSNSourceId.parse(net)
         assert sid.validate()[0] == True
         assert isinstance(sid,  simplemseed.NetworkSourceId)
         assert sid.isTempNetConvention() == False
+        assert sid.isTempNetHistorical() == False
         assert sid.isSeedTempNet() == False
+        assert sid.isTemporary() == False
         net = "FDSN:XX"
         sid = simplemseed.FDSNSourceId.parse(net)
         assert sid.validate()[0] == True
         assert isinstance(sid,  simplemseed.NetworkSourceId)
         assert sid.isTempNetConvention() == False
+        assert sid.isTempNetHistorical() == False
         assert sid.isSeedTempNet() == False
+        assert sid.isTemporary() == False
 
     def test_band_code(self):
         assert simplemseed.bandCodeForRate(None) == 'I'

@@ -13,8 +13,21 @@ from importlib import resources as importlib_resources
 
 
 TEMP_NET_SEED = re.compile(r"[\dXYZ][A-Z\d]")
-TEMP_NET_CONVENTION = re.compile(r"[\dXYZ][A-Z\d]\d{4}")
-TEMP_NET = re.compile(r"[A-Z\d]{1,3}\d{4}")
+"""
+Older SEED style temp networks, like XD. Starts with XYZ or a digit.
+"""
+
+TEMP_NET_MAPPING = re.compile(r"[\dXYZ][A-Z\d]\d{4}")
+"""
+Mapping of older SEED style temp networks to include start year,
+like XD maps to XD1994. Starts with XYZ or a digit and ends with 4 digit year.
+"""
+
+TEMP_NET_CONVENTION = re.compile(r"[A-Z\d]{1,4}\d{4}")
+"""
+Network codes for temporary networks convention, ends with 4 digit year.
+"""
+
 NET_VALID = re.compile(r"[A-Z\d]{1,8}")
 STATION_LOC_VALID = re.compile(r"[A-Z\d-]{1,8}")
 SOURCE_SUBSOURCE_VALID = re.compile(r"[A-Z\d]+") # current spec has no length restrictions
@@ -281,15 +294,25 @@ class NetworkSourceId:
 
     def isTempNetConvention(self) -> bool:
         """
-        True if the network code follows the FDSN SourceId temporary network
-        convention for historical temporary networks.
+        True if the network code follows the temporary network code convention
+        where the last 4 characters of the code are the start year of the
+        network.
+
+        Generally permanant networks should not be formed in this way.
+        """
+        return TEMP_NET_CONVENTION.fullmatch(self.networkCode) is not None
+
+    def isTempNetHistorical(self) -> bool:
+        """
+        True if the network code follows the FDSN SourceId network code
+        mapping for historical temporary networks.
 
         This starts with a digit
         or one of X,Y,Z, followed by another digit or letter and then the
         4 digit starting year of the network. For example XD1994 is the
         temporary network assigned the SEED code XD that started in 1994.
         """
-        return TEMP_NET_CONVENTION.fullmatch(self.networkCode) is not None\
+        return TEMP_NET_MAPPING.fullmatch(self.networkCode) is not None\
                 and not self.networkCode.startswith(TESTDATA_NETCODE)
 
     def isSeedTempNet(self) -> bool:
@@ -302,6 +325,16 @@ class NetworkSourceId:
         """
         return TEMP_NET_SEED.fullmatch(self.networkCode) is not None\
                 and self.networkCode != TESTDATA_NETCODE
+
+    def isTemporary(self) -> bool:
+        """
+        True if the network code is follows one of the temporary conventions.
+
+        For example XD, XD1994 or ABCD2025
+        """
+        return self.isSeedTempNet() \
+            or self.isTempNetHistorical() \
+            or self.isTempNetConvention()
 
     def validate(self) -> (bool, Union[str, None]):
         """Validation checks."""
