@@ -29,14 +29,21 @@ Network codes for temporary networks convention, ends with 4 digit year.
 """
 
 NET_VALID = re.compile(r"[A-Z\d]{1,8}")
-STATION_LOC_VALID = re.compile(r"[A-Z\d-]{1,8}")
+"Regular expression for network code"
+STATION_VALID = re.compile(r"[A-Z\d-]{1,8}")
+"Regular expression for station code"
+LOCATION_VALID = re.compile(r"[A-Z\d-]{0,8}")
+"Regular expression for location code"
 SOURCE_SUBSOURCE_VALID = re.compile(r"[A-Z\d]+") # current spec has no length restrictions
+"Regular expression for source and subsource codes"
 
 FDSN_PREFIX = "FDSN:"
 """const for fdsn prefix for extra headers, 'FDSN:'. Note includes colon."""
 
 SINGLE_STATION_NETCODE = "SS"
 """
+The SS, single station network code.
+
 This code may be used by any institution running a Single Station, the station
 should be registered with the International Registry of Seismograph Stations.
 Care must be taken to ensure that the station code is not the same as another
@@ -45,6 +52,8 @@ station using the SS network code..
 
 TESTDATA_NETCODE = "XX"
 """
+The XX, testing data, network code.
+
 This code is not real. It is reserved for test data, examples or transient
 usage when a real code cannot be used. Data with this network code should never
 be distributed.
@@ -83,16 +92,24 @@ loadSourceCodes()
 
 class FDSNSourceId:
     """
-    A FDSN Source Id, as defined in the
-    [specification](http://docs.fdsn.org/projects/source-identifiers/en/v1.0/)
+    A FDSN Source Id.
+
+    Defined in the specification,
+    http://docs.fdsn.org/projects/source-identifiers/en/v1.0.
     """
 
     networkCode: str
+    "Network code, 1-8 chars."
     stationCode: str
+    "Station code, 1-8 chars."
     locationCode: str
+    "Location code, 0-8 chars."
     bandCode: str
+    "Band code, depends on sample rate."
     sourceCode: str
+    "Source code, describes the instrument and data type."
     subsourceCode: str
+    "Subsource code, describes component of instrument, often orientation."
 
     def __init__(
         self,
@@ -103,6 +120,9 @@ class FDSNSourceId:
         sourceCode: str,
         subsourceCode: str,
     ):
+        """
+        Creates a new source id with the given codes.
+        """
         self.networkCode = networkCode
         self.stationCode = stationCode
         self.locationCode = locationCode
@@ -287,7 +307,7 @@ class NetworkSourceId:
     """
 
     networkCode: str
-
+    "Network code, 1-8 chars."
 
     def __init__(self, networkCode: str):
         self.networkCode = networkCode
@@ -361,7 +381,9 @@ class StationSourceId:
     """
 
     networkCode: str
+    "Network code, 1-8 chars."
     stationCode: str
+    "Station code, 1-8 chars."
 
     def __init__(self, networkCode: str, stationCode: str):
         self.networkCode = networkCode
@@ -376,7 +398,7 @@ class StationSourceId:
             return (False, "Station code empty")
         if len(self.stationCode) > 8:
             return (False, f"Station code > 8 chars, len({self.stationCode})>8")
-        if not STATION_LOC_VALID.fullmatch(self.stationCode):
+        if not STATION_VALID.fullmatch(self.stationCode):
             return (False, f"Station code allowed chars only A-Z, 0-9 and dash (-), {self.stationCode}")
         return (True, "")
 
@@ -384,6 +406,7 @@ class StationSourceId:
         return f"{FDSN_PREFIX}{self.networkCode}{SEP}{self.stationCode}"
 
     def networkSourceId(self) -> "NetworkSourceId":
+        """The network sourceid containing this channel. """
         return NetworkSourceId(self.networkCode)
 
     def __eq__(self, other: object, /) -> bool:
@@ -402,8 +425,11 @@ class LocationSourceId:
     """
 
     networkCode: str
+    "Network code, 1-8 chars."
     stationCode: str
+    "Station code, 1-8 chars."
     locationCode: str
+    "Location code, 0-8 chars."
 
     def __init__(self, networkCode: str, stationCode: str, locationCode: str):
         self.networkCode = networkCode
@@ -419,14 +445,16 @@ class LocationSourceId:
             return (False, "Location code cannot be '--'")
         if len(self.locationCode) > 8:
             return (False, f"Location code > 8 chars, len({self.locationCode})>8")
-        if len(self.locationCode)>0 and not STATION_LOC_VALID.fullmatch(self.locationCode):
+        if len(self.locationCode)>0 and not LOCATION_VALID.fullmatch(self.locationCode):
             return (False, f"LocationCode code allowed chars only A-Z, 0-9 and dash (-), {self.locationCode}")
         return (True, "")
 
     def stationSourceId(self) -> "StationSourceId":
+        """The station sourceid containing this channel. """
         return StationSourceId(self.networkCode, self.stationCode)
 
     def networkSourceId(self) -> "NetworkSourceId":
+        """The network sourceid containing this channel. """
         return NetworkSourceId(self.networkCode)
 
     def __str__(self) -> str:
@@ -559,9 +587,13 @@ class NslcId:
     5 char station, 2 char location and 3 char channel.
     """
     networkCode: str
+    "Network code, 1-2 chars"
     stationCode: str
+    "Station Code, 3-5 chars"
     locationCode: str
+    "Location code, 0 or 2 chars, often 00 or empty."
     channelCode: str
+    "Channel code, 3 chars: band, instrument, orientation"
 
     def __init__(self, net: str, sta: str, loc: str, chan: str):
         self.networkCode = net
@@ -582,7 +614,7 @@ class FDSNSourceIdException(Exception):
     pass
 
 
-def do_parseargs():
+def _do_parseargs():
     parser = argparse.ArgumentParser(description="Parsing of FDSN Sourceids.")
     parser.add_argument(
         "-v", "--verbose", help="increase output verbosity", action="store_true"
@@ -601,7 +633,7 @@ def do_parseargs():
 
 
 def main():
-    args = do_parseargs()
+    args = _do_parseargs()
     if args.sps:
         bbc = bandCodeForRate(args.sps, 0.01)
         spc = bandCodeForRate(args.sps, 10)

@@ -157,6 +157,9 @@ class TestSourceId:
         assert sid.bandCode == band
         assert sid.sourceCode == s
         assert sid.subsourceCode == subs
+        assert sid.locationSourceId().validate()[0] == True
+        assert sid.stationSourceId().validate()[0] == True
+        assert sid.networkSourceId().validate()[0] == True
 
         sid = simplemseed.FDSNSourceId.fromNslc(net, sta, loc, f"{band}_{s}_{subs}")
         assert sid.validate()[0] == True
@@ -166,6 +169,9 @@ class TestSourceId:
         assert sid.bandCode == band
         assert sid.sourceCode == s
         assert sid.subsourceCode == subs
+        assert sid.locationSourceId().validate()[0] == True
+        assert sid.stationSourceId().validate()[0] == True
+        assert sid.networkSourceId().validate()[0] == True
 
     def test_dash_sid(self):
         net = "XX2025"
