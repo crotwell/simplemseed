@@ -22,6 +22,21 @@ SOURCE_SUBSOURCE_VALID = re.compile(r"[A-Z\d]+") # current spec has no length re
 FDSN_PREFIX = "FDSN:"
 """const for fdsn prefix for extra headers, 'FDSN:'. Note includes colon."""
 
+SINGLE_STATION_NETCODE = "SS"
+"""
+This code may be used by any institution running a Single Station, the station
+should be registered with the International Registry of Seismograph Stations.
+Care must be taken to ensure that the station code is not the same as another
+station using the SS network code..
+"""
+
+TESTDATA_NETCODE = "XX"
+"""
+This code is not real. It is reserved for test data, examples or transient
+usage when a real code cannot be used. Data with this network code should never
+be distributed.
+"""
+
 SEP = "_"
 """const default separator. """
 
@@ -87,7 +102,7 @@ class FDSNSourceId:
         sampRate: Optional[Union[float, int]] = None,
         sourceCode: str = "H",
         response_lb: Optional[Union[float, int]] = None,
-        networkCode: str = "XX",
+        networkCode: str = TESTDATA_NETCODE,
         stationCode: str = "ABC",
         locationCode: str = "",
         subsourceCode: str = "U",
@@ -95,13 +110,13 @@ class FDSNSourceId:
         """
         Creates a Source Id for non-real data.
 
-        This will have network code XX,
-        which is defined to be a "do not use" network. The band code can be
+        Unless specified, this will have network code XX,
+        which is defined to be a "do not use" test network. The band code can be
         calculated based on the optional sample rate and response lower bound.
         See bandCodeForRate() for details.
         """
         if len(networkCode) == 0:
-            networkCode = "XX"
+            networkCode = TESTDATA_NETCODE
         if len(stationCode) == 0:
             stationCode = "ABC"
         return FDSNSourceId(
@@ -120,7 +135,8 @@ class FDSNSourceId:
         "FDSNSourceId", "NetworkSourceId", "StationSourceId", "LocationSourceId"
     ]:
         """
-        Parse a FDSN Source Id string, like FDSN:CO_BIRD_00_H_H_Z into its constituant parts.
+        Parse a FDSN Source Id string, like FDSN:CO_BIRD_00_H_H_Z into its
+        constituant parts.
 
         Also will handle parsing abbreviated codes for
         network, FDSN:CO
@@ -259,29 +275,33 @@ class NetworkSourceId:
 
     networkCode: str
 
+
     def __init__(self, networkCode: str):
         self.networkCode = networkCode
 
     def isTempNetConvention(self) -> bool:
         """
         True if the network code follows the FDSN SourceId temporary network
-        convention for historical temporary networks. This starts with a digit
+        convention for historical temporary networks.
+
+        This starts with a digit
         or one of X,Y,Z, followed by another digit or letter and then the
         4 digit starting year of the network. For example XD1994 is the
         temporary network assigned the SEED code XD that started in 1994.
         """
         return TEMP_NET_CONVENTION.fullmatch(self.networkCode) is not None\
-                and not self.networkCode.startswith("XX")
+                and not self.networkCode.startswith(TESTDATA_NETCODE)
 
     def isSeedTempNet(self) -> bool:
         """
         True if the network code is a 2 digit SEED-style temporary network
-        code. This starts with a digit
-        or one of X,Y,Z, followed by another digit or letter, but not XX
-        which is the .
+        code.
+
+        This starts with a digit or one of X,Y,Z, followed by another digit or
+        letter, but not XX which is the network code for test data.
         """
         return TEMP_NET_SEED.fullmatch(self.networkCode) is not None\
-                and self.networkCode != "XX"
+                and self.networkCode != TESTDATA_NETCODE
 
     def validate(self) -> (bool, Union[str, None]):
         """Validation checks."""

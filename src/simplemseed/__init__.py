@@ -28,6 +28,8 @@ from .miniseed import (
 )
 from .fdsnsourceid import (
     FDSN_PREFIX,
+    SINGLE_STATION_NETCODE,
+    TESTDATA_NETCODE,
     FDSNSourceId,
     NetworkSourceId,
     StationSourceId,
@@ -75,6 +77,8 @@ __all__ = [
     "FIXED_HEADER_SIZE",
     "unpackBlockette",
     "FDSN_PREFIX",
+    "SINGLE_STATION_NETCODE",
+    "TESTDATA_NETCODE",
     "FDSNSourceId",
     "NslcId",
     "NetworkSourceId",
