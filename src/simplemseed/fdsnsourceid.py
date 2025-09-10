@@ -112,6 +112,11 @@ class FDSNSourceId:
     http://docs.fdsn.org/projects/source-identifiers/en/v1.0.
     """
 
+    SPECIFICATION_VERSION="1.0"
+    """FDSN Specification version that this class corresponds to."""
+    SPECIFICATION_URL="http://docs.fdsn.org/projects/source-identifiers/en/v1.0"
+    """URL to specification"""
+    
     networkCode: str
     "Network code, 1-8 chars."
     stationCode: str
