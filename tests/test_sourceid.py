@@ -216,6 +216,12 @@ class TestSourceId:
         assert isinstance(sid,  simplemseed.NetworkSourceId)
         assert sid.isTempNetConvention() == False
         assert sid.isSeedTempNet() == False
+        net = "FDSN:XX"
+        sid = simplemseed.FDSNSourceId.parse(net)
+        assert sid.validate()[0] == True
+        assert isinstance(sid,  simplemseed.NetworkSourceId)
+        assert sid.isTempNetConvention() == False
+        assert sid.isSeedTempNet() == False
 
     def test_band_code(self):
         assert simplemseed.bandCodeForRate(None) == 'I'

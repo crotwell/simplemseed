@@ -270,15 +270,18 @@ class NetworkSourceId:
         4 digit starting year of the network. For example XD1994 is the
         temporary network assigned the SEED code XD that started in 1994.
         """
-        return TEMP_NET_CONVENTION.fullmatch(self.networkCode) is not None
+        return TEMP_NET_CONVENTION.fullmatch(self.networkCode) is not None\
+                and not self.networkCode.startswith("XX")
 
     def isSeedTempNet(self) -> bool:
         """
         True if the network code is a 2 digit SEED-style temporary network
         code. This starts with a digit
-        or one of X,Y,Z, followed by another digit or letter.
+        or one of X,Y,Z, followed by another digit or letter, but not XX
+        which is the .
         """
-        return TEMP_NET_SEED.fullmatch(self.networkCode) is not None
+        return TEMP_NET_SEED.fullmatch(self.networkCode) is not None\
+                and self.networkCode != "XX"
 
     def validate(self) -> (bool, Union[str, None]):
         """Validation checks."""
