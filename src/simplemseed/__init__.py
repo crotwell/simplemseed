@@ -1,4 +1,4 @@
-__version__ = "0.4.6-dev"
+__version__ = "0.4.6"
 version = __version__
 "Current version"
 
