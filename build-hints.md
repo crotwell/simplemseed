@@ -1,7 +1,7 @@
 
 # build/release
 ```
-conda create -n simplemseed python=3.9
+conda create -n simplemseed python=3.9 -y
 conda activate simplemseed
 python3 -m pip install --upgrade hatch
 python3 -m pip install --upgrade pytest
@@ -36,7 +36,7 @@ conda activate sphinx
 cd docs ; make clean && make html && open build/html/index.html && cd ..
 conda activate do_release
 git status
-git tag -a -m "version to 0.4.4" v0.4.4
+git tag -a -m "version to 0.4.6" v0.4.6
 git push
 # first time
 # hatch publish -u __token__
