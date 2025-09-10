@@ -46,3 +46,8 @@ addopts = [
 
 [tool.hatch.version]
 path = "src/simplemseed/__init__.py"
+
+[tool.hatch.envs.test]
+  dependencies = [
+    "pytest"
+  ]
