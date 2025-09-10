@@ -63,6 +63,15 @@ def decodeSteim2(
     numSamples: int,
     bias: int = 0,
 ):
+    """
+    Decode Steim2 data.
+
+    Decode the indicated number of samples from the provided byte array and
+    return an integer array of the decompressed values.  Being differencing
+    compression, there may be an offset carried over from a previous data
+    record.  This offset value can be placed in <b>bias</b>, otherwise leave
+    the value as 0.
+    """
     if len(dataBytes) % 64 != 0:
         raise CodecException(
             f"encoded data length is not multiple of 64 bytes ({len(dataBytes)})",
@@ -278,6 +287,7 @@ def extractDnibValues(tempInt, headerSize, diffCount, bitSize):
 
 def encodeSteim2(samples: Union[np.ndarray, list[int]], frames: int = 0, bias: np.int32 = 0):
     """
+    Encode samples as Steim2 compress.
 
     Encode the array of integer values into a Steim 2 * compressed byte frame block.
     For miniseed2 you should not create a byte block any greater than 63 64-byte frames.

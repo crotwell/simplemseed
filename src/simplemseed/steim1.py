@@ -37,10 +37,14 @@ def decodeSteim1(
     numSamples,
     bias = np.int32(0),
 ):
-    # Decode Steim1 compression format from the provided byte array, which contains numSamples number
-    # of samples.  bias represents
-    # a previous value which acts as a starting constant for continuing differences integration.  At the
-    # very start, bias is set to 0.
+    """
+    Decode Steim1 compression
+
+    Decode Steim1 compression format from the provided byte array, which contains numSamples number
+    of samples.  bias represents
+    a previous value which acts as a starting constant for continuing differences integration.  At the
+    very start, bias is set to 0.
+    """
     if len(dataBytes) % 64 != 0:
         raise CodecException(
             f"encoded data length is not multiple of 64 bytes ({len(dataBytes)})",
@@ -173,6 +177,8 @@ def encodeSteim1(
     samples: Union[np.ndarray, list[int]], frames: int = 0, bias: np.int32 = 0, offset: int = 0
 ) -> bytearray:
     """
+    Encode samples as Steim1 compression.
+    
     Encode the array of integer values into a Steim 1 * compressed byte frame block.
     For miniseed2 you should not create a byte block any greater than 63 64-byte frames.
     maxFrames=0 implies unlimited number of frames, usually for miniseed3.

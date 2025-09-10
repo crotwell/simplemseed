@@ -1,4 +1,6 @@
 __version__ = "0.4.6-dev"
+version = __version__
+"Current version"
 
 from .mseed3 import (
     unpackMSeed3Record,
@@ -109,4 +111,5 @@ __all__ = [
     "isPrimitiveCompression",
     "STEIM1",
     "STEIM2",
+    "version"
 ]

@@ -19,31 +19,40 @@ from .steim2 import decodeSteim2
 
 
 BIG_ENDIAN = 1
+"Data is big endian, 1"
 LITTLE_ENDIAN = 0
+"Data is little endian, 0"
 
 # ascii
 ASCII: int = 0
 
 # 16 bit integer, or java short
 SHORT: int = 1
+"Encoding for 16 bit integer"
 
 # 24 bit integer
 INT24: int = 2
+"Encoding for 24 bit integer"
 
 # 32 bit integer, or java int
 INTEGER: int = 3
+"Encoding for 32 bit integer"
 
 # ieee float
 FLOAT: int = 4
+"Encoding for 32 bit floating point"
 
 # ieee double
 DOUBLE: int = 5
+"Encoding for 64 bit floating point"
 
 # Steim1 compression
 STEIM1: int = 10
+"Encoding for Steim1 compression"
 
 # Steim2 compression
 STEIM2: int = 11
+"Encoding for Steim2 compression"
 
 # Steim2 compression, not implemented
 STEIM3: int = 19
@@ -59,6 +68,9 @@ DWWSSN: int = 32
 
 
 def encodingName(encoding):
+    """
+    Textual name for integer SEED encoding.
+    """
     encode_name = f"unknown ({encoding})"
     if encoding == 0:
         encode_name = "Text"

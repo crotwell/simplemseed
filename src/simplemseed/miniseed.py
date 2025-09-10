@@ -696,6 +696,12 @@ class MiniseedException(Exception):
 
 
 def readMiniseed2Records(fileptr, matchsid=None):
+    """
+    Read miniseed2 records from a file.
+
+    Optionally, filter records by matching the source id with a
+    regular expression.
+    """
     matchPat = None
     if matchsid is not None:
         matchPat = re.compile(matchsid)
