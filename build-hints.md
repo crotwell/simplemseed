@@ -39,7 +39,7 @@ git status
 git tag -a -m "version to 0.4.6" v0.4.6
 git push
 # first time
-# hatch publish -u __token__
+# hatch publish -u __token__ --auth <token>
 hatch publish
 
 conda deactivate
