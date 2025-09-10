@@ -65,10 +65,16 @@ SEP = "_"
 BAND_CODE_JSON = {}
 """ Band codes, description, and rates."""
 
-bandcodes_file = importlib_resources.files(__package__) / "bandcode.json"
+_bandcodes_file = importlib_resources.files(__package__) / "bandcode.json"
 
 def loadBandCodes():
-    with bandcodes_file.open("rb") as f:
+    """
+    Loads band code definitions.
+
+    JSON band codes are available at
+    https://github.com/crotwell/simplemseed/blob/main/src/simplemseed/bandcode.json
+    """
+    with _bandcodes_file.open("rb") as f:
         # load as json array
         bcList = json.load(f)
         # convert to dict by code
@@ -77,11 +83,19 @@ def loadBandCodes():
 loadBandCodes()
 
 SOURCE_CODE_JSON = {}
-""" Source codes and descriptions."""
+"""
+Source codes and descriptions.
+"""
 
-sourcecodes_file = importlib_resources.files(__package__) / "sourcecode.json"
+_sourcecodes_file = importlib_resources.files(__package__) / "sourcecode.json"
 def loadSourceCodes():
-    with sourcecodes_file.open("rb") as f:
+    """
+    Loads source code definitions.
+
+    JSON source codes are available at
+    https://github.com/crotwell/simplemseed/blob/main/src/simplemseed/sourcecode.json
+    """
+    with _sourcecodes_file.open("rb") as f:
         # load as json array
         bcList = json.load(f)
         # convert to dict by code
