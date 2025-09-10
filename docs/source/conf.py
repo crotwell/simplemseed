@@ -33,10 +33,16 @@ intersphinx_disabled_domains = ['std']
 templates_path = ['_templates']
 exclude_patterns = []
 
+# only doc public api via __all__
+autodoc2_module_all_regexes = [
+    r"simplemseed",
+]
 autodoc2_packages = [
     "../../src/simplemseed",
 ]
 autodoc2_sort_names = True
+autodoc2_hidden_objects = ["dunder", "private", "inherited"]
+
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
