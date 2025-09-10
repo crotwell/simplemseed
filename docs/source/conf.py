@@ -10,8 +10,8 @@
 project = 'SimpleMSeed'
 copyright = '2025, Philip Crotwell'
 author = 'Philip Crotwell'
-release = '0.4'
-version = '0.4.6'
+release = '0.5'
+version = '0.5.0-dev'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
