@@ -26,6 +26,15 @@ print(sid.networkSourceId())
 print(sid.networkSourceId() == sid2.networkSourceId())
 print(sid.networkSourceId() == simplemseed.FDSNSourceId.parse("FDSN:CO"))
 
+# create other subsources (orientations)
+loc_sid = sid.locationSourceId()
+bhn_sid = loc_sid.createFDSNSourceId(sid.bandCode, sid.sourceCode, "N")
+bhe_sid = loc_sid.createFDSNSourceId(sid.bandCode, sid.sourceCode, "E")
+print(f"BHZ chan: {sid}")
+print(f"BHN chan: {bhn_sid}")
+print(f"BHE chan: {bhe_sid}")
+print()
+
 # create some "fake" channels based on sample rate
 print(simplemseed.FDSNSourceId.createUnknown())
 print(simplemseed.FDSNSourceId.createUnknown(100))

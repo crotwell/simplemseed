@@ -116,7 +116,7 @@ class FDSNSourceId:
     """FDSN Specification version that this class corresponds to."""
     SPECIFICATION_URL="http://docs.fdsn.org/projects/source-identifiers/en/v1.0"
     """URL to specification"""
-    
+
     networkCode: str
     "Network code, 1-8 chars."
     stationCode: str
@@ -132,7 +132,7 @@ class FDSNSourceId:
 
     def __init__(
         self,
-        networkCode: str,
+        networkCode: Union[str,"NetworkSourceId"],
         stationCode: str,
         locationCode: str,
         bandCode: str,
@@ -142,7 +142,10 @@ class FDSNSourceId:
         """
         Creates a new source id with the given codes.
         """
-        self.networkCode = networkCode
+        if isinstance(networkCode, NetworkSourceId):
+            self.networkCode = networkCode.networkCode
+        else:
+            self.networkCode = networkCode
         self.stationCode = stationCode
         self.locationCode = locationCode
         self.bandCode = bandCode
@@ -213,10 +216,13 @@ class FDSNSourceId:
         return FDSNSourceId(items[0], items[1], items[2], items[3], items[4], items[5])
 
     @staticmethod
-    def fromNslc(net: str, sta: str, loc: str, channelCode: str) -> "FDSNSourceId":
+    def fromNslc(net: str, sta: str, loc: str, channelCode: str, startYear: str|int|None=None) -> "FDSNSourceId":
         """
         Create a FDSN Source Id from an older seed-style nslc, network, station
         location, channel.
+
+        Optionally give the start year of the network, which will be appended
+        if it is a SEED-style temporary network like XD.
         """
         if len(channelCode) == 3:
             band = channelCode[0]
@@ -233,11 +239,12 @@ class FDSNSourceId:
                 raise FDSNSourceIdException(
                     f"channel code must be length 3 or have 3 items separated by '{SEP}', first len 1, last may be missing: {channelCode}"
                 )
+        netId = NetworkSourceId(net, startYear)
 
-        return FDSNSourceId(net, sta, loc, band, source, subsource)
+        return FDSNSourceId(netId, sta, loc, band, source, subsource)
 
     @staticmethod
-    def parseNslc(nslc: str, sep=".") -> "FDSNSourceId":
+    def parseNslc(nslc: str, sep=".", startYear: str|int|None=None) -> "FDSNSourceId":
         """
         Create a FDSN Source Id by parsing an older seed-style nslc, network, station
         location, channel, wheret the 4 sections are separated by the given
@@ -249,7 +256,7 @@ class FDSNSourceId:
                 f"channel nslc must have 4 items separated by '{sep}': {nslc}"
             )
 
-        return FDSNSourceId.fromNslc(items[0], items[1], items[2], items[3])
+        return FDSNSourceId.fromNslc(items[0], items[1], items[2], items[3], startYear=startYear)
 
     def validate(self) -> (bool, Union[str, None]):
         """
@@ -328,8 +335,17 @@ class NetworkSourceId:
     networkCode: str
     "Network code, 1-8 chars."
 
-    def __init__(self, networkCode: str):
+    def __init__(self, networkCode: str, startYear: str|int|None=None):
         self.networkCode = networkCode
+        if self.isSeedTempNet() and startYear is not None:
+            if isinstance(startYear, str):
+                if len(startYear) != 4:
+                    raise FDSNSourceIdException(f"Start year for network be 4 digit year, {startYear}")
+            elif isinstance(startYear, int):
+                if startYear<1880 or 2100<startYear:
+                    raise FDSNSourceIdException(f"Start year for network be 4 digit year, {startYear}")
+            self.networkCode = f"{networkCode}{startYear}"
+
 
     def isTempNetConvention(self) -> bool:
         """
@@ -385,6 +401,9 @@ class NetworkSourceId:
             return (False, f"Network code allowed chars only A-Z and 0-9, {self.networkCode}")
         return (True, "")
 
+    def createStationSourceId(self, stationCode) -> "StationSourceId":
+        return StationSourceId(self.networkCode, stationCode)
+
     def __str__(self) -> str:
         return f"{FDSN_PREFIX}{self.networkCode}"
 
@@ -404,9 +423,17 @@ class StationSourceId:
     stationCode: str
     "Station code, 1-8 chars."
 
-    def __init__(self, networkCode: str, stationCode: str):
-        self.networkCode = networkCode
+    def __init__(self,
+                 networkCode: Union[str,"NetworkSourceId"],
+                 stationCode: str):
+        if isinstance(networkCode, NetworkSourceId):
+            self.networkCode = networkCode.networkCode
+        else:
+            self.networkCode = networkCode
         self.stationCode = stationCode
+
+    def createLocationSourceId(self, locationCode) -> "LocationSourceId":
+        return LocationSourceId(self.networkCode, self.stationCode, locationCode)
 
     def validate(self) -> (bool, Union[str, None]):
         """Validation checks."""
@@ -450,10 +477,21 @@ class LocationSourceId:
     locationCode: str
     "Location code, 0-8 chars."
 
-    def __init__(self, networkCode: str, stationCode: str, locationCode: str):
-        self.networkCode = networkCode
+    def __init__(self,
+                 networkCode: Union[str,"NetworkSourceId"],
+                 stationCode: str,
+                 locationCode: str):
+        if isinstance(networkCode, NetworkSourceId):
+            self.networkCode = networkCode.networkCode
+        else:
+            self.networkCode = networkCode
+        if locationCode is None:
+            locationCode = ""
         self.stationCode = stationCode
         self.locationCode = locationCode
+
+    def createFDSNSourceId(self, bandCode: str, sourceCode: str, subsourceCode: str) -> "FDSNSourceId":
+        return FDSNSourceId(self.networkCode, self.stationCode, self.locationCode, bandCode, sourceCode, subsourceCode)
 
     def validate(self) -> (bool, Union[str, None]):
         """Validation checks."""

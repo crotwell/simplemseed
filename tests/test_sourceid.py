@@ -2,6 +2,26 @@ import simplemseed
 
 
 class TestSourceId:
+    def test_sid_init(self):
+        net = "CO"
+        sta = "JSC"
+        loc = "00"
+        band = "L"
+        s = "H"
+        subs = "Z"
+        sid = simplemseed.FDSNSourceId(net, sta, loc, band, s, subs)
+        assert sid.validate()[0] == True
+        # net is network sid
+        sid2 = simplemseed.FDSNSourceId(sid.networkSourceId(), sta, loc, band, s, subs)
+        assert sid2.validate()[0] == True
+        assert sid == sid2
+        # loc is empty
+        sid = simplemseed.FDSNSourceId(net, sta, "", band, s, subs)
+        assert sid.validate()[0] == True
+        # loc is None
+        sid = simplemseed.FDSNSourceId(net, sta, None, band, s, subs)
+        assert sid.validate()[0] == True
+
     def test_sid(self):
         net = "CO"
         sta = "JSC"
@@ -141,6 +161,47 @@ class TestSourceId:
         assert sid.sourceCode == s
         assert sid.subsourceCode == subs
 
+    def test_temp_net(self):
+        net = "XD"
+        startYear=1994
+        sta = "GOMA"
+        loc = "00"
+        band = "L"
+        s = "H"
+        subs = "Z"
+        sid_nslclong = simplemseed.FDSNSourceId.fromNslc(
+            net, sta, loc, f"{band}_{s}_{subs}", startYear=startYear
+        )
+        assert sid_nslclong.validate()[0] == True
+        assert sid_nslclong.networkCode == net+startYear
+        assert sid_nslclong.stationCode == sta
+        assert sid_nslclong.locationCode == loc
+        assert sid_nslclong.bandCode == band
+        assert sid_nslclong.sourceCode == s
+        assert sid_nslclong.subsourceCode == subs
+        assert sid.locationSourceId().validate()[0] == True
+        assert sid.stationSourceId().validate()[0] == True
+        assert sid.networkSourceId().validate()[0] == True
+        assert sid.isTempNetConvention() == True
+        assert sid.isTempNetHistorical() == True
+        assert sid.isSeedTempNet() == False
+        assert sid.isTemporary() == True
+
+        # startYear as string
+        startYear="1994"
+        sid_nslclong = simplemseed.FDSNSourceId.fromNslc(
+            net, sta, loc, f"{band}_{s}_{subs}", startYear=startYear
+        )
+        assert sid_nslclong.validate()[0] == True
+        assert sid_nslclong.networkCode == net+startYear
+        assert sid.locationSourceId().validate()[0] == True
+        assert sid.stationSourceId().validate()[0] == True
+        assert sid.networkSourceId().validate()[0] == True
+        assert sid.isTempNetConvention() == True
+        assert sid.isTempNetHistorical() == True
+        assert sid.isSeedTempNet() == False
+        assert sid.isTemporary() == True
+
     def test_sid_empty_loc_subs(self):
         net = "XX2025"
         sta = "BIGGYBIG"
@@ -253,3 +314,39 @@ class TestSourceId:
         assert simplemseed.bandCodeForRate(20, 0.5) == 'S'
         assert simplemseed.bandCodeForRate(1.0 ) == 'L'
         assert simplemseed.bandCodeForRate(-10.0 ) == 'V'
+
+    def test_create(self):
+        net = "FDSN:XD1994"
+        net_sid = simplemseed.FDSNSourceId.parse(net)
+        assert net_sid.validate()[0] == True
+        assert isinstance(net_sid,  simplemseed.NetworkSourceId)
+        staCode = "GOMA"
+        sta_sid = net_sid.createStationSourceId(staCode)
+        assert sta_sid.validate()[0] == True
+        assert sta_sid.networkCode == net_sid.networkCode
+        assert sta_sid.stationCode == staCode
+        sta2_sid = simplemseed.StationSourceId(net_sid, staCode)
+        assert sta_sid == sta2_sid
+        locCode = "00"
+        loc_sid = sta_sid.createLocationSourceId(locCode)
+        assert loc_sid.validate()[0] == True
+        assert loc_sid.networkCode == sta_sid.networkCode
+        assert loc_sid.stationCode == sta_sid.stationCode
+        assert loc_sid.locationCode == locCode
+        locCode = ""
+        loc_sid = sta_sid.createLocationSourceId(locCode)
+        assert loc_sid.validate()[0] == True
+        assert loc_sid.networkCode == sta_sid.networkCode
+        assert loc_sid.stationCode == sta_sid.stationCode
+        assert loc_sid.locationCode == locCode
+        chanBand = "B"
+        chanSource = "H"
+        chanSubsource = "Z"
+        chan_sid = loc_sid.createFDSNSourceId(chanBand, chanSource, chanSubsource)
+        assert chan_sid.validate()[0] == True
+        assert chan_sid.networkCode == loc_sid.networkCode
+        assert chan_sid.stationCode == loc_sid.stationCode
+        assert chan_sid.locationCode == loc_sid.locationCode
+        assert chan_sid.bandCode == chanBand
+        assert chan_sid.sourceCode == chanSource
+        assert chan_sid.subsourceCode == chanSubsource
