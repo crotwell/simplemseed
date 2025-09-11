@@ -22,7 +22,7 @@ https://packaging.python.org/en/latest/tutorials/packaging-projects/
 # note may need to remove ~/Library/Application\ Support/hatch
 # if see error "No module named pip" after changing pyver
 pyver=3.10
-conda create -n do_release hatch pytest pylint requests python=$pyver -y -q
+conda create -n do_release hatch pytest pylint requests python=$pyver -y
 conda activate do_release
 /bin/rm -f dist/*
 hatch clean && hatch build && pip install dist/simplemseed*.whl
