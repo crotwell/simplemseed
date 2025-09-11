@@ -8,7 +8,9 @@ from typing import Union, Optional
 import argparse
 import json
 import re
+import sys
 from importlib import resources as importlib_resources
+from . import VERSION
 
 
 
@@ -677,6 +679,10 @@ def _do_parseargs():
         "-v", "--verbose", help="increase output verbosity", action="store_true"
     )
     parser.add_argument(
+        "--version", help="print version", action="version",
+        version=f'%(prog)s, simplemseed version {VERSION}'
+    )
+    parser.add_argument(
         "-b", "--band", nargs="+", required=False, help="describe band code"
     )
     parser.add_argument(
@@ -721,4 +727,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

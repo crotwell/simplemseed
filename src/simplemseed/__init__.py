@@ -1,5 +1,5 @@
 __version__ = "0.5.0-dev"
-version = __version__
+VERSION = __version__
 "Current version"
 
 from .mseed3 import (

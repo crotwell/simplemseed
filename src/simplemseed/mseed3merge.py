@@ -1,5 +1,7 @@
 import argparse
+import sys
 from .mseed3 import readMSeed3Records
+from . import VERSION
 
 
 def do_parseargs():
@@ -12,6 +14,10 @@ def do_parseargs():
     )
     parser.add_argument(
         "-v", "--verbose", help="increase output verbosity", action="store_true"
+    )
+    parser.add_argument(
+        "--version", help="print version", action="version",
+        version=f'%(prog)s, simplemseed version {VERSION}'
     )
     parser.add_argument(
         "--decomp",
@@ -36,4 +42,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

@@ -1,11 +1,13 @@
 
 import argparse
 import json
+import sys
 
 from .mseed3 import MSeed3Record, MSeed3Header, UNKNOWN_PUBLICATION_VERSION
 from .miniseed import MiniseedRecord, MiniseedException, readMiniseed2Records
 from .fdsnsourceid import FDSNSourceId
 from .seedcodec import isPrimitiveCompression, BIG_ENDIAN
+from . import VERSION
 
 
 def mseed2to3(ms2: MiniseedRecord) -> MSeed3Record:
@@ -120,6 +122,10 @@ def do_parseargs():
         "-v", "--verbose", help="increase output verbosity", action="store_true"
     )
     parser.add_argument(
+        "--version", help="print version", action="version",
+        version=f'%(prog)s, simplemseed version {VERSION}'
+    )
+    parser.add_argument(
         "-2",
         "--ms2",
         required=True,
@@ -139,6 +145,9 @@ def do_parseargs():
 def main():
 
     args = do_parseargs()
+    if args.version:
+        print(f"mseed2to3 Version {VERSION}")
+        return 0
     bytesWritten = 0
     with args.ms2 as inms2:
         with args.ms3 as outms3:
@@ -151,3 +160,7 @@ def main():
                     print(f"   {ms3rec}")
     if args.verbose:
         print(f"wrote {bytesWritten} bytes")
+
+
+if __name__ == "__main__":
+    sys.exit(main())
