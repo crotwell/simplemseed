@@ -10,7 +10,7 @@ import json
 import re
 import sys
 from importlib import resources as importlib_resources
-from . import VERSION
+from .version import VERSION
 
 
 

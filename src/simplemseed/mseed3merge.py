@@ -1,7 +1,7 @@
 import argparse
 import sys
 from .mseed3 import readMSeed3Records
-from . import VERSION
+from .version import VERSION
 
 
 def do_parseargs():

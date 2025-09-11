@@ -2,7 +2,7 @@ import argparse
 import os
 import sys
 from .miniseed import readMiniseed2Records
-from . import VERSION
+from .version import VERSION
 
 
 def do_parseargs():

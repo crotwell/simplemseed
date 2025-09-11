@@ -7,7 +7,7 @@ from .mseed3 import MSeed3Record, MSeed3Header, UNKNOWN_PUBLICATION_VERSION
 from .miniseed import MiniseedRecord, MiniseedException, readMiniseed2Records
 from .fdsnsourceid import FDSNSourceId
 from .seedcodec import isPrimitiveCompression, BIG_ENDIAN
-from . import VERSION
+from .version import VERSION
 
 
 def mseed2to3(ms2: MiniseedRecord) -> MSeed3Record:

@@ -5,7 +5,7 @@ import os
 import sys
 from jsonpointer import set_pointer, JsonPointer, JsonPointerException
 from .mseed3 import readMSeed3Records
-from . import VERSION
+from .version import VERSION
 
 
 def do_parseargs():
