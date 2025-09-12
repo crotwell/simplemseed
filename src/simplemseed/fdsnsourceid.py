@@ -404,6 +404,9 @@ class NetworkSourceId:
         return (True, "")
 
     def createStationSourceId(self, stationCode) -> "StationSourceId":
+        """
+        Create a station-level source id within this network.
+        """
         return StationSourceId(self.networkCode, stationCode)
 
     def __str__(self) -> str:
@@ -435,6 +438,9 @@ class StationSourceId:
         self.stationCode = stationCode
 
     def createLocationSourceId(self, locationCode) -> "LocationSourceId":
+        """
+        Create a location-level source id within this station.
+        """
         return LocationSourceId(self.networkCode, self.stationCode, locationCode)
 
     def validate(self) -> (bool, Union[str, None]):
@@ -454,7 +460,7 @@ class StationSourceId:
         return f"{FDSN_PREFIX}{self.networkCode}{SEP}{self.stationCode}"
 
     def networkSourceId(self) -> "NetworkSourceId":
-        """The network sourceid containing this channel. """
+        """The network sourceid containing this station. """
         return NetworkSourceId(self.networkCode)
 
     def __eq__(self, other: object, /) -> bool:
@@ -493,6 +499,9 @@ class LocationSourceId:
         self.locationCode = locationCode
 
     def createFDSNSourceId(self, bandCode: str, sourceCode: str, subsourceCode: str) -> "FDSNSourceId":
+        """
+        Create a channel-level FDSNSourceId within this location.
+        """
         return FDSNSourceId(self.networkCode, self.stationCode, self.locationCode, bandCode, sourceCode, subsourceCode)
 
     def validate(self) -> (bool, Union[str, None]):
@@ -509,11 +518,11 @@ class LocationSourceId:
         return (True, "")
 
     def stationSourceId(self) -> "StationSourceId":
-        """The station sourceid containing this channel. """
+        """The station sourceid containing this location. """
         return StationSourceId(self.networkCode, self.stationCode)
 
     def networkSourceId(self) -> "NetworkSourceId":
-        """The network sourceid containing this channel. """
+        """The network sourceid containing this location. """
         return NetworkSourceId(self.networkCode)
 
     def __str__(self) -> str:
