@@ -23,7 +23,6 @@ dependencies = [
     "crc32c",
     "numpy",
     "jsonpointer",
-    'importlib-metadata; python_version<"3.10"'
 ]
 
 [project.urls]
