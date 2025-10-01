@@ -1,3 +1,3 @@
-__version__ = "0.5.1-dev"
+__version__ = "1.0.0"
 VERSION = __version__
 "Current version"

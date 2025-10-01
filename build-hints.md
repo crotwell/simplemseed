@@ -39,7 +39,7 @@ conda activate sphinx
 cd docs ; make clean && make html && open build/html/index.html && cd ..
 conda activate do_release
 git status
-git tag -a -m "version to 0.5.0" v0.5.0
+git tag -a -m "version to 1.0.0" v1.0.0
 git push
 # first time
 # hatch publish -u __token__ --auth <token>
