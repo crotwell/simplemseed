@@ -877,4 +877,3 @@ def crcAsHex(crc):
 
 class Miniseed3Exception(Exception):
     """ Exception in parsing a miniseed3 record from bytes-like."""
-    pass

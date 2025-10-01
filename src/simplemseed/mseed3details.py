@@ -1,3 +1,5 @@
+"Simple details of miniseed 3."
+
 import argparse
 from datetime import datetime
 import json

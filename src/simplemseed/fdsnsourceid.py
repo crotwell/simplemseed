@@ -711,7 +711,7 @@ def _do_parseargs():
     if args.sps is None and args.band is None and not args.allbands \
             and args.source is None and not args.allsources \
             and len(args.sid) == 0:
-        parser.error(f"One of sps, band, source or sid must be given")
+        parser.error("One of sps, band, source or sid must be given")
     return args
 
 
@@ -738,7 +738,7 @@ def main():
     if args.allsources:
         for sourceCode in SOURCE_CODE_JSON:
             print(f"    Source: {sourceCode} - {sourceCodeDescribe(sourceCode)}")
-            
+
     if args.source is not None:
         for sourceCode in args.source:
             print(f"    Source: {sourceCode} - {sourceCodeDescribe(sourceCode)}")

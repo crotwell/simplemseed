@@ -160,6 +160,7 @@ def main():
                     print(f"   {ms3rec}")
     if args.verbose:
         print(f"wrote {bytesWritten} bytes")
+    return 0
 
 
 if __name__ == "__main__":

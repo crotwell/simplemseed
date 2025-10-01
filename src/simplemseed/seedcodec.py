@@ -1,9 +1,15 @@
+"""
+Seismic compression and decompression algorithms.
+
+Ported from Java, https://github.com/crotwell/seedcodec/
+"""
+
 # Philip Crotwell
 # University of South Carolina, 2019
 # https://www.seis.sc.edu
 # /
 # converted from Steim2.java in seedCodec
-# https:#github.com/crotwell/seedcodec/
+# https://github.com/crotwell/seedcodec/
 # constants for compression types
 
 

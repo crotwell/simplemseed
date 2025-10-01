@@ -1,10 +1,19 @@
+
+"""
+Simple merging of miniseed 3 records. This assumes the records are
+already in time sorted order by channel. It only compares neighboring
+records for merging.
+"""
+
 import argparse
 import sys
 from .mseed3 import readMSeed3Records
 from .version import VERSION
 
-
 def do_parseargs():
+    """
+    Create arg parser and parse args.
+    """
     parser = argparse.ArgumentParser(
         description="""
         Simple merging of miniseed 3 records. This assumes the records are
@@ -32,6 +41,7 @@ def do_parseargs():
 
 
 def main():
+    "main function"
     args = do_parseargs()
     with open(args.outfile, "wb") as outms3file:
         with open(args.ms3file, "rb") as inms3file:
