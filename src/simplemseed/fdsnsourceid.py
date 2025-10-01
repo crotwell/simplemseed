@@ -695,15 +695,22 @@ def _do_parseargs():
         "-b", "--band", nargs="+", required=False, help="describe band code"
     )
     parser.add_argument(
+        "--allbands", help="describe all band codes", action="store_true"
+    )
+    parser.add_argument(
         "-s", "--source", nargs="+", required=False, help="describe source code"
+    )
+    parser.add_argument(
+        "--allsources", help="describe all source codes", action="store_true"
     )
     parser.add_argument(
         "--sps", required=False, type=float, help="band code for sample rate, negative for period"
     )
     parser.add_argument("sid", nargs="*", help="source id to print")
     args = parser.parse_args()
-    if args.sps is None and args.band is None \
-            and args.source is None and len(args.sid) == 0:
+    if args.sps is None and args.band is None and not args.allbands \
+            and args.source is None and not args.allsources \
+            and len(args.sid) == 0:
         parser.error(f"One of sps, band, source or sid must be given")
     return args
 
@@ -717,6 +724,10 @@ def main():
         print(f"      Rate: {args.sps} - {bbc} - {bandCodeDescribe(bbc)}")
         if bbc != spc:
             print(f"      Rate: {args.sps} - {spc} - {bandCodeDescribe(spc)}")
+    if args.allbands:
+        # print all
+        for bandCode in BAND_CODE_JSON:
+            print(f"      Band: {bandCode} - {bandCodeDescribe(bandCode)}")
 
     if args.band is not None:
         for bands in args.band:
@@ -724,6 +735,10 @@ def main():
             for bandCode in bands:
                 print(f"      Band: {bandCode} - {bandCodeDescribe(bandCode)}")
 
+    if args.allsources:
+        for sourceCode in SOURCE_CODE_JSON:
+            print(f"    Source: {sourceCode} - {sourceCodeDescribe(sourceCode)}")
+            
     if args.source is not None:
         for sourceCode in args.source:
             print(f"    Source: {sourceCode} - {sourceCodeDescribe(sourceCode)}")
