@@ -701,12 +701,17 @@ def _do_parseargs():
         "--sps", required=False, type=float, help="band code for sample rate, negative for period"
     )
     parser.add_argument("sid", nargs="*", help="source id to print")
-    return parser.parse_args()
+    args = parser.parse_args()
+    if args.sps is None and args.band is None \
+            and args.source is None and len(args.sid) == 0:
+        parser.error(f"One of sps, band, source or sid must be given")
+    return args
 
 
 def main():
     args = _do_parseargs()
-    if args.sps:
+
+    if args.sps is not None:
         bbc = bandCodeForRate(args.sps, 0.01)
         spc = bandCodeForRate(args.sps, 10)
         print(f"      Rate: {args.sps} - {bbc} - {bandCodeDescribe(bbc)}")
