@@ -156,11 +156,12 @@ class MiniseedHeader:
         sta = self.station.ljust(5).encode("UTF-8")
         loc = self.location.ljust(2).encode("UTF-8")
         chan = self.channel.ljust(3).encode("UTF-8")
+        seq = ("%06d" % self.sequence_number).encode("UTF-8")
         struct.pack_into(
             self.endianChar + "6scc5s2s3s2s",
             header,
             0,
-            EMPTY_SEQ,
+            seq,
             b"D",
             b" ",
             sta,
@@ -605,7 +606,7 @@ def unpackMiniseedHeader(recordBytes, endianChar=">"):
         timeCorr=timeCorr,
         dataOffset=dataOffset,
         blocketteOffset=blocketteOffset,
-        sequence_number=seq,
+        sequence_number=int(seq),
         dataquality=qualityChar,
     )
 
