@@ -3,7 +3,7 @@
 
 [![PyPI](https://img.shields.io/pypi/v/simplemseed)](https://pypi.org/project/simplemseed/)
 [![Documentation Status](https://readthedocs.org/projects/simplemseed/badge/?version=latest)](https://simplemseed.readthedocs.io/en/latest/?badge=latest)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17246121.svg)](https://doi.org/10.5281/zenodo.17246121)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17246120.svg)](https://doi.org/10.5281/zenodo.17246120)
 
 
 [Miniseed3](http://docs.fdsn.org/projects/miniseed3) (and miniseed2) in pure python.
