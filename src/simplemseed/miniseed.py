@@ -582,11 +582,16 @@ def unpackMiniseedHeader(recordBytes, endianChar=">"):
     sta = sta.decode("utf-8").strip()
     loc = loc.decode("utf-8").strip()
     chan = chan.decode("utf-8").strip()
-    seq = seq.decode("utf-8").strip()
+    seq = seq.decode("utf-8")
     qualityChar = qualityChar.decode("utf-8").strip()
     starttime = BTime(year, yday, hour, minute, sec, tenthMilli)
     sampleRate = 0  # recalc in constructor
     encoding = -1  # reset on read b1000
+    try:
+        sequence_number=int(seq.strip())
+    except:
+        print(f"Invalid sequence number: '{seq}' {net}_{sta}_{loc}_{chan} {starttime}", file=sys.stderr)
+        sequence_number=0
     return MiniseedHeader(
         net,
         sta,
@@ -606,7 +611,7 @@ def unpackMiniseedHeader(recordBytes, endianChar=">"):
         timeCorr=timeCorr,
         dataOffset=dataOffset,
         blocketteOffset=blocketteOffset,
-        sequence_number=int(seq),
+        sequence_number=sequence_number,
         dataquality=qualityChar,
     )
 
